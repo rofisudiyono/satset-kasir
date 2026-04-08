@@ -15,8 +15,8 @@ Fokus aplikasi saat ini adalah **operasional kasir berbasis tablet** untuk alur 
 - web orders
 - siap antar / integrasi status dapur
 - riwayat order
-- inventori / produk
 - pengaturan toko dan metode pembayaran
+- scanner barcode
 
 ## Daftar Fitur
 
@@ -38,14 +38,14 @@ Fokus aplikasi saat ini adalah **operasional kasir berbasis tablet** untuk alur 
 6. **Siap Antar dan Status Dapur**  
    Dokumen: [features/ready-delivery-and-kds.md](./features/ready-delivery-and-kds.md)
 
-7. **Riwayat Order**  
+7. **Riwayat Order**
    Dokumen: [features/order-history.md](./features/order-history.md)
 
-8. **Inventori dan Produk**  
-   Dokumen: [features/inventory-and-products.md](./features/inventory-and-products.md)
-
-9. **Pengaturan Toko dan Metode Pembayaran**  
+8. **Pengaturan Toko dan Metode Pembayaran**
    Dokumen: [features/store-settings-and-payment-config.md](./features/store-settings-and-payment-config.md)
+
+9. **Barcode Scanner**
+   Dokumen: [features/barcode-scanner.md](./features/barcode-scanner.md)
 
 ## Struktur Operasional Utama
 
