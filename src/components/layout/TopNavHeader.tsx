@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
-import { useAtom } from "jotai";
-import React, { useState } from "react";
+import { useAtom, useSetAtom } from "jotai";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Modal,
   StyleSheet,
@@ -14,7 +14,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
 import { IconButton, TextBodySm, TextCaption, TextH3 } from "@/components";
-import { heldOrdersAtom } from "@/features/cart/store/cart.store";
+import {
+  ensurePosSeedDataAtom,
+  posOrdersAtom,
+} from "@/features/pos/store/pos.store";
 import {
   isShiftStartedAtom,
   shiftDataAtom,
@@ -33,7 +36,6 @@ type NavItem = {
   iconActive: keyof typeof Ionicons.glyphMap;
   segment: string;
   href: string;
-  badge?: number;
 };
 
 export function TopNavHeader() {
@@ -42,8 +44,27 @@ export function TopNavHeader() {
   const { width } = useWindowDimensions();
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
   const [shiftData] = useAtom(shiftDataAtom);
-  const [heldOrders] = useAtom(heldOrdersAtom);
+  const [posOrders] = useAtom(posOrdersAtom);
+  const ensurePosSeedData = useSetAtom(ensurePosSeedDataAtom);
   const [staffDetailVisible, setStaffDetailVisible] = useState(false);
+
+  useEffect(() => {
+    ensurePosSeedData();
+  }, [ensurePosSeedData]);
+
+  const readyOrders = useMemo(() => {
+    return posOrders.filter((order) => {
+      if (order.fulfillment !== "READY") return false;
+      if (order.status === "CANCELLED" || order.status === "EXPIRED") {
+        return false;
+      }
+      if (!shiftData?.openedAt) return true;
+      if (order.shiftId && shiftData.shiftId) {
+        return order.shiftId === shiftData.shiftId;
+      }
+      return order.createdAt >= shiftData.openedAt;
+    });
+  }, [posOrders, shiftData?.openedAt, shiftData?.shiftId]);
 
   const navItems: NavItem[] = [
     {
@@ -59,14 +80,6 @@ export function TopNavHeader() {
       iconActive: "create",
       segment: "/transaksi",
       href: "/transaksi",
-    },
-    {
-      label: "Siap Diantar",
-      icon: "bag-check-outline",
-      iconActive: "bag-check",
-      segment: "/pengaturan",
-      href: "/pengaturan",
-      badge: heldOrders.length > 0 ? heldOrders.length : undefined,
     },
     {
       label: "Riwayat",
@@ -175,7 +188,7 @@ export function TopNavHeader() {
             const active = isActive(item);
             return (
               <TouchableOpacity
-                key={item.href}
+                key={item.label}
                 activeOpacity={0.8}
                 style={[styles.navChip, active && styles.navChipActive]}
                 onPress={() => router.push(item.href as never)}
@@ -195,23 +208,48 @@ export function TopNavHeader() {
                 >
                   {item.label}
                 </TextBodySm>
-                {item.badge ? (
-                  <View style={[styles.badge, active && styles.badgeActive]}>
-                    <TextCaption
-                      color={
-                        active
-                          ? ColorPrimary.primary700
-                          : ColorNeutral.neutral700
-                      }
-                      fontWeight="700"
-                    >
-                      {item.badge}
-                    </TextCaption>
-                  </View>
-                ) : null}
               </TouchableOpacity>
             );
           })}
+
+          <View
+            style={[
+              styles.readyChip,
+              readyOrders.length > 0 && styles.readyChipActive,
+            ]}
+          >
+            <Ionicons
+              name={readyOrders.length > 0 ? "bag-check" : "bag-check-outline"}
+              size={16}
+              color={
+                readyOrders.length > 0
+                  ? ColorSuccess.success600
+                  : ColorNeutral.neutral500
+              }
+            />
+            <TextBodySm
+              fontWeight="700"
+              color={
+                readyOrders.length > 0
+                  ? ColorSuccess.success600
+                  : ColorNeutral.neutral700
+              }
+            >
+              Siap Diantar
+            </TextBodySm>
+            <TextCaption
+              color={
+                readyOrders.length > 0
+                  ? ColorSuccess.success600
+                  : ColorNeutral.neutral500
+              }
+              fontWeight={readyOrders.length > 0 ? "700" : "500"}
+            >
+              {readyOrders.length > 0
+                ? `${readyOrders.length} READY dari KDA`
+                : "Belum ada READY"}
+            </TextCaption>
+          </View>
 
           <View style={styles.comingSoonChip}>
             <Ionicons
@@ -431,17 +469,20 @@ const styles = StyleSheet.create({
     backgroundColor: ColorPrimary.primary50,
     borderColor: ColorPrimary.primary200,
   },
-  badge: {
-    minWidth: 22,
-    height: 22,
-    borderRadius: 11,
+  readyChip: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 6,
-    backgroundColor: ColorBase.white,
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: ColorNeutral.neutral50,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
   },
-  badgeActive: {
-    backgroundColor: ColorBase.white,
+  readyChipActive: {
+    backgroundColor: "#F0FDF4",
+    borderColor: "#BBF7D0",
   },
   comingSoonChip: {
     flexDirection: "row",

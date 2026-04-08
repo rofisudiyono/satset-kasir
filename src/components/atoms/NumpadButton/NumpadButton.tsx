@@ -16,6 +16,11 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 6,
   },
+  btnCompact: {
+    height: 48,
+    borderRadius: 10,
+    marginHorizontal: 4,
+  },
 });
 
 export function NumpadButton({
@@ -24,18 +29,28 @@ export function NumpadButton({
   textColor = ColorNeutral.neutral900,
   bgColor = ColorNeutral.neutral150,
   isIcon = false,
+  compact = false,
   style,
 }: NumpadButtonProps) {
   return (
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
-      style={[styles.btn, { backgroundColor: bgColor }, style]}
+      style={[
+        styles.btn,
+        compact && styles.btnCompact,
+        { backgroundColor: bgColor },
+        style,
+      ]}
     >
       {isIcon ? (
-        <Ionicons name="backspace" size={22} color={ColorDanger.danger600} />
+        <Ionicons
+          name="backspace"
+          size={compact ? 18 : 22}
+          color={ColorDanger.danger600}
+        />
       ) : (
-        <TextH3 fontWeight="700" color={textColor} fontSize={20}>
+        <TextH3 fontWeight="700" color={textColor} fontSize={compact ? 18 : 20}>
           {label}
         </TextH3>
       )}

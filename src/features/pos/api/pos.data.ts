@@ -188,6 +188,85 @@ export const posSeedOrders: PosOrder[] = [
   },
 
   {
+    id: "#ORD-READY-2003",
+    createdAt: now - 11 * 60 * 1000,
+    source: "WALK_IN",
+    status: "PAID",
+    fulfillment: "READY",
+    customerName: "Takeaway - Citra",
+    tableLabel: "Takeaway",
+    serviceMode: "TAKEAWAY",
+    items: [
+      {
+        id: "ready-item-3",
+        productId: "nasi-kebuli",
+        name: "Nasi Kebuli Ayam",
+        qty: 1,
+        unitPrice: 42000,
+      },
+      {
+        id: "ready-item-4",
+        productId: "es-jeruk",
+        name: "Es Jeruk",
+        qty: 1,
+        unitPrice: 12000,
+      },
+    ],
+    payments: [
+      {
+        id: "ready-payment-3",
+        method: "tunai",
+        amountPaid: 59940,
+        amountReceived: 100000,
+        paidAt: now - 10 * 60 * 1000,
+      },
+    ],
+    subtotal: 54000,
+    discountAmount: 0,
+    taxAmount: 5940,
+    grandTotal: 59940,
+  },
+
+  {
+    id: "#ORD-READY-2004",
+    createdAt: now - 6 * 60 * 1000,
+    source: "WALK_IN",
+    status: "PARTIALLY_PAID",
+    fulfillment: "READY",
+    customerName: "Meja 12",
+    tableLabel: "Meja 12",
+    serviceMode: "DINE_IN",
+    items: [
+      {
+        id: "ready-item-5",
+        productId: "soto-ayam",
+        name: "Soto Ayam",
+        qty: 2,
+        unitPrice: 24000,
+      },
+      {
+        id: "ready-item-6",
+        productId: "teh-tarik",
+        name: "Teh Tarik",
+        qty: 2,
+        unitPrice: 14000,
+      },
+    ],
+    payments: [
+      {
+        id: "ready-payment-4",
+        method: "qris",
+        amountPaid: 40000,
+        paidAt: now - 5 * 60 * 1000,
+      },
+    ],
+    subtotal: 76000,
+    discountAmount: 0,
+    taxAmount: 8360,
+    grandTotal: 84360,
+  },
+
+  {
     id: "#ORD-KDS-2002",
     createdAt: now - 8 * 60 * 1000,
     source: "WALK_IN",

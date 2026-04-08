@@ -45,7 +45,12 @@ export default function BukaShiftPage() {
   const [slot, setSlot] = useState<ShiftSlot>("PAGI");
   const [, setIsShiftStarted] = useAtom(isShiftStartedAtom);
   const [, setShiftData] = useAtom(shiftDataAtom);
-  const { isTablet, contentMaxWidth, horizontalPadding } = useResponsiveLayout();
+  const {
+    isTablet,
+    contentMaxWidth,
+    horizontalPadding,
+    sectionGap,
+  } = useResponsiveLayout();
 
   const now = new Date();
   const currentDateTime =
@@ -118,7 +123,7 @@ export default function BukaShiftPage() {
         <XStack
           flex={1}
           flexDirection={isTablet ? "row" : "column"}
-          gap="$4"
+          gap={isTablet ? "$3" : "$4"}
           style={[
             styles.shell,
             {
@@ -127,165 +132,226 @@ export default function BukaShiftPage() {
             },
           ]}
         >
-          <YStack flex={isTablet ? 0.56 : undefined} gap="$4">
-            <YStack alignItems="center" gap="$3" style={styles.heroCard}>
+          <YStack flex={isTablet ? 0.58 : undefined} gap={sectionGap}>
             <YStack
-              width={80}
-              height={80}
-              borderRadius={40}
-              backgroundColor={ColorWarning.warning100}
-              alignItems="center"
-              justifyContent="center"
-            >
-              <Ionicons
-                name="sunny-outline"
-                size={32}
-                color={ColorWarning.warning600}
-              />
-            </YStack>
-            <YStack alignItems="center" gap={4}>
-              <TextH1 fontWeight="800">Selamat Datang!</TextH1>
-              <TextH3 fontWeight="700" color={ColorPrimary.primary600}>
-                Budi Santoso
-              </TextH3>
-              <TextBodySm color={ColorNeutral.neutral500}>
-                Toko Makmur
-              </TextBodySm>
-              <TextBodySm color={ColorNeutral.neutral400}>
-                {currentDateTime}
-              </TextBodySm>
-            </YStack>
-            </YStack>
-
-            <YStack
-              backgroundColor={ColorBase.white}
-              borderRadius={16}
-              padding="$4"
+              alignItems={isTablet ? "flex-start" : "center"}
               gap="$3"
-              borderWidth={1}
-              borderColor={ColorNeutral.neutral200}
+              style={[styles.heroCard, isTablet && styles.heroCardTablet]}
             >
-            {/* Shift slot */}
-            <YStack gap={8}>
-              <TextH3 fontWeight="700">Slot Shift</TextH3>
-              <TextBodySm color={ColorNeutral.neutral500}>
-                Pilih slot shift untuk pencatatan laporan
-              </TextBodySm>
-              <XStack gap="$2" flexWrap="wrap">
-                {SHIFT_SLOTS.map((s) => {
-                  const active = slot === s.id;
-                  return (
-                    <TouchableOpacity
-                      key={s.id}
-                      onPress={() => setSlot(s.id)}
-                      activeOpacity={0.8}
-                      style={[
-                        styles.slotChip,
-                        active && styles.slotChipActive,
-                      ]}
-                    >
-                      <Ionicons
-                        name={s.icon}
-                        size={16}
-                        color={
-                          active ? ColorBase.white : ColorNeutral.neutral600
-                        }
-                        style={{ marginRight: 6 }}
-                      />
-                      <TextBodySm
-                        fontWeight="700"
-                        color={active ? ColorBase.white : ColorNeutral.neutral700}
-                      >
-                        {s.label}
-                      </TextBodySm>
-                    </TouchableOpacity>
-                  );
-                })}
+              <XStack
+                width="100%"
+                alignItems="center"
+                justifyContent="space-between"
+                gap="$3"
+                flexWrap="wrap"
+              >
+                <XStack alignItems="center" gap="$3" flex={1}>
+                  <YStack
+                    width={isTablet ? 64 : 80}
+                    height={isTablet ? 64 : 80}
+                    borderRadius={999}
+                    backgroundColor={ColorWarning.warning100}
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Ionicons
+                      name="sunny-outline"
+                      size={isTablet ? 26 : 32}
+                      color={ColorWarning.warning600}
+                    />
+                  </YStack>
+                  <YStack
+                    alignItems={isTablet ? "flex-start" : "center"}
+                    gap={4}
+                    flex={1}
+                  >
+                    <TextH1 fontWeight="800">Selamat Datang!</TextH1>
+                    <TextH3 fontWeight="700" color={ColorPrimary.primary600}>
+                      Budi Santoso
+                    </TextH3>
+                    <TextBodySm color={ColorNeutral.neutral500}>
+                      Toko Makmur
+                    </TextBodySm>
+                  </YStack>
+                </XStack>
+
+                <XStack alignItems="center" gap={6} style={styles.metaPill}>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={14}
+                    color={ColorNeutral.neutral500}
+                  />
+                  <TextCaption color={ColorNeutral.neutral500}>
+                    {currentDateTime}
+                  </TextCaption>
+                </XStack>
               </XStack>
             </YStack>
 
-            <View style={styles.sectionDivider} />
-
-            <YStack gap={4}>
-              <TextH3 fontWeight="700">Modal Awal Kas</TextH3>
-              <TextBodySm color={ColorNeutral.neutral500}>
-                Masukkan jumlah uang di laci kasir
-              </TextBodySm>
-            </YStack>
-
-            {/* Amount display */}
-            <YStack alignItems="center" paddingVertical="$2">
-              <TextH1 fontWeight="800" color={ColorPrimary.primary600}>
-                {formatPrice(amount)}
-              </TextH1>
-            </YStack>
-
-            {/* Preset chips */}
-            <XStack flexWrap="wrap" gap="$2">
-              {PRESET_AMOUNTS.map((preset) => (
-                <TouchableOpacity
-                  key={preset}
-                  onPress={() => handlePreset(preset)}
-                  activeOpacity={0.7}
-                  style={[
-                    styles.presetChip,
-                    amount === preset && styles.presetChipActive,
-                  ]}
-                >
-                  <TextBodySm
-                    fontWeight="600"
-                    color={
-                      amount === preset
-                        ? ColorBase.white
-                        : ColorNeutral.neutral700
-                    }
-                  >
-                    {formatPrice(preset)}
+            <YStack style={[styles.formCard, isTablet && styles.formCardTablet]}>
+              <XStack
+                width="100%"
+                justifyContent="space-between"
+                alignItems="flex-start"
+                gap="$3"
+                flexWrap="wrap"
+              >
+                <YStack gap={4} flex={1} minWidth={220}>
+                  <TextH3 fontWeight="700">Pengaturan Shift</TextH3>
+                  <TextBodySm color={ColorNeutral.neutral500}>
+                    Pilih slot dan tentukan modal awal kas sebelum mulai jaga.
                   </TextBodySm>
-                </TouchableOpacity>
-              ))}
-            </XStack>
+                </YStack>
+                <YStack style={styles.amountSummary}>
+                  <TextCaption color={ColorNeutral.neutral500}>
+                    Modal saat ini
+                  </TextCaption>
+                  <TextH1 fontWeight="800" color={ColorPrimary.primary600}>
+                    {formatPrice(amount)}
+                  </TextH1>
+                </YStack>
+              </XStack>
 
-            {/* Note input */}
-            <TextInput
-              style={styles.noteInput}
-              placeholder="Catatan shift... (opsional)"
-              placeholderTextColor={ColorNeutral.neutral400}
-              value={note}
-              onChangeText={setNote}
-              multiline={false}
-            />
+              <View style={styles.sectionDivider} />
+
+              <YStack gap={8}>
+                <TextH3 fontWeight="700">Slot Shift</TextH3>
+                <XStack gap="$2" flexWrap="wrap">
+                  {SHIFT_SLOTS.map((s) => {
+                    const active = slot === s.id;
+                    return (
+                      <TouchableOpacity
+                        key={s.id}
+                        onPress={() => setSlot(s.id)}
+                        activeOpacity={0.8}
+                        style={[
+                          styles.slotChip,
+                          active && styles.slotChipActive,
+                        ]}
+                      >
+                        <Ionicons
+                          name={s.icon}
+                          size={15}
+                          color={
+                            active ? ColorBase.white : ColorNeutral.neutral600
+                          }
+                          style={{ marginRight: 6 }}
+                        />
+                        <TextBodySm
+                          fontWeight="700"
+                          color={active ? ColorBase.white : ColorNeutral.neutral700}
+                        >
+                          {s.label}
+                        </TextBodySm>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </XStack>
+              </YStack>
+
+              <YStack gap={8}>
+                <TextH3 fontWeight="700">Preset Modal</TextH3>
+                <XStack flexWrap="wrap" gap="$2">
+                  {PRESET_AMOUNTS.map((preset) => (
+                    <TouchableOpacity
+                      key={preset}
+                      onPress={() => handlePreset(preset)}
+                      activeOpacity={0.7}
+                      style={[
+                        styles.presetChip,
+                        amount === preset && styles.presetChipActive,
+                      ]}
+                    >
+                      <TextBodySm
+                        fontWeight="600"
+                        color={
+                          amount === preset
+                            ? ColorBase.white
+                            : ColorNeutral.neutral700
+                        }
+                      >
+                        {formatPrice(preset)}
+                      </TextBodySm>
+                    </TouchableOpacity>
+                  ))}
+                </XStack>
+              </YStack>
+
+              <YStack gap={8}>
+                <TextH3 fontWeight="700">Catatan</TextH3>
+                <TextInput
+                  style={styles.noteInput}
+                  placeholder="Catatan shift... (opsional)"
+                  placeholderTextColor={ColorNeutral.neutral400}
+                  value={note}
+                  onChangeText={setNote}
+                  multiline={false}
+                />
+              </YStack>
+
+              {isTablet ? (
+                <YStack gap={6} paddingTop="$2">
+                  <AppButton
+                    variant="success"
+                    size="lg"
+                    fullWidth
+                    title="Mulai Shift Sekarang"
+                    icon={
+                      <Ionicons
+                        name="sunny-outline"
+                        size={18}
+                        color={ColorBase.white}
+                      />
+                    }
+                    onPress={handleMulaiShift}
+                  />
+                  <TextCaption
+                    color={ColorNeutral.neutral400}
+                    textAlign="center"
+                  >
+                    Shift akan tercatat otomatis
+                  </TextCaption>
+                </YStack>
+              ) : null}
             </YStack>
           </YStack>
 
-          <YStack flex={isTablet ? 0.44 : undefined} gap="$4">
+          <YStack flex={isTablet ? 0.42 : undefined} gap={sectionGap}>
             <View style={styles.numpadCard}>
-              <NumpadGrid onPress={handleNumpad} />
+              <YStack gap="$2">
+                <TextH3 fontWeight="700">Input Manual</TextH3>
+                <TextBodySm color={ColorNeutral.neutral500}>
+                  Gunakan keypad untuk menyesuaikan nominal dengan cepat.
+                </TextBodySm>
+              </YStack>
+              <View style={styles.numpadDivider} />
+              <NumpadGrid onPress={handleNumpad} compact={isTablet} />
             </View>
           </YStack>
         </XStack>
       </ScrollView>
 
-      {/* ── Bottom CTA ── */}
-      <BottomBar>
-        <AppButton
-          variant="success"
-          size="lg"
-          fullWidth
-          title="Mulai Shift Sekarang"
-          icon={
-            <Ionicons name="sunny-outline" size={18} color={ColorBase.white} />
-          }
-          onPress={handleMulaiShift}
-        />
-        <TextCaption
-          color={ColorNeutral.neutral400}
-          textAlign="center"
-          marginTop={6}
-        >
-          Shift akan tercatat otomatis
-        </TextCaption>
-      </BottomBar>
+      {!isTablet ? (
+        <BottomBar paddingBottom={18}>
+          <AppButton
+            variant="success"
+            size="lg"
+            fullWidth
+            title="Mulai Shift Sekarang"
+            icon={
+              <Ionicons name="sunny-outline" size={18} color={ColorBase.white} />
+            }
+            onPress={handleMulaiShift}
+          />
+          <TextCaption
+            color={ColorNeutral.neutral400}
+            textAlign="center"
+            marginTop={6}
+          >
+            Shift akan tercatat otomatis
+          </TextCaption>
+        </BottomBar>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -299,24 +365,51 @@ const styles = StyleSheet.create({
     width: "100%",
     alignSelf: "center",
     paddingTop: 8,
-    paddingBottom: 24,
+    paddingBottom: 18,
   },
   heroCard: {
-    backgroundColor: ColorBase.white,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
-  },
-  numpadCard: {
     backgroundColor: ColorBase.white,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: ColorNeutral.neutral200,
   },
+  heroCardTablet: {
+    paddingVertical: 14,
+  },
+  metaPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+    backgroundColor: ColorNeutral.neutral100,
+  },
+  formCard: {
+    backgroundColor: ColorBase.white,
+    borderRadius: 16,
+    padding: 16,
+    gap: 14,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+  },
+  formCardTablet: {
+    gap: 12,
+  },
+  numpadCard: {
+    backgroundColor: ColorBase.white,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+  },
+  numpadDivider: {
+    height: 1,
+    backgroundColor: ColorNeutral.neutral200,
+    marginVertical: 12,
+  },
   presetChip: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
@@ -328,21 +421,30 @@ const styles = StyleSheet.create({
     borderColor: ColorPrimary.primary600,
   },
   noteInput: {
-    height: 44,
+    height: 40,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: ColorNeutral.neutral200,
-    backgroundColor: ColorBase.white,
+    backgroundColor: ColorNeutral.neutral50,
     paddingHorizontal: 14,
     fontFamily: "System",
     fontSize: 14,
     color: ColorNeutral.neutral800,
   },
+  amountSummary: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: ColorPrimary.primary50,
+    borderWidth: 1,
+    borderColor: ColorPrimary.primary100,
+    minWidth: 210,
+  },
   slotChip: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 9,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: ColorNeutral.neutral200,

@@ -6,6 +6,7 @@ export interface NumpadButtonProps {
   textColor?: string;
   bgColor?: string;
   isIcon?: boolean;
+  compact?: boolean;
   className?: string;
   style?: StyleProp<ViewStyle>;
 }
