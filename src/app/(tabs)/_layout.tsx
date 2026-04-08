@@ -1,10 +1,10 @@
 import { Redirect, Tabs } from "expo-router";
 import React, { useCallback } from "react";
-import { useColorScheme, View } from "react-native";
+import { StyleSheet, useColorScheme, View } from "react-native";
 
-import { SideNav } from "@/components/layout/SideNav";
+import { TopNavHeader } from "@/components/layout/TopNavHeader";
 import { useAuth } from "@/lib/auth";
-import { ColorNeutral, ColorPrimary } from "@/themes/Colors";
+import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
 
 export default function TabsLayout() {
   const { isLoggedIn } = useAuth();
@@ -30,9 +30,9 @@ export default function TabsLayout() {
   if (!isLoggedIn) return <Redirect href="/login" />;
 
   return (
-    <View style={{ flex: 1, flexDirection: "row" }}>
-      <SideNav />
-      <View style={{ flex: 1 }}>
+    <View style={styles.container}>
+      <TopNavHeader />
+      <View style={styles.content}>
         <Tabs screenOptions={screenOptions} tabBar={() => null}>
           <Tabs.Screen name="index" />
           <Tabs.Screen name="transaksi" />
@@ -43,3 +43,14 @@ export default function TabsLayout() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: ColorBase.bgScreen,
+  },
+  content: {
+    flex: 1,
+    backgroundColor: ColorBase.bgScreen,
+  },
+});

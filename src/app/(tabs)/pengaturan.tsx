@@ -52,7 +52,7 @@ export default function RiwayatOrderTabPage() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
       <PageHeader
         title="Riwayat Order"
         subtitle="Filter default shift aktif atau order hari ini"

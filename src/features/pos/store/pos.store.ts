@@ -8,7 +8,7 @@ import type { PosFulfillmentStatus, PosOrder } from "../pos.types";
 import { expireStaleWebOrders } from "../pos.utils";
 
 export const posOrdersAtom = atomWithMMKV<PosOrder[]>("posOrders", []);
-export const posSeededAtom = atomWithMMKV("posOrdersSeeded", false);
+export const posSeededAtom = atomWithMMKV("posOrdersSeeded_v2", false);
 
 export const kdsEventQueueAtom = atomWithMMKV<KdsFulfillmentEvent[]>(
   "kdsEventQueue",

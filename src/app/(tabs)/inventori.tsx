@@ -27,7 +27,7 @@ export default function SiapAntarTabPage() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
       <PageHeader
         title="Siap Antar"
         subtitle="Order READY dari dapur dan aksi Sudah Diantar"

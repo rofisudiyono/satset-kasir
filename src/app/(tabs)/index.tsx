@@ -7,7 +7,7 @@ import { XStack, YStack } from "tamagui";
 
 import { AppButton, PageHeader, TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components";
 import { posOrdersAtom, ensurePosSeedDataAtom, expireWebOrdersAtom } from "@/features/pos/store/pos.store";
-import { buildOrderItemsSummary, calculateOrderRemainingAmount } from "@/features/pos/pos.utils";
+import { buildOrderItemsSummary } from "@/features/pos/pos.utils";
 import { ColorBase, ColorDanger, ColorNeutral, ColorPrimary, ColorWarning } from "@/themes/Colors";
 import { formatPrice } from "@/utils";
 
@@ -39,7 +39,7 @@ export default function WebOrdersTabPage() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
       <PageHeader
         title="Web Orders"
         subtitle="Order dari QR/Web yang perlu dikonfirmasi dalam 30 menit"
@@ -51,6 +51,7 @@ export default function WebOrdersTabPage() {
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        {/* Summary cards */}
         <XStack gap="$3">
           <View style={[styles.summaryCard, { backgroundColor: ColorPrimary.primary600 }]}>
             <TextCaption color="rgba(255,255,255,0.8)">Perlu Konfirmasi</TextCaption>
@@ -66,6 +67,7 @@ export default function WebOrdersTabPage() {
           </View>
         </XStack>
 
+        {/* Daftar aktif */}
         <YStack gap="$3">
           <TextH3 fontWeight="700">Daftar aktif</TextH3>
           {activeOrders.length === 0 ? (
@@ -75,33 +77,42 @@ export default function WebOrdersTabPage() {
           ) : (
             activeOrders.map((order) => (
               <View key={order.id} style={styles.orderCard}>
-                <XStack justifyContent="space-between" alignItems="center">
-                  <YStack gap={2}>
-                    <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
-                    <TextCaption color="$colorSecondary">
-                      {order.customerName || "Pelanggan web"}
+                {/* Baris 1: Badge + ID  |  Total */}
+                <XStack justifyContent="space-between" alignItems="flex-start">
+                  <XStack gap={8} alignItems="center">
+                    <View style={styles.pendingBadge}>
+                      <TextCaption color={ColorPrimary.primary600} fontWeight="700">
+                        Menunggu
+                      </TextCaption>
+                    </View>
+                    <TextCaption color={ColorNeutral.neutral500} fontWeight="600">
+                      {order.id}
                     </TextCaption>
+                  </XStack>
+                  <YStack alignItems="flex-end" gap={1}>
+                    <TextCaption color={ColorNeutral.neutral500}>Total</TextCaption>
+                    <TextBodyLg fontWeight="700" color={ColorPrimary.primary600}>
+                      {formatPrice(order.grandTotal)}
+                    </TextBodyLg>
                   </YStack>
-                  <View style={styles.pendingBadge}>
-                    <TextCaption color={ColorPrimary.primary600} fontWeight="700">
-                      PENDING
-                    </TextCaption>
-                  </View>
                 </XStack>
-                <TextBodySm color="$colorSecondary">
-                  {buildOrderItemsSummary(order)}
-                </TextBodySm>
-                <XStack justifyContent="space-between" alignItems="center">
-                  <TextBodySm fontWeight="700">{formatPrice(order.grandTotal)}</TextBodySm>
-                  <TextCaption color="$colorSecondary">
-                    Sisa {formatPrice(calculateOrderRemainingAmount(order))}
-                  </TextCaption>
-                </XStack>
+
+                {/* Baris 2: Meja • Nama + ringkasan item */}
+                <YStack gap={4}>
+                  <TextBodyLg fontWeight="700">
+                    {[order.tableLabel, order.customerName].filter(Boolean).join(" • ")}
+                  </TextBodyLg>
+                  <TextBodySm color="$colorSecondary">
+                    {buildOrderItemsSummary(order)}
+                  </TextBodySm>
+                </YStack>
+
+                {/* Tombol aksi */}
                 <AppButton
                   variant="primary"
                   size="md"
                   fullWidth
-                  title="Konfirmasi & Lanjut Pembayaran"
+                  title="Proses / Pembayaran"
                   onPress={() => handleConfirm(order.id)}
                 />
               </View>
@@ -109,13 +120,19 @@ export default function WebOrdersTabPage() {
           )}
         </YStack>
 
+        {/* Order expired */}
         {expiredOrders.length > 0 && (
           <YStack gap="$3">
             <TextH3 fontWeight="700">Order expired</TextH3>
             {expiredOrders.map((order) => (
               <View key={order.id} style={styles.orderCard}>
                 <XStack justifyContent="space-between" alignItems="center">
-                  <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
+                  <YStack gap={2}>
+                    <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
+                    <TextBodySm color="$colorSecondary">
+                      {[order.tableLabel, order.customerName].filter(Boolean).join(" • ")}
+                    </TextBodySm>
+                  </YStack>
                   <View style={styles.expiredBadge}>
                     <TextCaption color={ColorDanger.danger600} fontWeight="700">
                       EXPIRED

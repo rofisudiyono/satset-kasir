@@ -118,7 +118,7 @@ export function InputManualScreen() {
   const catalogPanelWidth = screenWidth * 0.65;
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
       <View style={styles.splitLayout}>
         <View style={styles.catalogPanel}>
           <PageHeader
