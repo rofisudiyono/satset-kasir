@@ -7,7 +7,6 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -29,8 +28,6 @@ export default function ProductDetailPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [userProducts, setUserProducts] = useAtom(userProductsAtom);
-  const { width } = useWindowDimensions();
-  const isTablet = width >= 768;
 
   // Look up in user-added products first, then fall back to static product details
   const userProduct = userProducts.find((p) => p.id === id);
@@ -122,7 +119,7 @@ export default function ProductDetailPage() {
   }
 
   const bottomButtons = (
-    <View style={isTablet ? styles.bottomBarTablet : styles.bottomBar}>
+    <View style={styles.bottomBarTablet}>
       <AppButton
         variant="outline"
         size="md"
@@ -165,107 +162,57 @@ export default function ProductDetailPage() {
     </View>
   );
 
-  if (isTablet) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: ColorBase.bgScreen }} edges={["top"]}>
-        <ProductDetailHeader onEdit={handleEdit} />
-
-        <View style={styles.tabletBody}>
-          {/* Left panel: Hero (sticky) */}
-          <View style={styles.tabletLeft}>
-            <ProductHero
-              category={product.category}
-              status={product.status}
-              hasVariants={!!product.variants}
-              isTablet
-            />
-          </View>
-
-          {/* Right panel: Scrollable content */}
-          <ScrollView
-            style={styles.tabletRight}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.tabletRightContent}
-          >
-            <ProductInfoCard product={product} margin={margin} isTablet />
-
-            {product.variants && (
-              <ProductVariants
-                variants={product.variants}
-                totalStock={product.totalStock}
-                sellPrice={product.sellPrice}
-                lowStockThreshold={product.lowStockThreshold}
-                productId={id}
-              />
-            )}
-
-            <ProductOtherInfo
-              createdAt={product.createdAt}
-              updatedAt={product.updatedAt}
-              totalSold={product.totalSold}
-            />
-
-            {bottomButtons}
-            <YStack height={32} />
-          </ScrollView>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }} edges={["top"]}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: ColorBase.bgScreen }}
+      edges={["top"]}
+    >
       <ProductDetailHeader onEdit={handleEdit} />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <ProductHero
-          category={product.category}
-          status={product.status}
-          hasVariants={!!product.variants}
-        />
-
-        <ProductInfoCard product={product} margin={margin} />
-
-        {product.variants && (
-          <ProductVariants
-            variants={product.variants}
-            totalStock={product.totalStock}
-            sellPrice={product.sellPrice}
-            lowStockThreshold={product.lowStockThreshold}
-            productId={id}
+      <View style={styles.tabletBody}>
+        {/* Left panel: Hero (sticky) */}
+        <View style={styles.tabletLeft}>
+          <ProductHero
+            category={product.category}
+            status={product.status}
+            hasVariants={!!product.variants}
+            isTablet
           />
-        )}
+        </View>
 
-        <ProductOtherInfo
-          createdAt={product.createdAt}
-          updatedAt={product.updatedAt}
-          totalSold={product.totalSold}
-        />
+        {/* Right panel: Scrollable content */}
+        <ScrollView
+          style={styles.tabletRight}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.tabletRightContent}
+        >
+          <ProductInfoCard product={product} margin={margin} isTablet />
 
-        {/* spacer for bottom button */}
-        <YStack height={100} />
-      </ScrollView>
+          {product.variants && (
+            <ProductVariants
+              variants={product.variants}
+              totalStock={product.totalStock}
+              sellPrice={product.sellPrice}
+              lowStockThreshold={product.lowStockThreshold}
+              productId={id}
+            />
+          )}
 
-      {/* ── Bottom Buttons ── */}
-      {bottomButtons}
+          <ProductOtherInfo
+            createdAt={product.createdAt}
+            updatedAt={product.updatedAt}
+            totalSold={product.totalSold}
+          />
+
+          {bottomButtons}
+          <YStack height={32} />
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-    paddingTop: 12,
-    backgroundColor: ColorBase.white,
-    borderTopWidth: 1,
-    borderTopColor: ColorNeutral.neutral200,
-    gap: 12,
-  },
   bottomBarTablet: {
     paddingHorizontal: 16,
     paddingVertical: 16,

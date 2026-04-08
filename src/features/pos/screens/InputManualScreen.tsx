@@ -21,21 +21,17 @@ import { catalogProducts } from "@/features/catalog/api/catalog.data";
 import { catalogStockAtom } from "@/features/catalog/store/catalog.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import {
-  CartBar,
-  CartIconButton,
   CartPanel,
   ProductGrid,
   SearchBar,
   VariantSheet,
 } from "@/features/transactions/components/transaksi-baru";
-import { useDeviceLayout } from "@/hooks/useDeviceLayout";
 import { ColorBase, ColorNeutral } from "@/themes/Colors";
 import type { CatalogProduct, CategoryFilter } from "@/types";
 
 export function InputManualScreen() {
   const router = useRouter();
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
-  const { useTwoPaneLayout } = useDeviceLayout();
   const { width: screenWidth } = useWindowDimensions();
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("Semua");
   const [cart, setCart] = useAtom(cartAtom);
@@ -119,81 +115,52 @@ export function InputManualScreen() {
       ? productsWithLiveStock
       : productsWithLiveStock.filter((p) => p.category === categoryFilter);
 
-  const totalItems = cart.reduce((s, c) => s + c.quantity, 0);
-  const totalPrice = cart.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
-
   const catalogPanelWidth = screenWidth * 0.65;
 
-  const catalogContent = (
-    <>
-      <PageHeader
-        title="Input Manual"
-        subtitle="Pilih menu, atur catatan item, lalu lanjut ke pembayaran"
-        actions={
-          <>
-            <IconButton
-              iconName="scan-outline"
-              onPress={() => router.push("/barcode-scanner" as never)}
-            />
-            <IconButton
-              iconName="pause-circle-outline"
-              onPress={() => router.push("/pesanan-ditahan" as never)}
-              badge={heldOrders.length > 0 ? heldOrders.length : undefined}
-            />
-            {!useTwoPaneLayout && <CartIconButton totalItems={totalItems} />}
-          </>
-        }
-      />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingBottom: useTwoPaneLayout ? 32 : totalItems > 0 ? 120 : 32,
-        }}
-      >
-        <YStack paddingHorizontal="$4" gap="$3">
-          <SearchBar />
-          <ProductGrid
-            products={filtered}
-            categoryFilter={categoryFilter}
-            onCategoryChange={setCategoryFilter}
-            onAddProduct={handleAddProduct}
-            availableWidth={useTwoPaneLayout ? catalogPanelWidth : undefined}
-          />
-        </YStack>
-      </ScrollView>
-    </>
-  );
-
-  if (useTwoPaneLayout) {
-    return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
-        <View style={styles.splitLayout}>
-          <View style={styles.catalogPanel}>{catalogContent}</View>
-          <View style={styles.divider} />
-          <View style={styles.cartPanel}>
-            <CartPanel />
-          </View>
-        </View>
-
-        <VariantSheet
-          product={variantProduct}
-          visible={sheetVisible}
-          onClose={() => setSheetVisible(false)}
-          onAddToCart={addToCart}
-        />
-      </SafeAreaView>
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.container}>
-      {catalogContent}
-
-      <CartBar
-        totalItems={totalItems}
-        totalPrice={totalPrice}
-        onPress={() => router.push("/keranjang")}
-      />
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <View style={styles.splitLayout}>
+        <View style={styles.catalogPanel}>
+          <PageHeader
+            title="Input Manual"
+            subtitle="Pilih menu, atur catatan item, lalu lanjut ke pembayaran"
+            actions={
+              <>
+                <IconButton
+                  iconName="scan-outline"
+                  onPress={() => router.push("/barcode-scanner" as never)}
+                />
+                <IconButton
+                  iconName="pause-circle-outline"
+                  onPress={() => router.push("/pesanan-ditahan" as never)}
+                  badge={heldOrders.length > 0 ? heldOrders.length : undefined}
+                />
+              </>
+            }
+          />
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingBottom: 32,
+            }}
+          >
+            <YStack paddingHorizontal="$4" gap="$3">
+              <SearchBar />
+              <ProductGrid
+                products={filtered}
+                categoryFilter={categoryFilter}
+                onCategoryChange={setCategoryFilter}
+                onAddProduct={handleAddProduct}
+                availableWidth={catalogPanelWidth}
+              />
+            </YStack>
+          </ScrollView>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.cartPanel}>
+          <CartPanel />
+        </View>
+      </View>
 
       <VariantSheet
         product={variantProduct}

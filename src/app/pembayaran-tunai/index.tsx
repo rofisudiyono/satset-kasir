@@ -18,13 +18,12 @@ import {
 } from "@/components";
 import { cartAtom, cartSnapshotAtom } from "@/features/cart/store/cart.store";
 import { catalogStockAtom } from "@/features/catalog/store/catalog.store";
-import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import {
   appendPaymentToOrder,
   calculateOrderRemainingAmount,
 } from "@/features/pos/pos.utils";
+import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
-import { useDeviceLayout } from "@/hooks/useDeviceLayout";
 import {
   ColorBase,
   ColorGreen,
@@ -35,7 +34,6 @@ import { formatPrice, getCashSuggestions } from "@/utils";
 
 export default function PembayaranTunaiPage() {
   const router = useRouter();
-  const { useTwoPaneLayout } = useDeviceLayout();
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
   const [orders, setOrders] = useAtom(posOrdersAtom);
   const [, setCart] = useAtom(cartAtom);
@@ -63,7 +61,11 @@ export default function PembayaranTunaiPage() {
   if (!order) {
     return (
       <SafeAreaView style={styles.container}>
-        <PageHeader title="Pembayaran Tunai" showBack onBack={() => router.back()} />
+        <PageHeader
+          title="Pembayaran Tunai"
+          showBack
+          onBack={() => router.back()}
+        />
       </SafeAreaView>
     );
   }
@@ -177,12 +179,18 @@ export default function PembayaranTunaiPage() {
 
       <View style={styles.infoCard}>
         <XStack justifyContent="space-between" alignItems="center">
-          <TextBodySm color={ColorNeutral.neutral700}>Tagihan Dibayar</TextBodySm>
+          <TextBodySm color={ColorNeutral.neutral700}>
+            Tagihan Dibayar
+          </TextBodySm>
           <TextBodySm fontWeight="600" color={ColorNeutral.neutral700}>
             {formatPrice(amountToPay)}
           </TextBodySm>
         </XStack>
-        <XStack justifyContent="space-between" alignItems="center" marginTop={6}>
+        <XStack
+          justifyContent="space-between"
+          alignItems="center"
+          marginTop={6}
+        >
           <TextBodySm color={ColorNeutral.neutral700}>Uang Diterima</TextBodySm>
           <TextBodySm fontWeight="600" color={ColorNeutral.neutral700}>
             {formatPrice(receivedAmount)}
@@ -196,7 +204,11 @@ export default function PembayaranTunaiPage() {
           <XStack alignItems="center" gap={6}>
             {isEnough && (
               <View style={styles.checkBadge}>
-                <Ionicons name="checkmark" size={12} color={ColorGreen.green600} />
+                <Ionicons
+                  name="checkmark"
+                  size={12}
+                  color={ColorGreen.green600}
+                />
               </View>
             )}
             <TextBody fontWeight="800" color={ColorGreen.green600}>
@@ -216,49 +228,52 @@ export default function PembayaranTunaiPage() {
         onPress={handleConfirm}
         disabled={!isEnough}
       />
-      <TextCaption color={ColorNeutral.neutral500} textAlign="center" marginTop={6}>
+      <TextCaption
+        color={ColorNeutral.neutral500}
+        textAlign="center"
+        marginTop={6}
+      >
         Kembalian akan otomatis tercatat
       </TextCaption>
-      <TouchableOpacity onPress={() => router.back()} style={styles.batalBtn} activeOpacity={0.7}>
-        <TextBody fontWeight="700" color={ColorNeutral.neutral700} letterSpacing={1}>
+      <TouchableOpacity
+        onPress={() => router.back()}
+        style={styles.batalBtn}
+        activeOpacity={0.7}
+      >
+        <TextBody
+          fontWeight="700"
+          color={ColorNeutral.neutral700}
+          letterSpacing={1}
+        >
           BATAL
         </TextBody>
       </TouchableOpacity>
     </>
   );
 
-  if (useTwoPaneLayout) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <PageHeader title="Pembayaran Tunai" showBack onBack={() => router.back()} />
-        <XStack flex={1}>
-          <ScrollView
-            style={styles.tabletInfoPanel}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ padding: 24, paddingBottom: 32 }}
-          >
-            {infoSection}
-          </ScrollView>
-          <View style={styles.tabletDivider} />
-          <View style={styles.tabletNumpadPanel}>
-            <View style={styles.tabletNumpadContent}>
-              <NumpadGrid onPress={handleNumpad} />
-            </View>
-            <View style={styles.bottomBar}>{bottomAction}</View>
-          </View>
-        </XStack>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
-      <PageHeader title="Pembayaran Tunai" showBack onBack={() => router.back()} />
-      <View style={styles.content}>
-        {infoSection}
-        <NumpadGrid onPress={handleNumpad} />
-      </View>
-      <View style={styles.bottomBar}>{bottomAction}</View>
+      <PageHeader
+        title="Pembayaran Tunai"
+        showBack
+        onBack={() => router.back()}
+      />
+      <XStack flex={1}>
+        <ScrollView
+          style={styles.tabletInfoPanel}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 24, paddingBottom: 32 }}
+        >
+          {infoSection}
+        </ScrollView>
+        <View style={styles.tabletDivider} />
+        <View style={styles.tabletNumpadPanel}>
+          <View style={styles.tabletNumpadContent}>
+            <NumpadGrid onPress={handleNumpad} />
+          </View>
+          <View style={styles.bottomBar}>{bottomAction}</View>
+        </View>
+      </XStack>
     </SafeAreaView>
   );
 }

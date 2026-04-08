@@ -14,7 +14,6 @@ import { XStack, YStack } from "tamagui";
 
 import { AppButton, PageHeader } from "@/components";
 import {
-  BottomActionBar,
   CartItemsCard,
   CustomerInfoCard,
   PriceSummaryCard,
@@ -32,7 +31,6 @@ import {
   isShiftStartedAtom,
   shiftDataAtom,
 } from "@/features/shift/store/shift.store";
-import { useDeviceLayout } from "@/hooks/useDeviceLayout";
 import { ColorBase, ColorDanger, ColorPrimary } from "@/themes/Colors";
 import type { AppliedPromo, OrderType } from "@/types";
 
@@ -46,7 +44,6 @@ export default function KeranjangPage() {
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
   const [shiftData] = useAtom(shiftDataAtom);
   const [posOrders, setPosOrders] = useAtom(posOrdersAtom);
-  const { useTwoPaneLayout } = useDeviceLayout();
 
   const [customerName, setCustomerName] = useState("");
   const [tableNumber, setTableNumber] = useState("");
@@ -185,109 +182,6 @@ export default function KeranjangPage() {
     </TouchableOpacity>
   );
 
-  // ── Tablet: 2-column layout ────────────────────────────────────────────────
-  if (useTwoPaneLayout) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <PageHeader
-          title="Keranjang"
-          subtitle={`${totalItems} item`}
-          showBack
-          onBack={() => router.back()}
-          actions={trashBtn}
-        />
-
-        <XStack flex={1} gap={0}>
-          {/* Left: cart items */}
-          <ScrollView
-            style={styles.tabletLeft}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-          >
-            <CartItemsCard
-              cart={cart}
-              onUpdateQty={handleUpdateQty}
-              onRemove={handleRemove}
-              onUpdateNote={handleUpdateNote}
-            />
-          </ScrollView>
-
-          {/* Divider */}
-          <View style={styles.tabletDivider} />
-
-          {/* Right: summary + actions */}
-          <ScrollView
-            style={styles.tabletRight}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-          >
-            <YStack gap={12}>
-              <CustomerInfoCard
-                customerName={customerName}
-                onCustomerNameChange={setCustomerName}
-                tableNumber={tableNumber}
-                onTableNumberChange={setTableNumber}
-                orderType={orderType}
-                onOrderTypeChange={setOrderType}
-              />
-
-              <PromoCard
-                promoCode={promoCode}
-                onPromoCodeChange={setPromoCode}
-                onApplyPromo={handleApplyPromo}
-                appliedPromo={appliedPromo}
-                promoEnabled={promoEnabled}
-                onTogglePromo={() => setPromoEnabled((v) => !v)}
-              />
-
-              <PriceSummaryCard
-                subtotal={subtotal}
-                discount={discount}
-                ppn={ppn}
-                total={total}
-              />
-
-              {/* Action buttons inline on tablet */}
-              <YStack gap={8}>
-                <AppButton
-                  variant="primary"
-                  size="lg"
-                  fullWidth
-                  title="Bayar Sekarang"
-                  disabled={cart.length === 0}
-                  onPress={handlePay}
-                  icon={
-                    <Ionicons
-                      name="card-outline"
-                      size={18}
-                      color={ColorBase.white}
-                    />
-                  }
-                />
-                <AppButton
-                  variant="outline"
-                  size="md"
-                  fullWidth
-                  title="Tahan Pesanan"
-                  disabled={cart.length === 0}
-                  onPress={handleHoldOrder}
-                  icon={
-                    <Ionicons
-                      name="pause-circle-outline"
-                      size={16}
-                      color={ColorPrimary.primary600}
-                    />
-                  }
-                />
-              </YStack>
-            </YStack>
-          </ScrollView>
-        </XStack>
-      </SafeAreaView>
-    );
-  }
-
-  // ── Phone layout ───────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.container}>
       <PageHeader
@@ -298,50 +192,92 @@ export default function KeranjangPage() {
         actions={trashBtn}
       />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
-      >
-        <YStack paddingHorizontal={16} gap={12} paddingTop={8}>
+      <XStack flex={1} gap={0}>
+        {/* Left: cart items */}
+        <ScrollView
+          style={styles.tabletLeft}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        >
           <CartItemsCard
             cart={cart}
             onUpdateQty={handleUpdateQty}
             onRemove={handleRemove}
             onUpdateNote={handleUpdateNote}
           />
+        </ScrollView>
 
-          <CustomerInfoCard
-            customerName={customerName}
-            onCustomerNameChange={setCustomerName}
-            tableNumber={tableNumber}
-            onTableNumberChange={setTableNumber}
-            orderType={orderType}
-            onOrderTypeChange={setOrderType}
-          />
+        {/* Divider */}
+        <View style={styles.tabletDivider} />
 
-          <PromoCard
-            promoCode={promoCode}
-            onPromoCodeChange={setPromoCode}
-            onApplyPromo={handleApplyPromo}
-            appliedPromo={appliedPromo}
-            promoEnabled={promoEnabled}
-            onTogglePromo={() => setPromoEnabled((v) => !v)}
-          />
+        {/* Right: summary + actions */}
+        <ScrollView
+          style={styles.tabletRight}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        >
+          <YStack gap={12}>
+            <CustomerInfoCard
+              customerName={customerName}
+              onCustomerNameChange={setCustomerName}
+              tableNumber={tableNumber}
+              onTableNumberChange={setTableNumber}
+              orderType={orderType}
+              onOrderTypeChange={setOrderType}
+            />
 
-          <PriceSummaryCard
-            subtotal={subtotal}
-            discount={discount}
-            ppn={ppn}
-            total={total}
-          />
-        </YStack>
-      </ScrollView>
+            <PromoCard
+              promoCode={promoCode}
+              onPromoCodeChange={setPromoCode}
+              onApplyPromo={handleApplyPromo}
+              appliedPromo={appliedPromo}
+              promoEnabled={promoEnabled}
+              onTogglePromo={() => setPromoEnabled((v) => !v)}
+            />
 
-      <BottomActionBar
-        cartLength={cart.length}
-        onHoldOrder={handleHoldOrder}
-        onPay={handlePay}
-      />
+            <PriceSummaryCard
+              subtotal={subtotal}
+              discount={discount}
+              ppn={ppn}
+              total={total}
+            />
+
+            {/* Action buttons inline on tablet */}
+            <YStack gap={8}>
+              <AppButton
+                variant="primary"
+                size="lg"
+                fullWidth
+                title="Bayar Sekarang"
+                disabled={cart.length === 0}
+                onPress={handlePay}
+                icon={
+                  <Ionicons
+                    name="card-outline"
+                    size={18}
+                    color={ColorBase.white}
+                  />
+                }
+              />
+              <AppButton
+                variant="outline"
+                size="md"
+                fullWidth
+                title="Tahan Pesanan"
+                disabled={cart.length === 0}
+                onPress={handleHoldOrder}
+                icon={
+                  <Ionicons
+                    name="pause-circle-outline"
+                    size={16}
+                    color={ColorPrimary.primary600}
+                  />
+                }
+              />
+            </YStack>
+          </YStack>
+        </ScrollView>
+      </XStack>
     </SafeAreaView>
   );
 }

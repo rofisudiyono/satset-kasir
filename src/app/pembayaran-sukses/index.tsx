@@ -26,13 +26,12 @@ import {
 } from "@/components";
 import { cartAtom } from "@/features/cart/store/cart.store";
 import { storeInfo } from "@/features/payment/api/receipt.data";
-import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import {
   buildOrderItemsSummary,
   calculateOrderPaidAmount,
   getPaymentMethodLabel,
 } from "@/features/pos/pos.utils";
-import { useDeviceLayout } from "@/hooks/useDeviceLayout";
+import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import {
   ColorBase,
   ColorDanger,
@@ -44,10 +43,12 @@ import { formatPrice, getCurrentDateTime } from "@/utils";
 
 export default function PembayaranSuksesPage() {
   const router = useRouter();
-  const { isTablet } = useDeviceLayout();
   const [orders] = useAtom(posOrdersAtom);
   const [, setCart] = useAtom(cartAtom);
-  const params = useLocalSearchParams<{ orderId: string; paymentId?: string }>();
+  const params = useLocalSearchParams<{
+    orderId: string;
+    paymentId?: string;
+  }>();
 
   const order = orders.find((item) => item.id === params.orderId);
   const payment = order?.payments.find((item) => item.id === params.paymentId);
@@ -56,9 +57,13 @@ export default function PembayaranSuksesPage() {
   if (!order) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+        >
           <YStack alignItems="center" gap="$3">
-            <TextBodySm color="$colorSecondary">Order tidak ditemukan.</TextBodySm>
+            <TextBodySm color="$colorSecondary">
+              Order tidak ditemukan.
+            </TextBodySm>
           </YStack>
         </ScrollView>
       </SafeAreaView>
@@ -66,7 +71,9 @@ export default function PembayaranSuksesPage() {
   }
 
   const receiptItems = order.items.map((item) => ({
-    name: item.modifierLabels?.[0] ? `${item.name} (${item.modifierLabels[0]})` : item.name,
+    name: item.modifierLabels?.[0]
+      ? `${item.name} (${item.modifierLabels[0]})`
+      : item.name,
     qty: item.qty,
     price: item.unitPrice * item.qty,
   }));
@@ -78,8 +85,12 @@ export default function PembayaranSuksesPage() {
   const remaining = Math.max(0, order.grandTotal - totalPaid);
   const paymentAmount = payment?.amountPaid ?? 0;
   const received = payment?.amountReceived ?? paymentAmount;
-  const change = payment?.amountReceived ? payment.amountReceived - payment.amountPaid : 0;
-  const methodLabel = payment ? getPaymentMethodLabel(payment.method) : "Pembayaran";
+  const change = payment?.amountReceived
+    ? payment.amountReceived - payment.amountPaid
+    : 0;
+  const methodLabel = payment
+    ? getPaymentMethodLabel(payment.method)
+    : "Pembayaran";
 
   function handleNewTransaction() {
     setCart([]);
@@ -165,9 +176,12 @@ export default function PembayaranSuksesPage() {
     <SafeAreaView style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32, alignItems: isTablet ? "center" : undefined }}
+        contentContainerStyle={{
+          paddingBottom: 32,
+          alignItems: "center",
+        }}
       >
-        <YStack paddingHorizontal={16} gap={16} paddingTop={24} width={isTablet ? 480 : undefined}>
+        <YStack paddingHorizontal={16} gap={16} paddingTop={24} width={480}>
           <YStack alignItems="center" gap={12}>
             <View style={styles.successIcon}>
               <Ionicons name="checkmark" size={40} color={ColorBase.white} />
@@ -186,7 +200,11 @@ export default function PembayaranSuksesPage() {
           <View style={styles.receiptCard}>
             <YStack alignItems="center" gap={4} paddingVertical={16}>
               <View style={styles.storeIcon}>
-                <Ionicons name="storefront" size={24} color={ColorPrimary.primary600} />
+                <Ionicons
+                  name="storefront"
+                  size={24}
+                  color={ColorPrimary.primary600}
+                />
               </View>
               <TextBodyLg fontWeight="700">{storeInfo.name}</TextBodyLg>
               <TextCaption color="$colorSecondary" textAlign="center">
@@ -221,7 +239,9 @@ export default function PembayaranSuksesPage() {
                   <TextBodySm color="$colorSecondary" flex={1}>
                     {item.name} x{item.qty}
                   </TextBodySm>
-                  <TextBodySm fontWeight="600">{formatPrice(item.price)}</TextBodySm>
+                  <TextBodySm fontWeight="600">
+                    {formatPrice(item.price)}
+                  </TextBodySm>
                 </XStack>
               ))}
             </YStack>
@@ -231,7 +251,9 @@ export default function PembayaranSuksesPage() {
             <YStack gap={8}>
               <XStack justifyContent="space-between">
                 <TextBodySm color="$colorSecondary">Subtotal</TextBodySm>
-                <TextBodySm fontWeight="600">{formatPrice(subtotal)}</TextBodySm>
+                <TextBodySm fontWeight="600">
+                  {formatPrice(subtotal)}
+                </TextBodySm>
               </XStack>
               {discount > 0 && (
                 <XStack justifyContent="space-between">
@@ -262,23 +284,38 @@ export default function PembayaranSuksesPage() {
               </XStack>
               <XStack justifyContent="space-between">
                 <TextBodySm color="$colorSecondary">Pembayaran Ini</TextBodySm>
-                <TextBodySm fontWeight="700">{formatPrice(paymentAmount)}</TextBodySm>
+                <TextBodySm fontWeight="700">
+                  {formatPrice(paymentAmount)}
+                </TextBodySm>
               </XStack>
               <XStack justifyContent="space-between">
                 <TextBodySm color="$colorSecondary">Total Dibayar</TextBodySm>
-                <TextBodySm fontWeight="700">{formatPrice(totalPaid)}</TextBodySm>
+                <TextBodySm fontWeight="700">
+                  {formatPrice(totalPaid)}
+                </TextBodySm>
               </XStack>
               <XStack justifyContent="space-between">
                 <TextBodySm color="$colorSecondary">Sisa</TextBodySm>
-                <TextBodySm fontWeight="700" color={remaining === 0 ? ColorGreen.green600 : ColorDanger.danger600}>
+                <TextBodySm
+                  fontWeight="700"
+                  color={
+                    remaining === 0
+                      ? ColorGreen.green600
+                      : ColorDanger.danger600
+                  }
+                >
                   {formatPrice(remaining)}
                 </TextBodySm>
               </XStack>
               {payment?.method === "tunai" && (
                 <>
                   <XStack justifyContent="space-between">
-                    <TextBodySm color="$colorSecondary">Uang Diterima</TextBodySm>
-                    <TextBodySm fontWeight="700">{formatPrice(received)}</TextBodySm>
+                    <TextBodySm color="$colorSecondary">
+                      Uang Diterima
+                    </TextBodySm>
+                    <TextBodySm fontWeight="700">
+                      {formatPrice(received)}
+                    </TextBodySm>
                   </XStack>
                   <XStack justifyContent="space-between">
                     <TextBodySm color="$colorSecondary">Kembalian</TextBodySm>
@@ -297,28 +334,55 @@ export default function PembayaranSuksesPage() {
           </View>
 
           <XStack gap={12}>
-            <TouchableOpacity activeOpacity={0.85} style={styles.outlineBtn} onPress={handlePrint}>
-              <Ionicons name="print-outline" size={18} color={ColorNeutral.neutral700} style={{ marginRight: 6 }} />
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.outlineBtn}
+              onPress={handlePrint}
+            >
+              <Ionicons
+                name="print-outline"
+                size={18}
+                color={ColorNeutral.neutral700}
+                style={{ marginRight: 6 }}
+              />
               <TextBodyLg fontWeight="700" color={ColorNeutral.neutral700}>
                 Cetak
               </TextBodyLg>
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.85} style={styles.outlineBtn} onPress={handleShare}>
-              <Ionicons name="share-outline" size={18} color={ColorNeutral.neutral700} style={{ marginRight: 6 }} />
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.outlineBtn}
+              onPress={handleShare}
+            >
+              <Ionicons
+                name="share-outline"
+                size={18}
+                color={ColorNeutral.neutral700}
+                style={{ marginRight: 6 }}
+              />
               <TextBodyLg fontWeight="700" color={ColorNeutral.neutral700}>
                 Bagikan
               </TextBodyLg>
             </TouchableOpacity>
           </XStack>
 
-          <TouchableOpacity activeOpacity={0.85} style={styles.newTransBtn} onPress={handleNewTransaction}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.newTransBtn}
+            onPress={handleNewTransaction}
+          >
             <TextBodyLg fontWeight="700" color={ColorBase.white}>
               Input Manual Baru
             </TextBodyLg>
           </TouchableOpacity>
 
           <TouchableOpacity activeOpacity={0.7} onPress={handleGoRiwayat}>
-            <TextBody fontWeight="600" color={ColorPrimary.primary600} textAlign="center" paddingVertical={8}>
+            <TextBody
+              fontWeight="600"
+              color={ColorPrimary.primary600}
+              textAlign="center"
+              paddingVertical={8}
+            >
               Buka Riwayat Order
             </TextBody>
           </TouchableOpacity>

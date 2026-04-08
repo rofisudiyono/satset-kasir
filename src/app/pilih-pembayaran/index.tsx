@@ -26,7 +26,6 @@ import { cartAtom, cartSnapshotAtom } from "@/features/cart/store/cart.store";
 import { catalogStockAtom } from "@/features/catalog/store/catalog.store";
 import { paymentMethodOptions } from "@/features/payment/api/payment.data";
 import { PaymentMethodCard } from "@/features/payment/components/PaymentMethodCard";
-import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import {
   appendPaymentToOrder,
   buildOrderItemsSummary,
@@ -35,13 +34,9 @@ import {
   getPaymentMethodLabel,
   getSelectedItemsAmount,
 } from "@/features/pos/pos.utils";
+import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
-import { useDeviceLayout } from "@/hooks/useDeviceLayout";
-import {
-  ColorBase,
-  ColorNeutral,
-  ColorPrimary,
-} from "@/themes/Colors";
+import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
 import type { PaymentMethod } from "@/types";
 import { formatPrice } from "@/utils";
 
@@ -49,7 +44,6 @@ type PaymentFlowMode = "full" | "partial" | "split_nominal" | "split_item";
 
 export default function PilihPembayaranPage() {
   const router = useRouter();
-  const { useTwoPaneLayout } = useDeviceLayout();
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
   const [orders, setOrders] = useAtom(posOrdersAtom);
   const [, setCart] = useAtom(cartAtom);
@@ -81,9 +75,23 @@ export default function PilihPembayaranPage() {
   if (!order) {
     return (
       <SafeAreaView style={styles.container}>
-        <PageHeader title="Pilih Pembayaran" showBack onBack={() => router.back()} />
-        <YStack flex={1} alignItems="center" justifyContent="center" gap="$3" padding="$4">
-          <Ionicons name="receipt-outline" size={32} color={ColorNeutral.neutral400} />
+        <PageHeader
+          title="Pilih Pembayaran"
+          showBack
+          onBack={() => router.back()}
+        />
+        <YStack
+          flex={1}
+          alignItems="center"
+          justifyContent="center"
+          gap="$3"
+          padding="$4"
+        >
+          <Ionicons
+            name="receipt-outline"
+            size={32}
+            color={ColorNeutral.neutral400}
+          />
           <TextBodySm color="$colorSecondary" textAlign="center">
             Order tidak ditemukan atau sudah dihapus.
           </TextBodySm>
@@ -252,13 +260,19 @@ export default function PilihPembayaranPage() {
               onPress={() => toggleItem(item.id)}
               style={[styles.itemCard, active && styles.itemCardActive]}
             >
-              <XStack alignItems="center" justifyContent="space-between" gap="$3">
+              <XStack
+                alignItems="center"
+                justifyContent="space-between"
+                gap="$3"
+              >
                 <YStack flex={1} minWidth={0}>
                   <TextBodyLg fontWeight="700">
                     {item.name} x{item.qty}
                   </TextBodyLg>
                   <TextCaption color="$colorSecondary">
-                    {item.note || item.modifierLabels?.join(", ") || "Tanpa catatan"}
+                    {item.note ||
+                      item.modifierLabels?.join(", ") ||
+                      "Tanpa catatan"}
                   </TextCaption>
                 </YStack>
                 <YStack alignItems="flex-end" gap={4}>
@@ -268,7 +282,9 @@ export default function PilihPembayaranPage() {
                   <Ionicons
                     name={active ? "checkbox" : "square-outline"}
                     size={20}
-                    color={active ? ColorPrimary.primary600 : ColorNeutral.neutral400}
+                    color={
+                      active ? ColorPrimary.primary600 : ColorNeutral.neutral400
+                    }
                   />
                 </YStack>
               </XStack>
@@ -292,7 +308,10 @@ export default function PilihPembayaranPage() {
           keyboardType="number-pad"
           placeholder="Masukkan nominal"
           placeholderTextColor={ColorNeutral.neutral400}
-          style={[styles.amountInput, mode === "full" && styles.amountInputDisabled]}
+          style={[
+            styles.amountInput,
+            mode === "full" && styles.amountInputDisabled,
+          ]}
         />
         {(mode === "partial" || mode === "split_nominal") && (
           <XStack gap="$2" flexWrap="wrap">
@@ -316,7 +335,9 @@ export default function PilihPembayaranPage() {
     <YStack gap="$2">
       <TextH3 fontWeight="700">Riwayat pembayaran</TextH3>
       {order.payments.length === 0 ? (
-        <TextBodySm color="$colorSecondary">Belum ada pembayaran tercatat.</TextBodySm>
+        <TextBodySm color="$colorSecondary">
+          Belum ada pembayaran tercatat.
+        </TextBodySm>
       ) : (
         order.payments.map((payment) => (
           <View key={payment.id} style={styles.historyRow}>
@@ -328,7 +349,9 @@ export default function PilihPembayaranPage() {
                 {payment.label || "Pembayaran"}
               </TextCaption>
             </YStack>
-            <TextBodySm fontWeight="700">{formatPrice(payment.amountPaid)}</TextBodySm>
+            <TextBodySm fontWeight="700">
+              {formatPrice(payment.amountPaid)}
+            </TextBodySm>
           </View>
         ))
       )}
@@ -371,64 +394,50 @@ export default function PilihPembayaranPage() {
     </View>
   );
 
-  if (useTwoPaneLayout) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <PageHeader title="Pilih Pembayaran" showBack onBack={() => router.back()} />
-        <XStack flex={1}>
-          <ScrollView
-            style={styles.tabletLeft}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 12 }}
-          >
-            {orderInfo}
-          </ScrollView>
-          <View style={styles.tabletDivider} />
-          <View style={styles.tabletRight}>
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ padding: 16, paddingBottom: 120, gap: 12 }}
-            >
-              <TextCaption color="$colorSecondary" fontWeight="700" letterSpacing={0.8}>
-                METODE PEMBAYARAN
-              </TextCaption>
-              {paymentMethodOptions.map((method) => (
-                <PaymentMethodCard
-                  key={method.id}
-                  {...method}
-                  selected={selectedMethod === method.id}
-                  onPress={() => setSelectedMethod(method.id)}
-                />
-              ))}
-            </ScrollView>
-            {processButton}
-          </View>
-        </XStack>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
-      <PageHeader title="Pilih Pembayaran" showBack onBack={() => router.back()} />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 140, gap: 12 }}
-      >
-        {orderInfo}
-        <TextCaption color="$colorSecondary" fontWeight="700" letterSpacing={0.8}>
-          METODE PEMBAYARAN
-        </TextCaption>
-        {paymentMethodOptions.map((method) => (
-          <PaymentMethodCard
-            key={method.id}
-            {...method}
-            selected={selectedMethod === method.id}
-            onPress={() => setSelectedMethod(method.id)}
-          />
-        ))}
-      </ScrollView>
-      {processButton}
+      <PageHeader
+        title="Pilih Pembayaran"
+        showBack
+        onBack={() => router.back()}
+      />
+      <XStack flex={1}>
+        <ScrollView
+          style={styles.tabletLeft}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 12 }}
+        >
+          {orderInfo}
+        </ScrollView>
+        <View style={styles.tabletDivider} />
+        <View style={styles.tabletRight}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              padding: 16,
+              paddingBottom: 120,
+              gap: 12,
+            }}
+          >
+            <TextCaption
+              color="$colorSecondary"
+              fontWeight="700"
+              letterSpacing={0.8}
+            >
+              METODE PEMBAYARAN
+            </TextCaption>
+            {paymentMethodOptions.map((method) => (
+              <PaymentMethodCard
+                key={method.id}
+                {...method}
+                selected={selectedMethod === method.id}
+                onPress={() => setSelectedMethod(method.id)}
+              />
+            ))}
+          </ScrollView>
+          {processButton}
+        </View>
+      </XStack>
     </SafeAreaView>
   );
 }

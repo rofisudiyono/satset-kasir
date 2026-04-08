@@ -11,11 +11,11 @@ import { FilterChip } from "@/components";
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/config/categoryStyles";
 import { categoryFilters } from "@/features/catalog/api/category.data";
 import { ProductCard } from "@/features/catalog/components/ProductCard";
-import { useDeviceLayout } from "@/hooks/useDeviceLayout";
 import type { CatalogProduct, CategoryFilter } from "@/types";
 
 const PADDING = 16 * 2;
 const GAP = 12;
+const TABLET_COLS = 3;
 
 type Props = {
   products: CatalogProduct[];
@@ -33,11 +33,10 @@ export function ProductGrid({
   availableWidth,
 }: Props) {
   const { width: screenWidth } = useWindowDimensions();
-  const { catalogCols } = useDeviceLayout();
 
   const containerWidth = availableWidth ?? screenWidth;
   const cardWidth =
-    (containerWidth - PADDING - GAP * (catalogCols - 1)) / catalogCols;
+    (containerWidth - PADDING - GAP * (TABLET_COLS - 1)) / TABLET_COLS;
 
   const renderItem = useCallback<ListRenderItem<CatalogProduct>>(
     ({ item }) => (
@@ -77,9 +76,9 @@ export function ProductGrid({
         data={products}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
-        numColumns={catalogCols}
-        key={catalogCols}
-        columnWrapperStyle={catalogCols > 1 ? { gap: GAP } : undefined}
+        numColumns={TABLET_COLS}
+        key={TABLET_COLS}
+        columnWrapperStyle={TABLET_COLS > 1 ? { gap: GAP } : undefined}
         contentContainerStyle={{ gap: GAP }}
         scrollEnabled={false}
       />

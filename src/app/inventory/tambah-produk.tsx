@@ -10,22 +10,14 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { XStack, YStack } from "tamagui";
+import { XStack } from "tamagui";
 
+import { AppButton, TextBodySm, TextCaption, TextH3 } from "@/components";
 import {
   buildProduct,
   userProductsAtom,
 } from "@/features/inventory/store/inventory.store";
-import {
-  AppButton,
-  TextBodySm,
-  TextCaption,
-  TextH3,
-} from "@/components";
-import { useDeviceLayout } from "@/hooks/useDeviceLayout";
-import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
-
-const FORM_STEPS = ["Foto", "Info", "Harga", "Varian", "Stok"] as const;
+import { ColorBase, ColorNeutral } from "@/themes/Colors";
 
 import type {
   TambahProdukCategory,
@@ -44,7 +36,6 @@ export default function TambahProdukPage() {
   const router = useRouter();
   const { editId } = useLocalSearchParams<{ editId?: string }>();
   const [userProducts, setUserProducts] = useAtom(userProductsAtom);
-  const { isTablet } = useDeviceLayout();
 
   // If editing, find the existing product
   const editingProduct = editId
@@ -102,7 +93,10 @@ export default function TambahProdukPage() {
     );
   }
 
-  function addVariantValue(groupIdx: number, value: { name: string; price: string }) {
+  function addVariantValue(
+    groupIdx: number,
+    value: { name: string; price: string },
+  ) {
     setVariantGroups((prev) =>
       prev.map((g, gi) =>
         gi === groupIdx ? { ...g, values: [...g.values, value] } : g,
@@ -211,203 +205,94 @@ export default function TambahProdukPage() {
     </XStack>
   );
 
-  // ── Tablet: two-column split layout ───────────────────────────────────────
-  if (isTablet) {
-    return (
-      <SafeAreaView style={styles.container}>
-        {formHeader}
-
-        <View style={styles.tabletBody}>
-          {/* Left column wrapper: Photo + Info Dasar + Variant */}
-          <View style={styles.tabletColLeft}>
-            <ScrollView
-              style={styles.scrollView}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.tabletColContent}
-            >
-              <FotoProdukSection photos={photos} onRemovePhoto={removePhoto} />
-
-              <InformasiDasarSection
-                namaProduk={namaProduk}
-                setNamaProduk={setNamaProduk}
-                sku={sku}
-                setSku={setSku}
-                barcode={barcode}
-                setBarcode={setBarcode}
-                kategori={kategori}
-                setKategori={setKategori}
-                deskripsi={deskripsi}
-                setDeskripsi={setDeskripsi}
-              />
-
-              <VariantProdukSection
-                hasVariant={hasVariant}
-                setHasVariant={setHasVariant}
-                variantGroups={variantGroups}
-                onRemoveVariantValue={removeVariantValue}
-                onAddVariantValue={addVariantValue}
-                onAddGroup={addVariantGroup}
-                onRemoveGroup={removeVariantGroup}
-              />
-            </ScrollView>
-          </View>
-
-          {/* Divider */}
-          <View style={styles.tabletDivider} />
-
-          {/* Right column wrapper: Harga + Stok + Status */}
-          <View style={styles.tabletColRight}>
-            <ScrollView
-              style={styles.scrollView}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.tabletColContent}
-            >
-              <HargaSection
-                hargaModal={hargaModal}
-                setHargaModal={setHargaModal}
-                hargaJual={hargaJual}
-                setHargaJual={setHargaJual}
-              />
-
-              <StokSection
-                stokAwal={stokAwal}
-                setStokAwal={setStokAwal}
-                minAlert={minAlert}
-                setMinAlert={setMinAlert}
-                satuan={satuan}
-                setSatuan={setSatuan}
-              />
-
-              <StatusProdukSection isActive={isActive} setIsActive={setIsActive} />
-
-              <AppButton
-                variant="primary"
-                size="lg"
-                fullWidth
-                title={isEditMode ? "Simpan Perubahan" : "Simpan Produk"}
-                onPress={handleSimpan}
-              />
-              <TextCaption
-                color={ColorNeutral.neutral400}
-                textAlign="center"
-                marginTop={6}
-                marginBottom={8}
-              >
-                Semua perubahan akan langsung tersimpan ke inventori setelah dipublikasikan
-              </TextCaption>
-            </ScrollView>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // ── Phone layout ───────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.container}>
       {formHeader}
 
-      {/* Step indicator strip */}
-      <XStack
-        paddingHorizontal="$4"
-        paddingVertical="$2"
-        gap="$1"
-        backgroundColor={ColorBase.white}
-        borderBottomWidth={StyleSheet.hairlineWidth}
-        borderBottomColor={ColorNeutral.neutral200}
-      >
-        {FORM_STEPS.map((step, idx) => (
-          <YStack key={step} flex={1} alignItems="center" gap={3}>
-            <View
-              style={[
-                stepStyles.dot,
-                {
-                  backgroundColor:
-                    idx === 0
-                      ? ColorPrimary.primary600
-                      : ColorNeutral.neutral200,
-                },
-              ]}
+      <View style={styles.tabletBody}>
+        {/* Left column wrapper: Photo + Info Dasar + Variant */}
+        <View style={styles.tabletColLeft}>
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.tabletColContent}
+          >
+            <FotoProdukSection photos={photos} onRemovePhoto={removePhoto} />
+
+            <InformasiDasarSection
+              namaProduk={namaProduk}
+              setNamaProduk={setNamaProduk}
+              sku={sku}
+              setSku={setSku}
+              barcode={barcode}
+              setBarcode={setBarcode}
+              kategori={kategori}
+              setKategori={setKategori}
+              deskripsi={deskripsi}
+              setDeskripsi={setDeskripsi}
+            />
+
+            <VariantProdukSection
+              hasVariant={hasVariant}
+              setHasVariant={setHasVariant}
+              variantGroups={variantGroups}
+              onRemoveVariantValue={removeVariantValue}
+              onAddVariantValue={addVariantValue}
+              onAddGroup={addVariantGroup}
+              onRemoveGroup={removeVariantGroup}
+            />
+          </ScrollView>
+        </View>
+
+        {/* Divider */}
+        <View style={styles.tabletDivider} />
+
+        {/* Right column wrapper: Harga + Stok + Status */}
+        <View style={styles.tabletColRight}>
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.tabletColContent}
+          >
+            <HargaSection
+              hargaModal={hargaModal}
+              setHargaModal={setHargaModal}
+              hargaJual={hargaJual}
+              setHargaJual={setHargaJual}
+            />
+
+            <StokSection
+              stokAwal={stokAwal}
+              setStokAwal={setStokAwal}
+              minAlert={minAlert}
+              setMinAlert={setMinAlert}
+              satuan={satuan}
+              setSatuan={setSatuan}
+            />
+
+            <StatusProdukSection
+              isActive={isActive}
+              setIsActive={setIsActive}
+            />
+
+            <AppButton
+              variant="primary"
+              size="lg"
+              fullWidth
+              title={isEditMode ? "Simpan Perubahan" : "Simpan Produk"}
+              onPress={handleSimpan}
             />
             <TextCaption
-              fontSize={9}
-              color={
-                idx === 0 ? ColorPrimary.primary600 : ColorNeutral.neutral400
-              }
-              fontWeight={idx === 0 ? "700" : "400"}
+              color={ColorNeutral.neutral400}
+              textAlign="center"
+              marginTop={6}
+              marginBottom={8}
             >
-              {step}
+              Semua perubahan akan langsung tersimpan ke inventori setelah
+              dipublikasikan
             </TextCaption>
-          </YStack>
-        ))}
-      </XStack>
-
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <FotoProdukSection photos={photos} onRemovePhoto={removePhoto} />
-
-        <InformasiDasarSection
-          namaProduk={namaProduk}
-          setNamaProduk={setNamaProduk}
-          sku={sku}
-          setSku={setSku}
-          barcode={barcode}
-          setBarcode={setBarcode}
-          kategori={kategori}
-          setKategori={setKategori}
-          deskripsi={deskripsi}
-          setDeskripsi={setDeskripsi}
-        />
-
-        <HargaSection
-          hargaModal={hargaModal}
-          setHargaModal={setHargaModal}
-          hargaJual={hargaJual}
-          setHargaJual={setHargaJual}
-        />
-
-        <VariantProdukSection
-          hasVariant={hasVariant}
-          setHasVariant={setHasVariant}
-          variantGroups={variantGroups}
-          onRemoveVariantValue={removeVariantValue}
-          onAddVariantValue={addVariantValue}
-          onAddGroup={addVariantGroup}
-          onRemoveGroup={removeVariantGroup}
-        />
-
-        <StokSection
-          stokAwal={stokAwal}
-          setStokAwal={setStokAwal}
-          minAlert={minAlert}
-          setMinAlert={setMinAlert}
-          satuan={satuan}
-          setSatuan={setSatuan}
-        />
-
-        <StatusProdukSection isActive={isActive} setIsActive={setIsActive} />
-      </ScrollView>
-
-      {/* Bottom Bar */}
-      <View style={styles.bottomBar}>
-        <AppButton
-          variant="primary"
-          size="lg"
-          fullWidth
-          title={isEditMode ? "Simpan Perubahan" : "Simpan Produk"}
-          onPress={handleSimpan}
-        />
-        <TextCaption
-          color={ColorNeutral.neutral400}
-          textAlign="center"
-          marginTop={6}
-        >
-          Semua perubahan akan langsung tersimpan ke inventori setelah
-          dipublikasikan
-        </TextCaption>
+          </ScrollView>
+        </View>
       </View>
     </SafeAreaView>
   );
