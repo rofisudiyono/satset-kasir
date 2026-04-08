@@ -9,12 +9,13 @@ A tablet-oriented POS (Point of Sale) cashier application for daily retail/resta
 - 🛒 **Manual Order Entry** - Product catalog with variants and categories
 - 📋 **Shopping Cart** - Hold orders, customer info, promo codes
 - 💳 **Multi-Payment Processing** - Cash, QRIS, Transfer, EDC, E-Wallet with split bill support
-- 🧾 **Receipt Printing** - PDF generation and sharing
+- 🧾 **Receipt Printing** - PDF generation, Bluetooth thermal printer, and sharing
 - 🌐 **Web Orders** - Manage online orders from QR/web
 - 🍳 **Kitchen Display Integration** - Real-time order status from KDS
 - 📜 **Order History** - Filter, void, refund, and payment tracking
 - 📷 **Barcode Scanner** - Camera-based product scanning
 - ⚙️ **Store Configuration** - Store info, payment methods, operating hours
+- 🔵 **Bluetooth Printing** - Direct printing to thermal printers
 
 ## Get started
 

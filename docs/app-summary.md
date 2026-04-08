@@ -17,6 +17,7 @@ Fokus aplikasi saat ini adalah **operasional kasir berbasis tablet** untuk alur 
 - riwayat order
 - pengaturan toko dan metode pembayaran
 - scanner barcode
+- cetak struk via Bluetooth thermal printer
 
 ## Daftar Fitur
 
@@ -47,6 +48,9 @@ Fokus aplikasi saat ini adalah **operasional kasir berbasis tablet** untuk alur 
 9. **Barcode Scanner**
    Dokumen: [features/barcode-scanner.md](./features/barcode-scanner.md)
 
+10. **Cetak Struk Bluetooth**
+    Dokumen: [features/bluetooth-printing.md](./features/bluetooth-printing.md)
+
 ## Struktur Operasional Utama
 
 Alur penggunaan kasir secara umum:
@@ -63,3 +67,4 @@ Alur penggunaan kasir secara umum:
 - Dokumentasi ini bersifat fungsional, bukan spesifikasi teknis detail.
 - Setiap fitur punya dokumen terpisah agar lebih mudah dibaca dan diperbarui.
 - Untuk backlog migrasi/alignment flow kasir, lihat [todo-kasir-pos-dashboard-alignment.md](./todo-kasir-pos-dashboard-alignment.md).
+- Untuk panduan implementasi UI/UX staff application, lihat [app-style-guide.md](./app-style-guide.md).
