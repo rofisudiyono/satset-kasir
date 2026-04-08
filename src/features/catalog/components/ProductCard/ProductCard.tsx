@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { XStack, YStack } from "tamagui";
 
 import {
@@ -145,19 +145,20 @@ export const ProductCard = React.memo(function ProductCard({
             {formatPrice(basePrice)}
           </TextBodySm>
 
-          <TouchableOpacity
+          <Pressable
             onPress={() => !isEmpty && onAdd()}
             disabled={isEmpty}
-            activeOpacity={0.7}
+            style={({ pressed }) => [
+              addButtonStyle,
+              !isEmpty && pressed && { opacity: 0.72 },
+            ]}
           >
-            <View style={addButtonStyle}>
-              <Ionicons
-                name="add"
-                size={20}
-                color={isEmpty ? ColorNeutral.neutral400 : ColorBase.white}
-              />
-            </View>
-          </TouchableOpacity>
+            <Ionicons
+              name="add"
+              size={20}
+              color={isEmpty ? ColorNeutral.neutral400 : ColorBase.white}
+            />
+          </Pressable>
         </XStack>
       </YStack>
     </View>

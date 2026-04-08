@@ -1,14 +1,8 @@
 import { useRouter } from "expo-router";
 import { useAtom } from "jotai";
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { YStack } from "tamagui";
 
 import { IconButton, PageHeader } from "@/components";
 import {
@@ -23,7 +17,6 @@ import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import {
   CartPanel,
   ProductGrid,
-  SearchBar,
   VariantSheet,
 } from "@/features/transactions/components/transaksi-baru";
 import { ColorBase, ColorNeutral } from "@/themes/Colors";
@@ -138,23 +131,15 @@ export function InputManualScreen() {
               </>
             }
           />
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingBottom: 32,
-            }}
-          >
-            <YStack paddingHorizontal="$4" gap="$3">
-              <SearchBar />
-              <ProductGrid
-                products={filtered}
-                categoryFilter={categoryFilter}
-                onCategoryChange={setCategoryFilter}
-                onAddProduct={handleAddProduct}
-                availableWidth={catalogPanelWidth}
-              />
-            </YStack>
-          </ScrollView>
+          <View style={styles.catalogScroll}>
+            <ProductGrid
+              products={filtered}
+              categoryFilter={categoryFilter}
+              onCategoryChange={setCategoryFilter}
+              onAddProduct={handleAddProduct}
+              availableWidth={catalogPanelWidth}
+            />
+          </View>
         </View>
         <View style={styles.divider} />
         <View style={styles.cartPanel}>
@@ -184,6 +169,10 @@ const styles = StyleSheet.create({
   catalogPanel: {
     flex: 0.65,
     backgroundColor: ColorBase.bgScreen,
+  },
+  catalogScroll: {
+    flex: 1,
+    minHeight: 0,
   },
   divider: {
     width: 1,
