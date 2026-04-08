@@ -42,7 +42,9 @@ export function InputManualScreen() {
   const [scannedBarcode, setScannedBarcode] = useAtom(scannedBarcodeAtom);
   const [heldOrders] = useAtom(heldOrdersAtom);
   const [catalogStock] = useAtom(catalogStockAtom);
-  const [variantProduct, setVariantProduct] = useState<CatalogProduct | null>(null);
+  const [variantProduct, setVariantProduct] = useState<CatalogProduct | null>(
+    null,
+  );
   const [sheetVisible, setSheetVisible] = useState(false);
 
   useEffect(() => {
@@ -50,41 +52,48 @@ export function InputManualScreen() {
     router.replace("/buka-shift" as never);
   }, [isShiftStarted, router]);
 
-  const addToCart = useCallback((item: Omit<CartItem, "cartId">) => {
-    const existing = cart.find(
-      (c) =>
-        c.productId === item.productId && c.variantLabel === item.variantLabel,
-    );
-    if (existing) {
-      setCart((prev) =>
-        prev.map((c) =>
-          c.cartId === existing.cartId
-            ? { ...c, quantity: c.quantity + item.quantity }
-            : c,
-        ),
+  const addToCart = useCallback(
+    (item: Omit<CartItem, "cartId">) => {
+      const existing = cart.find(
+        (c) =>
+          c.productId === item.productId &&
+          c.variantLabel === item.variantLabel,
       );
-    } else {
-      setCart((prev) => [
-        ...prev,
-        { ...item, cartId: `${item.productId}-${Date.now()}` },
-      ]);
-    }
-  }, [cart, setCart]);
+      if (existing) {
+        setCart((prev) =>
+          prev.map((c) =>
+            c.cartId === existing.cartId
+              ? { ...c, quantity: c.quantity + item.quantity }
+              : c,
+          ),
+        );
+      } else {
+        setCart((prev) => [
+          ...prev,
+          { ...item, cartId: `${item.productId}-${Date.now()}` },
+        ]);
+      }
+    },
+    [cart, setCart],
+  );
 
-  const handleAddProduct = useCallback((product: CatalogProduct) => {
-    if (product.variants) {
-      setVariantProduct(product);
-      setSheetVisible(true);
-    } else {
-      addToCart({
-        productId: product.id,
-        productName: product.name,
-        category: product.category,
-        quantity: 1,
-        unitPrice: product.basePrice,
-      });
-    }
-  }, [addToCart]);
+  const handleAddProduct = useCallback(
+    (product: CatalogProduct) => {
+      if (product.variants) {
+        setVariantProduct(product);
+        setSheetVisible(true);
+      } else {
+        addToCart({
+          productId: product.id,
+          productName: product.name,
+          category: product.category,
+          quantity: 1,
+          unitPrice: product.basePrice,
+        });
+      }
+    },
+    [addToCart],
+  );
 
   useEffect(() => {
     if (!scannedBarcode) return;

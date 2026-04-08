@@ -1,12 +1,17 @@
 import React, { useCallback } from "react";
-import { FlatList, ListRenderItem, ScrollView, useWindowDimensions } from "react-native";
+import {
+  FlatList,
+  ListRenderItem,
+  ScrollView,
+  useWindowDimensions,
+} from "react-native";
 import { XStack } from "tamagui";
 
+import { FilterChip } from "@/components";
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/config/categoryStyles";
 import { categoryFilters } from "@/features/catalog/api/category.data";
 import { ProductCard } from "@/features/catalog/components/ProductCard";
 import { useDeviceLayout } from "@/hooks/useDeviceLayout";
-import { FilterChip } from "@/components";
 import type { CatalogProduct, CategoryFilter } from "@/types";
 
 const PADDING = 16 * 2;

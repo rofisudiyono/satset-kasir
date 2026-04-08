@@ -2,9 +2,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAtom } from "jotai";
 import React, { useState } from "react";
-import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { YStack } from "tamagui";
 
+import { TextH3 } from "@/components";
 import {
   BottomActionBar,
   CartItemsCard,
@@ -18,15 +25,10 @@ import {
   heldOrdersAtom,
 } from "@/features/cart/store/cart.store";
 import { promoDefinitions } from "@/features/payment/api/payment.data";
-import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { buildPosOrderFromCart } from "@/features/pos/pos.utils";
+import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { shiftDataAtom } from "@/features/shift/store/shift.store";
-import { TextH3 } from "@/components";
-import {
-  ColorBase,
-  ColorDanger,
-  ColorNeutral,
-} from "@/themes/Colors";
+import { ColorBase, ColorDanger, ColorNeutral } from "@/themes/Colors";
 import type { AppliedPromo, OrderType } from "@/types";
 
 const PPN_RATE = 0.11;

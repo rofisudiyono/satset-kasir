@@ -18,8 +18,8 @@ export function useDeviceLayout() {
     isCompactTablet,
     useTwoPaneLayout,
     showSidebarNav,
-    // Compact tablet tetap 3 kolom agar kartu tidak terlalu sempit.
-    catalogCols: width >= 1200 ? 4 : 3,
+    // Tablet selalu 4 kolom; phone 2 kolom.
+    catalogCols: isTablet ? 4 : 2,
     screenWidth: width,
     screenHeight: height,
   };

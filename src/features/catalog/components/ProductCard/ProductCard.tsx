@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   cardImageArea: {
-    height: 140,
+    height: 110,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -108,7 +108,7 @@ export const ProductCard = React.memo(function ProductCard({
   return (
     <View style={cardStyle}>
       <View style={imageAreaStyle}>
-        <Ionicons name={categoryIcon} size={52} color={categoryIconColor} />
+        <Ionicons name={categoryIcon} size={42} color={categoryIconColor} />
 
         {isLow && (
           <View style={[styles.stockBadge, styles.stockBadgeLow]}>

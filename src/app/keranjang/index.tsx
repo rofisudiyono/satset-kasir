@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
+import { AppButton, PageHeader } from "@/components";
 import {
   BottomActionBar,
   CartItemsCard,
@@ -25,11 +26,13 @@ import {
   heldOrdersAtom,
 } from "@/features/cart/store/cart.store";
 import { promoDefinitions } from "@/features/payment/api/payment.data";
-import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { buildPosOrderFromCart } from "@/features/pos/pos.utils";
-import { AppButton, PageHeader } from "@/components";
+import { posOrdersAtom } from "@/features/pos/store/pos.store";
+import {
+  isShiftStartedAtom,
+  shiftDataAtom,
+} from "@/features/shift/store/shift.store";
 import { useDeviceLayout } from "@/hooks/useDeviceLayout";
-import { isShiftStartedAtom, shiftDataAtom } from "@/features/shift/store/shift.store";
 import { ColorBase, ColorDanger, ColorPrimary } from "@/themes/Colors";
 import type { AppliedPromo, OrderType } from "@/types";
 
@@ -173,7 +176,11 @@ export default function KeranjangPage() {
   const trashBtn = (
     <TouchableOpacity activeOpacity={0.7} onPress={handleClearCart}>
       <View style={styles.trashBtn}>
-        <Ionicons name="trash-outline" size={18} color={ColorDanger.danger600} />
+        <Ionicons
+          name="trash-outline"
+          size={18}
+          color={ColorDanger.danger600}
+        />
       </View>
     </TouchableOpacity>
   );
@@ -250,7 +257,11 @@ export default function KeranjangPage() {
                   disabled={cart.length === 0}
                   onPress={handlePay}
                   icon={
-                    <Ionicons name="card-outline" size={18} color={ColorBase.white} />
+                    <Ionicons
+                      name="card-outline"
+                      size={18}
+                      color={ColorBase.white}
+                    />
                   }
                 />
                 <AppButton
@@ -261,7 +272,11 @@ export default function KeranjangPage() {
                   disabled={cart.length === 0}
                   onPress={handleHoldOrder}
                   icon={
-                    <Ionicons name="pause-circle-outline" size={16} color={ColorPrimary.primary600} />
+                    <Ionicons
+                      name="pause-circle-outline"
+                      size={16}
+                      color={ColorPrimary.primary600}
+                    />
                   }
                 />
               </YStack>
