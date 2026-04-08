@@ -5,8 +5,8 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { YStack } from "tamagui";
 
-import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import { TextBodySm, TextCaption, TextH3 } from "@/components";
+import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import {
   ColorBase,
   ColorNeutral,
@@ -41,8 +41,8 @@ const NAV_ITEMS: NavItem[] = [
     label: "Siap Antar",
     icon: "bag-check-outline",
     iconActive: "bag-check",
-    segment: "/inventori",
-    href: "/inventori",
+    segment: "/pengaturan",
+    href: "/pengaturan",
   },
   {
     label: "Riwayat",
@@ -60,7 +60,10 @@ export function SideNav() {
 
   function isActive(item: NavItem) {
     if (item.segment === "/") return pathname === "/";
-    if (item.segment === "/transaksi" && pathname.startsWith("/transaksi-baru")) {
+    if (
+      item.segment === "/transaksi" &&
+      pathname.startsWith("/transaksi-baru")
+    ) {
       return true;
     }
     return pathname.startsWith(item.segment);
@@ -116,7 +119,9 @@ export function SideNav() {
             size={14}
             color={ColorNeutral.neutral500}
           />
-          <TextCaption color="$colorSecondary">Reservasi segera hadir</TextCaption>
+          <TextCaption color="$colorSecondary">
+            Reservasi segera hadir
+          </TextCaption>
         </View>
 
         <TouchableOpacity

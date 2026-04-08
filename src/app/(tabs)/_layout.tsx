@@ -36,7 +36,6 @@ export default function TabsLayout() {
         <Tabs screenOptions={screenOptions} tabBar={() => null}>
           <Tabs.Screen name="index" />
           <Tabs.Screen name="transaksi" />
-          <Tabs.Screen name="inventori" />
           <Tabs.Screen name="pengaturan" />
         </Tabs>
       </View>

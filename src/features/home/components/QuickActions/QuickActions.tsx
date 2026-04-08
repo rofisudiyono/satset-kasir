@@ -2,7 +2,7 @@ import React from "react";
 import { XStack } from "tamagui";
 
 import { ActionCardButton } from "@/components/atoms/ActionCardButton";
-import { ColorAccentPurple, ColorGreen, ColorWarning } from "@/themes/Colors";
+import { ColorAccentPurple, ColorWarning } from "@/themes/Colors";
 
 import { QuickActionsProps } from "./QuickActions.types";
 
@@ -21,13 +21,6 @@ export function QuickActions({ isShiftStarted }: QuickActionsProps) {
       subtitle: isShiftStarted ? undefined : "Lihat transaksi lalu",
       iconBg: ColorAccentPurple.purple50,
       iconColor: ColorAccentPurple.purple600,
-    },
-    {
-      iconName: "cube-outline" as const,
-      label: "Inventori",
-      subtitle: isShiftStarted ? undefined : "Cek stok pagi ini",
-      iconBg: ColorGreen.green50,
-      iconColor: ColorGreen.green600,
     },
   ];
 

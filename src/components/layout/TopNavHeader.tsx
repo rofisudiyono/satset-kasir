@@ -64,8 +64,8 @@ export function TopNavHeader() {
       label: "Siap Diantar",
       icon: "bag-check-outline",
       iconActive: "bag-check",
-      segment: "/inventori",
-      href: "/inventori",
+      segment: "/pengaturan",
+      href: "/pengaturan",
       badge: heldOrders.length > 0 ? heldOrders.length : undefined,
     },
     {

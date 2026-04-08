@@ -13,14 +13,6 @@ export type {
   ProductCategory,
 } from "@/features/catalog/category.types";
 export type {
-  Product,
-  ProductDetail,
-  ProductVariantGroup,
-  ProductVariantOption,
-  SortOption,
-  StockStatus,
-} from "@/features/inventory/inventory.types";
-export type {
   AppliedPromo,
   CashNumpadKey,
   OrderType,
@@ -29,15 +21,9 @@ export type {
   PromoConfig,
 } from "@/features/payment/payment.types";
 export type {
-  IoniconName as SettingIoniconName,
-  SettingRowProps,
-} from "@/features/settings/settings.types";
-export type {
-  ReceiptItem,
-  StoreInfo,
-  Transaction,
-  TxStatus,
-} from "@/features/transactions/transaction.types";
+  KdsFulfillmentEvent,
+  KdsNotificationItem,
+} from "@/features/pos/kds.types";
 export type {
   PosFulfillmentStatus,
   PosOrder,
@@ -49,9 +35,15 @@ export type {
   ShiftSlot,
 } from "@/features/pos/pos.types";
 export type {
-  KdsFulfillmentEvent,
-  KdsNotificationItem,
-} from "@/features/pos/kds.types";
+  IoniconName as SettingIoniconName,
+  SettingRowProps,
+} from "@/features/settings/settings.types";
+export type {
+  ReceiptItem,
+  StoreInfo,
+  Transaction,
+  TxStatus,
+} from "@/features/transactions/transaction.types";
 export type { FilterTab } from "./filters.types";
 export type { IoniconName } from "./icons.types";
 export type { TabConfig } from "./navigation.types";
