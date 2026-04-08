@@ -172,6 +172,14 @@ export function TopNavHeader() {
                 <View style={styles.alertDot} />
               </View>
               <IconButton
+                iconName="bluetooth-outline"
+                shape="square"
+                size={42}
+                iconColor={ColorNeutral.neutral700}
+                bg={ColorNeutral.neutral50}
+                onPress={() => router.push("/bluetooth-printer" as never)}
+              />
+              <IconButton
                 iconName="person-outline"
                 shape="square"
                 size={42}

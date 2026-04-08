@@ -53,10 +53,23 @@ export default function PembayaranSuksesPage() {
   const { isTablet, contentMaxWidth, horizontalPadding } =
     useResponsiveLayout();
   const [activeView, setActiveView] = useState<ReceiptView>("summary");
+  const [printerState, setPrinterState] = useState<PrinterState>({
+    connected: false,
+    printer: null,
+    printing: false,
+  });
   const params = useLocalSearchParams<{
     orderId: string;
     paymentId?: string;
   }>();
+
+  // Subscribe to printer state
+  useEffect(() => {
+    const unsubscribe = bluetoothPrinterManager.subscribe((state) => {
+      setPrinterState(state);
+    });
+    return unsubscribe;
+  }, []);
 
   const order = orders.find((item) => item.id === params.orderId);
   const payment = order?.payments.find((item) => item.id === params.paymentId);
@@ -178,6 +191,58 @@ export default function PembayaranSuksesPage() {
     await Share.share({ message: text, title: "Ringkasan Pembayaran" });
   }
 
+  async function handleBluetoothPrint() {
+    if (!printerState.connected) {
+      Alert.alert(
+        "Printer Tidak Terhubung",
+        "Silakan hubungkan ke printer Bluetooth terlebih dahulu melalui pengaturan printer.",
+        [
+          { text: "Batal", style: "cancel" },
+          {
+            text: "Buka Pengaturan",
+            onPress: () => router.push("/bluetooth-printer" as never),
+          },
+        ],
+      );
+      return;
+    }
+
+    try {
+      // Build ESC/POS receipt
+      const escposReceipt: ESCPOSReceipt = {
+        storeName: storeInfo.name,
+        storeAddress: storeInfo.address,
+        storePhone: storeInfo.phone,
+        orderNumber: order.id,
+        dateTime,
+        items: receiptItems,
+        subtotal,
+        discount,
+        ppn,
+        grandTotal: order.grandTotal,
+        paymentMethod: methodLabel,
+        amountPaid: paymentAmount,
+        totalPaid,
+        remaining,
+        cashReceived: payment?.method === "tunai" ? received : undefined,
+        change: payment?.method === "tunai" ? change : undefined,
+      };
+
+      const escposData = buildESCPOSReceipt(escposReceipt);
+      const success = await bluetoothPrinterManager.printESCPOS(escposData);
+
+      if (success) {
+        Alert.alert("Berhasil", "Struk berhasil dicetak via Bluetooth");
+      }
+    } catch (error) {
+      console.error("Bluetooth print error:", error);
+      Alert.alert(
+        "Cetak Gagal",
+        "Terjadi kesalahan saat mencetak. Silakan coba lagi.",
+      );
+    }
+  }
+
   const summaryPanel = (
     <YStack gap="$4">
       <View style={styles.actionPanel}>
@@ -232,7 +297,9 @@ export default function PembayaranSuksesPage() {
       <View style={styles.metricPanel}>
         <XStack gap="$3" flexWrap="wrap">
           <View style={[styles.metricCard, styles.metricCardPrimary]}>
-            <TextCaption color="rgba(255,255,255,0.82)">Pembayaran Ini</TextCaption>
+            <TextCaption color="rgba(255,255,255,0.82)">
+              Pembayaran Ini
+            </TextCaption>
             <TextH3 fontWeight="700" color={ColorBase.white}>
               {formatPrice(paymentAmount)}
             </TextH3>
@@ -241,7 +308,9 @@ export default function PembayaranSuksesPage() {
             <TextCaption color="$colorSecondary">Sisa Tagihan</TextCaption>
             <TextH3
               fontWeight="700"
-              color={remaining === 0 ? ColorGreen.green600 : ColorDanger.danger600}
+              color={
+                remaining === 0 ? ColorGreen.green600 : ColorDanger.danger600
+              }
             >
               {formatPrice(remaining)}
             </TextH3>
@@ -274,7 +343,9 @@ export default function PembayaranSuksesPage() {
             <>
               <XStack justifyContent="space-between">
                 <TextBodySm color="$colorSecondary">Uang Diterima</TextBodySm>
-                <TextBodySm fontWeight="700">{formatPrice(received)}</TextBodySm>
+                <TextBodySm fontWeight="700">
+                  {formatPrice(received)}
+                </TextBodySm>
               </XStack>
               <XStack justifyContent="space-between">
                 <TextBodySm color="$colorSecondary">Kembalian</TextBodySm>
@@ -320,9 +391,36 @@ export default function PembayaranSuksesPage() {
                 style={styles.buttonIcon}
               />
               <TextBodyLg fontWeight="700" color={ColorBase.white}>
-                Cetak Resi
+                Cetak Resi (PDF)
               </TextBodyLg>
             </TouchableOpacity>
+            {printerState.connected ? (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={[
+                  styles.receiptActionBluetooth,
+                  printerState.printing && styles.receiptActionDisabled,
+                ]}
+                onPress={handleBluetoothPrint}
+                disabled={printerState.printing}
+              >
+                {printerState.printing ? (
+                  <ActivityIndicator color={ColorBase.white} />
+                ) : (
+                  <>
+                    <Ionicons
+                      name="bluetooth"
+                      size={18}
+                      color={ColorBase.white}
+                      style={styles.buttonIcon}
+                    />
+                    <TextBodyLg fontWeight="700" color={ColorBase.white}>
+                      Cetak Bluetooth
+                    </TextBodyLg>
+                  </>
+                )}
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity
               activeOpacity={0.85}
               style={styles.receiptActionSecondary}
@@ -383,7 +481,9 @@ export default function PembayaranSuksesPage() {
                 <TextBodySm color="$colorSecondary" flex={1}>
                   {item.name} x{item.qty}
                 </TextBodySm>
-                <TextBodySm fontWeight="600">{formatPrice(item.price)}</TextBodySm>
+                <TextBodySm fontWeight="600">
+                  {formatPrice(item.price)}
+                </TextBodySm>
               </XStack>
             ))}
           </YStack>
@@ -424,7 +524,9 @@ export default function PembayaranSuksesPage() {
             </XStack>
             <XStack justifyContent="space-between">
               <TextBodySm color="$colorSecondary">Pembayaran Ini</TextBodySm>
-              <TextBodySm fontWeight="700">{formatPrice(paymentAmount)}</TextBodySm>
+              <TextBodySm fontWeight="700">
+                {formatPrice(paymentAmount)}
+              </TextBodySm>
             </XStack>
             <XStack justifyContent="space-between">
               <TextBodySm color="$colorSecondary">Total Dibayar</TextBodySm>
@@ -467,7 +569,12 @@ export default function PembayaranSuksesPage() {
       />
 
       {!isTablet ? (
-        <View style={[styles.viewSwitcher, { paddingHorizontal: horizontalPadding }]}>
+        <View
+          style={[
+            styles.viewSwitcher,
+            { paddingHorizontal: horizontalPadding },
+          ]}
+        >
           {[
             { id: "summary", label: "Ringkasan" },
             { id: "receipt", label: "Resi" },
@@ -501,7 +608,12 @@ export default function PembayaranSuksesPage() {
           },
         ]}
       >
-        <XStack flex={1} gap="$4" flexDirection={shellDirection} alignItems="stretch">
+        <XStack
+          flex={1}
+          gap="$4"
+          flexDirection={shellDirection}
+          alignItems="stretch"
+        >
           {showSummary ? (
             <ScrollView
               style={styles.panel}
@@ -656,6 +768,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
+  },
+  receiptActionBluetooth: {
+    flex: 1,
+    minHeight: 56,
+    borderRadius: 18,
+    backgroundColor: ColorGreen.green600,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+  },
+  receiptActionDisabled: {
+    opacity: 0.6,
   },
   receiptActionSecondary: {
     flex: 1,
