@@ -5,15 +5,15 @@
 import type { TabConfig } from "@/types";
 
 export const TAB_ICONS: Record<string, TabConfig> = {
-  index: { active: "home", inactive: "home-outline" },
-  transaksi: { active: "receipt", inactive: "receipt-outline" },
-  inventori: { active: "cube", inactive: "cube-outline" },
-  pengaturan: { active: "settings", inactive: "settings-outline" },
+  index: { active: "globe", inactive: "globe-outline" },
+  transaksi: { active: "create", inactive: "create-outline" },
+  inventori: { active: "bag-check", inactive: "bag-check-outline" },
+  pengaturan: { active: "time", inactive: "time-outline" },
 };
 
 export const TAB_LABELS: Record<string, string> = {
-  index: "Home",
-  transaksi: "Transaksi",
-  inventori: "Inventori",
-  pengaturan: "Pengaturan",
+  index: "Web Orders",
+  transaksi: "Input Manual",
+  inventori: "Siap Antar",
+  pengaturan: "Riwayat",
 };

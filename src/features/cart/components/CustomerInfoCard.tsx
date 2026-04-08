@@ -37,19 +37,18 @@ export function CustomerInfoCard({
       />
 
       <TextCaption color="$colorSecondary" marginBottom={6} marginTop={12}>
-        Nomor Meja
+        Meja / Label Pesanan
       </TextCaption>
       <TextInput
         value={tableNumber}
         onChangeText={onTableNumberChange}
-        placeholder="Opsional"
+        placeholder="Contoh: Meja 3 atau Takeaway"
         placeholderTextColor={ColorNeutral.neutral400}
         style={styles.inputField}
-        keyboardType="number-pad"
       />
 
       <TextCaption color="$colorSecondary" marginBottom={8} marginTop={12}>
-        Tipe Pesanan
+        Mode Layanan
       </TextCaption>
       <View style={styles.segmentControl}>
         {orderTypeOptions.map((type) => (

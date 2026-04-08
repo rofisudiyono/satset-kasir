@@ -4,7 +4,12 @@
 
 import type { IoniconName } from "@/types/icons.types";
 
-export type PaymentMethod = "tunai" | "qris" | "transfer" | "edc";
+export type PaymentMethod =
+  | "tunai"
+  | "qris"
+  | "transfer"
+  | "edc"
+  | "ewallet";
 export type OrderType = "Dine In" | "Take Away" | "Delivery";
 export type CashNumpadKey =
   | "0"

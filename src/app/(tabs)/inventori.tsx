@@ -1,166 +1,183 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useAtomValue } from "jotai";
-import React, { useCallback, useState } from "react";
-import { FlatList, ListRenderItem, StyleSheet, View } from "react-native";
+import { useAtom, useSetAtom } from "jotai";
+import React, { useEffect } from "react";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { XStack, YStack } from "tamagui";
 
-import { AppButton, PageHeader, TextBodySm } from "@/components";
-import { categoryFilters } from "@/features/catalog/api/category.data";
-import { products as mockProducts } from "@/features/inventory/api/inventory.data";
-import { InventoriFAB } from "@/features/inventory/components/InventoriFAB";
-import { InventoriListHeader } from "@/features/inventory/components/InventoriListHeader";
-import { InventoriSidebar } from "@/features/inventory/components/InventoriSidebar";
-import { MemoProductRow } from "@/features/inventory/components/ProductRow";
-import { userProductsAtom } from "@/features/inventory/store/inventory.store";
-import { useDeviceLayout } from "@/hooks/useDeviceLayout";
-import { ColorBase, ColorNeutral } from "@/themes/Colors";
-import type { CategoryFilter, Product, SortOption } from "@/types";
+import { AppButton, PageHeader, TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components";
+import { enqueueKdsFulfillmentEventAtom, ensurePosSeedDataAtom, markOrderServedAtom, posOrdersAtom } from "@/features/pos/store/pos.store";
+import { buildOrderItemsSummary } from "@/features/pos/pos.utils";
+import { ColorBase, ColorNeutral, ColorPrimary, ColorSuccess, ColorWarning } from "@/themes/Colors";
+import { formatPrice } from "@/utils";
 
-export default function InventoriPage() {
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("Semua");
-  const [sortOption, setSortOption] = useState<SortOption>("Nama A-Z");
-  const [searchQuery, setSearchQuery] = useState("");
-  const userProducts = useAtomValue(userProductsAtom);
-  const { useTwoPaneLayout } = useDeviceLayout();
+export default function SiapAntarTabPage() {
+  const [orders] = useAtom(posOrdersAtom);
+  const ensureSeedData = useSetAtom(ensurePosSeedDataAtom);
+  const markServed = useSetAtom(markOrderServedAtom);
+  const enqueueEvent = useSetAtom(enqueueKdsFulfillmentEventAtom);
 
-  const allProducts = [...userProducts, ...mockProducts];
+  useEffect(() => {
+    ensureSeedData();
+  }, [ensureSeedData]);
 
-  const filtered = allProducts.filter((p) => {
-    const matchCategory =
-      categoryFilter === "Semua" || p.category === categoryFilter;
-    const q = searchQuery.trim().toLowerCase();
-    const matchSearch =
-      !q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q);
-    return matchCategory && matchSearch;
-  });
-
-  const emptyCount = allProducts.filter((p) => p.stockStatus === "empty").length;
-  const categoryCount = new Set(allProducts.map((p) => p.category)).size;
-
-  const renderItem = useCallback<ListRenderItem<Product>>(
-    ({ item, index }) => (
-      <MemoProductRow product={item} isFirst={index === 0} />
-    ),
-    [],
+  const readyOrders = orders.filter((order) => order.fulfillment === "READY");
+  const preparingOrders = orders.filter(
+    (order) => order.fulfillment === "PREPARING" && order.status === "PAID",
   );
 
-  const renderCardItem = useCallback<ListRenderItem<Product>>(
-    ({ item }) => <MemoProductRow product={item} isFirst={false} isCard />,
-    [],
-  );
-
-  const keyExtractor = useCallback((item: Product) => item.id, []);
-
-  const sharedListHeaderProps = {
-    searchQuery,
-    onSearchChange: setSearchQuery,
-    categoryFilter,
-    onCategoryChange: setCategoryFilter,
-    sortOption,
-    onSortChange: setSortOption,
-    totalProducts: allProducts.length,
-    emptyCount,
-    categoryCount,
-    filteredCount: filtered.length,
-  };
-
-  // ── Tablet: sidebar + grid split ──────────────────────────────────────────
-  if (useTwoPaneLayout) {
-    return (
-      <SafeAreaView
-        edges={["top"]}
-        style={{ flex: 1, backgroundColor: ColorBase.bgScreen }}
-      >
-        <PageHeader title="Produk" />
-        <View style={styles.tabletLayout}>
-          <InventoriSidebar
-            allProducts={allProducts}
-            totalProducts={allProducts.length}
-            emptyCount={emptyCount}
-            categoryCount={categoryCount}
-            categoryFilter={categoryFilter}
-            onCategoryChange={setCategoryFilter}
-          />
-
-          <View style={{ flex: 1, backgroundColor: ColorBase.bgScreen }}>
-            <FlatList
-              data={filtered}
-              keyExtractor={keyExtractor}
-              renderItem={renderCardItem}
-              numColumns={2}
-              columnWrapperStyle={{ gap: 0 }}
-              ListHeaderComponent={
-                <InventoriListHeader {...sharedListHeaderProps} hideCategories />
-              }
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 32, paddingHorizontal: 12 }}
-              ListEmptyComponent={
-                <View style={styles.emptyState}>
-                  <Ionicons
-                    name="cube-outline"
-                    size={40}
-                    color={ColorNeutral.neutral300}
-                  />
-                  <TextBodySm color="$colorTertiary" marginTop={8}>
-                    Tidak ada produk ditemukan
-                  </TextBodySm>
-                </View>
-              }
-            />
-          </View>
-        </View>
-        <InventoriFAB />
-      </SafeAreaView>
-    );
-  }
-
-  // ── Phone layout ───────────────────────────────────────────────────────────
   return (
-    <SafeAreaView
-      edges={["top"]}
-      style={{ flex: 1, backgroundColor: ColorBase.bgScreen }}
-    >
+    <SafeAreaView style={styles.container}>
       <PageHeader
-        title="Produk"
-        onBack={() => router.back()}
-        actions={
-          <AppButton
-            variant="primary"
-            size="sm"
-            onPress={() => router.push("/inventory/tambah-produk")}
-          >
-            + Tambah
-          </AppButton>
-        }
+        title="Siap Antar"
+        subtitle="Order READY dari dapur dan aksi Sudah Diantar"
       />
 
-      <FlatList
-        data={filtered}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        ListHeaderComponent={<InventoriListHeader {...sharedListHeaderProps} />}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 96 }}
-        ListFooterComponent={<View style={{ height: 8 }} />}
-        style={{ marginHorizontal: 16 }}
-      />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        <YStack gap="$3">
+          <XStack gap="$3">
+            <View style={[styles.summaryCard, { backgroundColor: ColorSuccess.success50 }]}>
+              <TextCaption color={ColorSuccess.success700}>READY</TextCaption>
+              <TextBodyLg fontWeight="700" color={ColorSuccess.success700}>
+                {readyOrders.length}
+              </TextBodyLg>
+            </View>
+            <View style={[styles.summaryCard, { backgroundColor: ColorWarning.warning50 }]}>
+              <TextCaption color={ColorWarning.warning700}>PREPARING</TextCaption>
+              <TextBodyLg fontWeight="700" color={ColorWarning.warning700}>
+                {preparingOrders.length}
+              </TextBodyLg>
+            </View>
+          </XStack>
 
-      <InventoriFAB />
+          <TextH3 fontWeight="700">Order siap diantar</TextH3>
+          {readyOrders.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <TextBodySm color="$colorSecondary">Belum ada order READY.</TextBodySm>
+            </View>
+          ) : (
+            readyOrders.map((order) => (
+              <View key={order.id} style={styles.orderCard}>
+                <XStack justifyContent="space-between" alignItems="center">
+                  <YStack gap={2}>
+                    <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
+                    <TextCaption color="$colorSecondary">
+                      {order.customerName || order.tableLabel || "Takeaway"}
+                    </TextCaption>
+                  </YStack>
+                  <View style={styles.readyBadge}>
+                    <TextCaption color={ColorSuccess.success700} fontWeight="700">
+                      READY
+                    </TextCaption>
+                  </View>
+                </XStack>
+                <TextBodySm color="$colorSecondary">
+                  {buildOrderItemsSummary(order)}
+                </TextBodySm>
+                <XStack justifyContent="space-between" alignItems="center">
+                  <TextBodySm fontWeight="700">{formatPrice(order.grandTotal)}</TextBodySm>
+                  <AppButton
+                    variant="success"
+                    size="sm"
+                    onPress={() => markServed(order.id)}
+                  >
+                    Sudah Diantar
+                  </AppButton>
+                </XStack>
+              </View>
+            ))
+          )}
+        </YStack>
+
+        <YStack gap="$3">
+          <TextH3 fontWeight="700">Simulasi event dapur</TextH3>
+          {preparingOrders.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <TextBodySm color="$colorSecondary">Tidak ada order PREPARING.</TextBodySm>
+            </View>
+          ) : (
+            preparingOrders.map((order) => (
+              <View key={order.id} style={styles.orderCard}>
+                <XStack justifyContent="space-between" alignItems="center">
+                  <YStack gap={2}>
+                    <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
+                    <TextCaption color="$colorSecondary">
+                      {order.customerName || order.tableLabel || "Takeaway"}
+                    </TextCaption>
+                  </YStack>
+                  <TouchableOpacity
+                    onPress={() =>
+                      enqueueEvent({
+                        id: `kds-sim-${Date.now()}`,
+                        orderId: order.id,
+                        fulfillment: "READY",
+                        source: "MANUAL",
+                        createdAt: Date.now(),
+                      })
+                    }
+                    style={styles.simulateButton}
+                  >
+                    <Ionicons name="flash-outline" size={16} color={ColorPrimary.primary600} />
+                    <TextCaption color={ColorPrimary.primary600} fontWeight="700">
+                      Tandai READY
+                    </TextCaption>
+                  </TouchableOpacity>
+                </XStack>
+                <TextBodySm color="$colorSecondary">
+                  {buildOrderItemsSummary(order)}
+                </TextBodySm>
+              </View>
+            ))
+          )}
+        </YStack>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  tabletLayout: {
+  container: {
     flex: 1,
-    flexDirection: "row",
+    backgroundColor: ColorBase.bgScreen,
   },
-  emptyState: {
+  content: {
+    padding: 16,
+    gap: 16,
+    paddingBottom: 32,
+  },
+  summaryCard: {
     flex: 1,
+    borderRadius: 16,
+    padding: 16,
+  },
+  orderCard: {
+    backgroundColor: ColorBase.white,
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+  },
+  readyBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: ColorSuccess.success50,
+  },
+  simulateButton: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 60,
-    gap: 8,
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: ColorPrimary.primary50,
+  },
+  emptyCard: {
+    backgroundColor: ColorBase.white,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
   },
 });

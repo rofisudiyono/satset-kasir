@@ -1,33 +1,29 @@
 {
   "expo": {
-    "name": "kasirin-aja",
-    "slug": "kasirin-aja",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "kasirinaja",
-    "userInterfaceStyle": "automatic",
-    "ios": {
-      "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.rofisudiyono.kasirinaja",
-      "supportsTablet": true
-    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false,
-      "package": "com.rofisudiyono.kasirinaja"
+      "orientation": "landscape",
+      "package": "com.rofisudiyono.kasirinaja",
+      "predictiveBackGestureEnabled": false
     },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+    "experiments": {
+      "reactCompiler": true,
+      "typedRoutes": true
     },
+    "icon": "./assets/images/icon.png",
+    "ios": {
+      "bundleIdentifier": "com.rofisudiyono.kasirinaja",
+      "icon": "./assets/expo.icon",
+      "supportsTablet": true
+    },
+    "name": "kasirin-aja",
+    "orientation": "portrait",
     "plugins": [
-      "expo-router",
       [
         "expo-camera",
         {
@@ -37,18 +33,23 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
           "android": {
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76
-          }
+          },
+          "backgroundColor": "#208AEF"
         }
       ],
+      "expo-router",
       "expo-sharing"
     ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+    "scheme": "kasirinaja",
+    "slug": "kasirin-aja",
+    "userInterfaceStyle": "automatic",
+    "version": "1.0.0",
+    "web": {
+      "favicon": "./assets/images/favicon.png",
+      "output": "static"
     }
   }
 }

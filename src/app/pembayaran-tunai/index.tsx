@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useAtom } from "jotai";
+import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
@@ -15,6 +16,14 @@ import {
   TextCaption,
   TextH1,
 } from "@/components";
+import { cartAtom, cartSnapshotAtom } from "@/features/cart/store/cart.store";
+import { catalogStockAtom } from "@/features/catalog/store/catalog.store";
+import { posOrdersAtom } from "@/features/pos/store/pos.store";
+import {
+  appendPaymentToOrder,
+  calculateOrderRemainingAmount,
+} from "@/features/pos/pos.utils";
+import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import { useDeviceLayout } from "@/hooks/useDeviceLayout";
 import {
   ColorBase,
@@ -27,27 +36,43 @@ import { formatPrice, getCashSuggestions } from "@/utils";
 export default function PembayaranTunaiPage() {
   const router = useRouter();
   const { useTwoPaneLayout } = useDeviceLayout();
+  const [isShiftStarted] = useAtom(isShiftStartedAtom);
+  const [orders, setOrders] = useAtom(posOrdersAtom);
+  const [, setCart] = useAtom(cartAtom);
+  const [cartSnapshot, setCartSnapshot] = useAtom(cartSnapshotAtom);
+  const [, setCatalogStock] = useAtom(catalogStockAtom);
   const params = useLocalSearchParams<{
-    total: string;
-    totalItems: string;
-    discount: string;
-    items: string;
-    customerLabel: string;
+    orderId: string;
+    amountToPay: string;
+    paymentLabel?: string;
   }>();
 
-  const total = Number(params.total ?? 88800);
-  const totalItems = Number(params.totalItems ?? 0);
-  const discount = Number(params.discount ?? 0);
-  const items = params.items ?? "";
-  const customerLabel = params.customerLabel ?? "";
+  const order = useMemo(
+    () => orders.find((item) => item.id === params.orderId),
+    [orders, params.orderId],
+  );
 
+  const amountToPay = Number(params.amountToPay ?? 0);
   const [inputValue, setInputValue] = useState("0");
 
-  const receivedAmount = Number(inputValue);
-  const change = receivedAmount - total;
-  const isEnough = receivedAmount >= total;
+  useEffect(() => {
+    if (isShiftStarted) return;
+    router.replace("/buka-shift" as never);
+  }, [isShiftStarted, router]);
 
-  const suggestions = getCashSuggestions(total);
+  if (!order) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <PageHeader title="Pembayaran Tunai" showBack onBack={() => router.back()} />
+      </SafeAreaView>
+    );
+  }
+
+  const receivedAmount = Number(inputValue);
+  const change = receivedAmount - amountToPay;
+  const isEnough = receivedAmount >= amountToPay;
+  const remainingBeforePayment = calculateOrderRemainingAmount(order);
+  const suggestions = getCashSuggestions(amountToPay);
 
   function handleNumpad(key: string) {
     setInputValue((prev) => {
@@ -71,40 +96,60 @@ export default function PembayaranTunaiPage() {
   }
 
   function handleConfirm() {
+    const paymentId = `pay-${Date.now()}`;
+    const updatedOrder = appendPaymentToOrder(order, {
+      id: paymentId,
+      method: "tunai",
+      amountPaid: amountToPay,
+      amountReceived: receivedAmount,
+      label: params.paymentLabel || "Tunai",
+      paidAt: Date.now(),
+    });
+
+    setOrders((prev) =>
+      prev.map((item) => (item.id === order.id ? updatedOrder : item)),
+    );
+
+    if (cartSnapshot.length > 0) {
+      setCatalogStock((prev) => {
+        const updated = { ...prev };
+        for (const item of cartSnapshot) {
+          const current = updated[item.productId] ?? 0;
+          updated[item.productId] = Math.max(0, current - item.quantity);
+        }
+        return updated;
+      });
+      setCartSnapshot([]);
+      setCart([]);
+    }
+
     router.push({
       pathname: "/pembayaran-sukses",
       params: {
-        total: String(total),
-        totalItems: String(totalItems),
-        discount: String(discount),
-        method: "Tunai",
-        methodId: "tunai",
-        received: String(receivedAmount),
-        change: String(change > 0 ? change : 0),
-        items,
-        customerLabel,
+        orderId: order.id,
+        paymentId,
       },
     });
   }
 
-  // ── Shared: info section ───────────────────────────────────────────────────
   const infoSection = (
     <YStack gap={16}>
-      {/* Total display */}
       <YStack alignItems="center" gap={2}>
         <TextBodySm
           color={ColorNeutral.neutral500}
           fontWeight="600"
           letterSpacing={0.5}
         >
-          TOTAL YANG HARUS DIBAYAR
+          NOMINAL DIBAYAR SEKARANG
         </TextBodySm>
         <TextH1 fontWeight="700" color={ColorPrimary.primary600} fontSize={26}>
-          {formatPrice(total)}
+          {formatPrice(amountToPay)}
         </TextH1>
+        <TextCaption color="$colorSecondary">
+          Sisa sebelum pembayaran: {formatPrice(remainingBeforePayment)}
+        </TextCaption>
       </YStack>
 
-      {/* Received amount display */}
       <YStack alignItems="center">
         <TextBodySm color={ColorNeutral.neutral500} fontWeight="500">
           Uang Diterima
@@ -115,7 +160,6 @@ export default function PembayaranTunaiPage() {
         <View style={styles.inputUnderline} />
       </YStack>
 
-      {/* Suggestion chips */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -131,19 +175,14 @@ export default function PembayaranTunaiPage() {
         ))}
       </ScrollView>
 
-      {/* Info card */}
       <View style={styles.infoCard}>
         <XStack justifyContent="space-between" alignItems="center">
-          <TextBodySm color={ColorNeutral.neutral700}>Total Tagihan</TextBodySm>
+          <TextBodySm color={ColorNeutral.neutral700}>Tagihan Dibayar</TextBodySm>
           <TextBodySm fontWeight="600" color={ColorNeutral.neutral700}>
-            {formatPrice(total)}
+            {formatPrice(amountToPay)}
           </TextBodySm>
         </XStack>
-        <XStack
-          justifyContent="space-between"
-          alignItems="center"
-          marginTop={6}
-        >
+        <XStack justifyContent="space-between" alignItems="center" marginTop={6}>
           <TextBodySm color={ColorNeutral.neutral700}>Uang Diterima</TextBodySm>
           <TextBodySm fontWeight="600" color={ColorNeutral.neutral700}>
             {formatPrice(receivedAmount)}
@@ -157,11 +196,7 @@ export default function PembayaranTunaiPage() {
           <XStack alignItems="center" gap={6}>
             {isEnough && (
               <View style={styles.checkBadge}>
-                <Ionicons
-                  name="checkmark"
-                  size={12}
-                  color={ColorGreen.green600}
-                />
+                <Ionicons name="checkmark" size={12} color={ColorGreen.green600} />
               </View>
             )}
             <TextBody fontWeight="800" color={ColorGreen.green600}>
@@ -173,27 +208,18 @@ export default function PembayaranTunaiPage() {
     </YStack>
   );
 
-  // ── Shared: bottom action ──────────────────────────────────────────────────
   const bottomAction = (
     <>
       <AppButton
-        title="Konfirmasi Pembayaran"
+        title="Konfirmasi Pembayaran Tunai"
         variant="success"
         onPress={handleConfirm}
         disabled={!isEnough}
       />
-      <TextCaption
-        color={ColorNeutral.neutral500}
-        textAlign="center"
-        marginTop={6}
-      >
+      <TextCaption color={ColorNeutral.neutral500} textAlign="center" marginTop={6}>
         Kembalian akan otomatis tercatat
       </TextCaption>
-      <TouchableOpacity
-        onPress={() => router.back()}
-        style={styles.batalBtn}
-        activeOpacity={0.7}
-      >
+      <TouchableOpacity onPress={() => router.back()} style={styles.batalBtn} activeOpacity={0.7}>
         <TextBody fontWeight="700" color={ColorNeutral.neutral700} letterSpacing={1}>
           BATAL
         </TextBody>
@@ -201,18 +227,11 @@ export default function PembayaranTunaiPage() {
     </>
   );
 
-  // ── Tablet: 2-column layout ────────────────────────────────────────────────
   if (useTwoPaneLayout) {
     return (
       <SafeAreaView style={styles.container}>
-        <PageHeader
-          title="Pembayaran Tunai"
-          showBack
-          onBack={() => router.back()}
-        />
-
+        <PageHeader title="Pembayaran Tunai" showBack onBack={() => router.back()} />
         <XStack flex={1}>
-          {/* Left: info */}
           <ScrollView
             style={styles.tabletInfoPanel}
             showsVerticalScrollIndicator={false}
@@ -220,11 +239,7 @@ export default function PembayaranTunaiPage() {
           >
             {infoSection}
           </ScrollView>
-
-          {/* Divider */}
           <View style={styles.tabletDivider} />
-
-          {/* Right: numpad + action */}
           <View style={styles.tabletNumpadPanel}>
             <View style={styles.tabletNumpadContent}>
               <NumpadGrid onPress={handleNumpad} />
@@ -236,20 +251,13 @@ export default function PembayaranTunaiPage() {
     );
   }
 
-  // ── Phone layout ───────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.container}>
-      <PageHeader
-        title="Pembayaran Tunai"
-        showBack
-        onBack={() => router.back()}
-      />
-
+      <PageHeader title="Pembayaran Tunai" showBack onBack={() => router.back()} />
       <View style={styles.content}>
         {infoSection}
         <NumpadGrid onPress={handleNumpad} />
       </View>
-
       <View style={styles.bottomBar}>{bottomAction}</View>
     </SafeAreaView>
   );
@@ -309,7 +317,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
   },
-  // Tablet styles
   tabletNumpadPanel: {
     flex: 0.5,
     backgroundColor: ColorBase.bgScreen,

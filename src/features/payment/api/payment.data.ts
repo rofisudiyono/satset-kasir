@@ -44,6 +44,14 @@ export const paymentMethodOptions: PaymentMethodOption[] = [
     title: "EDC / Kartu",
     subtitle: "Debit atau kartu kredit melalui mesin EDC",
   },
+  {
+    id: "ewallet",
+    icon: "phone-portrait-outline",
+    iconBg: "#E0F2FE",
+    iconColor: "#0284C7",
+    title: "E-Wallet",
+    subtitle: "OVO, GoPay, DANA, atau dompet digital lain",
+  },
 ];
 
 export const promoDefinitions: Record<string, PromoConfig> = {

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAtom } from "jotai";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -25,8 +25,11 @@ import {
   heldOrdersAtom,
 } from "@/features/cart/store/cart.store";
 import { promoDefinitions } from "@/features/payment/api/payment.data";
+import { posOrdersAtom } from "@/features/pos/store/pos.store";
+import { buildPosOrderFromCart } from "@/features/pos/pos.utils";
 import { AppButton, PageHeader } from "@/components";
 import { useDeviceLayout } from "@/hooks/useDeviceLayout";
+import { isShiftStartedAtom, shiftDataAtom } from "@/features/shift/store/shift.store";
 import { ColorBase, ColorDanger, ColorPrimary } from "@/themes/Colors";
 import type { AppliedPromo, OrderType } from "@/types";
 
@@ -37,6 +40,9 @@ export default function KeranjangPage() {
   const [cart, setCart] = useAtom(cartAtom);
   const [, setHeldOrders] = useAtom(heldOrdersAtom);
   const [, setCartSnapshot] = useAtom(cartSnapshotAtom);
+  const [isShiftStarted] = useAtom(isShiftStartedAtom);
+  const [shiftData] = useAtom(shiftDataAtom);
+  const [posOrders, setPosOrders] = useAtom(posOrdersAtom);
   const { useTwoPaneLayout } = useDeviceLayout();
 
   const [customerName, setCustomerName] = useState("");
@@ -53,6 +59,12 @@ export default function KeranjangPage() {
   const afterDiscount = subtotal - discount;
   const ppn = Math.round(afterDiscount * PPN_RATE);
   const total = afterDiscount + ppn;
+
+  // Enforce open shift before checkout.
+  useEffect(() => {
+    if (isShiftStarted) return;
+    router.replace("/buka-shift" as never);
+  }, [isShiftStarted, router]);
 
   function handleUpdateQty(cartId: string, qty: number) {
     setCart((prev) =>
@@ -124,22 +136,36 @@ export default function KeranjangPage() {
   }
 
   function handlePay() {
+    if (cart.length === 0) return;
+
     setCartSnapshot([...cart]);
-    const itemsSummary = cart
-      .map(
-        (c) =>
-          `${c.productName}${c.variantLabel ? ` (${c.variantLabel})` : ""} x${c.quantity}`,
-      )
-      .join(", ");
-    const label = customerName || tableNumber || orderType;
+    const orderId = `#ORD-${String(posOrders.length + 1).padStart(4, "0")}`;
+    const tableLabel =
+      tableNumber.trim() ||
+      (orderType === "Dine In"
+        ? "Dine In"
+        : orderType === "Take Away"
+          ? "Takeaway"
+          : "Delivery");
+
+    const order = buildPosOrderFromCart({
+      orderId,
+      shiftId: shiftData?.shiftId,
+      cart,
+      customerName,
+      tableLabel,
+      orderType,
+      discountAmount: discount,
+      taxAmount: ppn,
+      grandTotal: total,
+    });
+
+    setPosOrders((prev) => [order, ...prev]);
+
     router.push({
       pathname: "/pilih-pembayaran",
       params: {
-        total: String(total),
-        totalItems: String(totalItems),
-        discount: String(discount),
-        items: itemsSummary,
-        customerLabel: label,
+        orderId,
       },
     });
   }

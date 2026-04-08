@@ -1,385 +1,434 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import { useAtom } from "jotai";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
-  Animated,
   ScrollView,
   StyleSheet,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import { paymentMethodOptions } from "@/features/payment/api/payment.data";
-import { PaymentMethodCard } from "@/features/payment/components/PaymentMethodCard";
 import {
   AppButton,
   PageHeader,
-  QRCodePlaceholder,
   TextBodyLg,
   TextBodySm,
   TextCaption,
   TextH2,
+  TextH3,
 } from "@/components";
+import { cartAtom, cartSnapshotAtom } from "@/features/cart/store/cart.store";
+import { catalogStockAtom } from "@/features/catalog/store/catalog.store";
+import { paymentMethodOptions } from "@/features/payment/api/payment.data";
+import { PaymentMethodCard } from "@/features/payment/components/PaymentMethodCard";
+import { posOrdersAtom } from "@/features/pos/store/pos.store";
+import {
+  appendPaymentToOrder,
+  buildOrderItemsSummary,
+  calculateOrderPaidAmount,
+  calculateOrderRemainingAmount,
+  getPaymentMethodLabel,
+  getSelectedItemsAmount,
+} from "@/features/pos/pos.utils";
+import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
+import { useDeviceLayout } from "@/hooks/useDeviceLayout";
 import {
   ColorBase,
-  ColorDanger,
   ColorNeutral,
   ColorPrimary,
 } from "@/themes/Colors";
 import type { PaymentMethod } from "@/types";
-import { formatPrice, formatTimer } from "@/utils";
-import { useDeviceLayout } from "@/hooks/useDeviceLayout";
+import { formatPrice } from "@/utils";
 
-const QR_DURATION = 5 * 60;
+type PaymentFlowMode = "full" | "partial" | "split_nominal" | "split_item";
 
 export default function PilihPembayaranPage() {
   const router = useRouter();
   const { useTwoPaneLayout } = useDeviceLayout();
-  const params = useLocalSearchParams<{
-    total: string;
-    totalItems: string;
-    discount: string;
-    items: string;
-    customerLabel: string;
-  }>();
+  const [isShiftStarted] = useAtom(isShiftStartedAtom);
+  const [orders, setOrders] = useAtom(posOrdersAtom);
+  const [, setCart] = useAtom(cartAtom);
+  const [cartSnapshot, setCartSnapshot] = useAtom(cartSnapshotAtom);
+  const [, setCatalogStock] = useAtom(catalogStockAtom);
+  const params = useLocalSearchParams<{ orderId: string }>();
 
-  const total = Number(params.total ?? 0);
-  const totalItems = Number(params.totalItems ?? 0);
-  const discount = Number(params.discount ?? 0);
-  const items = params.items ?? "";
-  const customerLabel = params.customerLabel ?? "";
+  const order = useMemo(
+    () => orders.find((item) => item.id === params.orderId),
+    [orders, params.orderId],
+  );
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("qris");
-  const [qrTimer, setQrTimer] = useState(QR_DURATION);
-  const [qrKey, setQrKey] = useState(0);
-
-  const spinAnim = useRef(new Animated.Value(0)).current;
+  const [mode, setMode] = useState<PaymentFlowMode>("full");
+  const [amountInput, setAmountInput] = useState("");
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
 
   useEffect(() => {
-    if (selectedMethod !== "qris") return;
-    setQrTimer(QR_DURATION);
-    const interval = setInterval(() => {
-      setQrTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [selectedMethod, qrKey]);
+    if (isShiftStarted) return;
+    router.replace("/buka-shift" as never);
+  }, [isShiftStarted, router]);
 
-  function handleRefreshQR() {
-    Animated.sequence([
-      Animated.timing(spinAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      spinAnim.setValue(0);
-      setQrKey((k) => k + 1);
+  useEffect(() => {
+    if (!order) return;
+    setAmountInput(String(calculateOrderRemainingAmount(order)));
+    setSelectedItemIds(order.items.map((item) => item.id));
+  }, [order]);
+
+  if (!order) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <PageHeader title="Pilih Pembayaran" showBack onBack={() => router.back()} />
+        <YStack flex={1} alignItems="center" justifyContent="center" gap="$3" padding="$4">
+          <Ionicons name="receipt-outline" size={32} color={ColorNeutral.neutral400} />
+          <TextBodySm color="$colorSecondary" textAlign="center">
+            Order tidak ditemukan atau sudah dihapus.
+          </TextBodySm>
+        </YStack>
+      </SafeAreaView>
+    );
+  }
+
+  const paidAmount = calculateOrderPaidAmount(order);
+  const remaining = calculateOrderRemainingAmount(order);
+  const selectedItemsAmount = getSelectedItemsAmount(order, selectedItemIds);
+  const typedAmount = Number(amountInput || 0);
+
+  const paymentAmount =
+    mode === "full"
+      ? remaining
+      : mode === "split_item"
+        ? Math.min(remaining, selectedItemsAmount)
+        : Math.min(remaining, typedAmount);
+
+  const canProcess =
+    remaining > 0 &&
+    paymentAmount > 0 &&
+    (mode !== "split_item" || selectedItemIds.length > 0);
+
+  function toggleItem(itemId: string) {
+    setSelectedItemIds((prev) =>
+      prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
+        : [...prev, itemId],
+    );
+  }
+
+  function getPaymentLabel() {
+    if (mode === "partial") return "Bayar Sebagian";
+    if (mode === "split_nominal") return "Split Nominal";
+    if (mode === "split_item") return "Split per Item";
+    return remaining === order.grandTotal ? "Bayar Penuh" : "Pelunasan";
+  }
+
+  function applyNonCashPayment() {
+    const paymentId = `pay-${Date.now()}`;
+    const updatedOrder = appendPaymentToOrder(order, {
+      id: paymentId,
+      method: selectedMethod,
+      amountPaid: paymentAmount,
+      label: getPaymentLabel(),
+      paidAt: Date.now(),
+    });
+
+    setOrders((prev) =>
+      prev.map((item) => (item.id === order.id ? updatedOrder : item)),
+    );
+
+    if (cartSnapshot.length > 0) {
+      setCatalogStock((prev) => {
+        const updated = { ...prev };
+        for (const item of cartSnapshot) {
+          const current = updated[item.productId] ?? 0;
+          updated[item.productId] = Math.max(0, current - item.quantity);
+        }
+        return updated;
+      });
+      setCartSnapshot([]);
+      setCart([]);
+    }
+
+    router.push({
+      pathname: "/pembayaran-sukses",
+      params: {
+        orderId: order.id,
+        paymentId,
+      },
     });
   }
 
-  const spin = spinAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
-  });
-
   function handleProcess() {
-    const baseParams = {
-      total: String(total),
-      totalItems: String(totalItems),
-      discount: String(discount),
-      items,
-      customerLabel,
-    };
+    if (!canProcess) return;
 
     if (selectedMethod === "tunai") {
-      router.push({ pathname: "/pembayaran-tunai", params: baseParams });
+      router.push({
+        pathname: "/pembayaran-tunai",
+        params: {
+          orderId: order.id,
+          amountToPay: String(paymentAmount),
+          paymentLabel: getPaymentLabel(),
+        },
+      });
       return;
     }
 
-    const methodLabel =
-      selectedMethod === "qris"
-        ? "QRIS"
-        : selectedMethod === "transfer"
-          ? "Transfer Bank"
-          : "EDC / Kartu";
+    const methodLabel = getPaymentMethodLabel(selectedMethod);
 
     Alert.alert(
       "Konfirmasi Pembayaran",
-      `Pastikan pembayaran ${methodLabel} sebesar ${formatPrice(total)} sudah diterima.`,
+      `${methodLabel} sebesar ${formatPrice(paymentAmount)} akan dicatat ke order ${order.id}.`,
       [
         { text: "Batal", style: "cancel" },
         {
-          text: "Sudah Diterima",
-          onPress: () => {
-            router.push({
-              pathname: "/pembayaran-sukses",
-              params: {
-                ...baseParams,
-                method: methodLabel,
-                methodId: selectedMethod,
-                received: String(total),
-                change: "0",
-              },
-            });
-          },
+          text: "Konfirmasi",
+          onPress: applyNonCashPayment,
         },
       ],
     );
   }
 
-  // ── Shared: total tagihan card ─────────────────────────────────────────────
   const totalCard = (
     <View style={styles.totalCard}>
-      <TextCaption color="rgba(255,255,255,0.8)" marginBottom={6}>
-        Total Tagihan
-      </TextCaption>
-      <TextH2 fontWeight="700" color={ColorBase.white} marginBottom={6}>
-        {formatPrice(total)}
+      <TextCaption color="rgba(255,255,255,0.85)">Total Order</TextCaption>
+      <TextH2 fontWeight="700" color={ColorBase.white}>
+        {formatPrice(order.grandTotal)}
       </TextH2>
-      <XStack gap={6} alignItems="center">
+      <XStack gap={8} marginTop={8}>
         <TextBodySm color="rgba(255,255,255,0.85)">
-          {totalItems} item
+          Dibayar {formatPrice(paidAmount)}
         </TextBodySm>
-        {discount > 0 && (
-          <>
-            <View style={styles.dotSeparator} />
-            <TextBodySm color="rgba(255,255,255,0.85)">
-              Diskon {formatPrice(discount)}
-            </TextBodySm>
-          </>
-        )}
-      </XStack>
-    </View>
-  );
-
-  // ── Shared: detail panel per method ───────────────────────────────────────
-  const qrisPanel = (
-    <View style={styles.qrisPanel}>
-      <View style={styles.qrWrapper}>
-        <QRCodePlaceholder key={qrKey} />
-      </View>
-      <TextBodyLg fontWeight="700" marginTop={16} marginBottom={4}>
-        Scan QR untuk membayar
-      </TextBodyLg>
-      <XStack alignItems="center" gap={8}>
-        <TextBodySm color="$colorSecondary">
-          QR berlaku{" "}
-          <TextBodySm
-            fontWeight="700"
-            color={qrTimer < 60 ? ColorDanger.danger600 : "$colorSecondary"}
-          >
-            {formatTimer(qrTimer)}
-          </TextBodySm>{" "}
-          menit
+        <View style={styles.dotSeparator} />
+        <TextBodySm color="rgba(255,255,255,0.85)">
+          Sisa {formatPrice(remaining)}
         </TextBodySm>
-        <TouchableOpacity activeOpacity={0.7} onPress={handleRefreshQR}>
-          <Animated.View style={{ transform: [{ rotate: spin }] }}>
-            <Ionicons name="refresh-outline" size={18} color={ColorNeutral.neutral500} />
-          </Animated.View>
-        </TouchableOpacity>
       </XStack>
-      <TextBodySm color="$colorSecondary" marginTop={8} textAlign="center">
-        Setelah pelanggan scan, tekan{" "}
-        <TextBodySm fontWeight="700">&quot;Proses Pembayaran&quot;</TextBodySm>{" "}
-        untuk konfirmasi.
-      </TextBodySm>
     </View>
   );
 
-  const transferPanel = (
-    <View style={styles.infoPanel}>
-      <XStack alignItems="center" gap={10} marginBottom={8}>
-        <Ionicons name="business-outline" size={20} color="#3B82F6" />
-        <TextBodyLg fontWeight="700">Rekening Toko</TextBodyLg>
-      </XStack>
-      <YStack gap={6}>
+  const modeSelector = (
+    <YStack gap="$2">
+      <TextCaption color="$colorSecondary" fontWeight="700" letterSpacing={0.8}>
+        MODE PEMBAYARAN
+      </TextCaption>
+      <XStack flexWrap="wrap" gap="$2">
         {[
-          { bank: "BCA", no: "1234567890", name: "Toko Makmur" },
-          { bank: "Mandiri", no: "0987654321", name: "Toko Makmur" },
-        ].map((r) => (
-          <XStack
-            key={r.bank}
-            justifyContent="space-between"
-            alignItems="center"
-            backgroundColor="$backgroundSecondary"
-            borderRadius={10}
-            padding={10}
-          >
-            <YStack>
-              <TextBodySm fontWeight="700">{r.bank}</TextBodySm>
-              <TextBodySm color="$colorSecondary">{r.no}</TextBodySm>
-              <TextCaption color="$colorSecondary">a.n. {r.name}</TextCaption>
-            </YStack>
-            <Ionicons name="copy-outline" size={16} color={ColorNeutral.neutral400} />
-          </XStack>
-        ))}
-      </YStack>
-      <TextBodySm color="$colorSecondary" marginTop={10} textAlign="center">
-        Minta pelanggan transfer lalu tekan{" "}
-        <TextBodySm fontWeight="700">Proses Pembayaran</TextBodySm>.
-      </TextBodySm>
-    </View>
-  );
-
-  const edcPanel = (
-    <View style={styles.infoPanel}>
-      <XStack alignItems="center" gap={10} marginBottom={8}>
-        <Ionicons name="card-outline" size={20} color="#8B5CF6" />
-        <TextBodyLg fontWeight="700">Mesin EDC</TextBodyLg>
-      </XStack>
-      <YStack gap={8}>
-        {[
-          { step: "1", text: "Masukkan jumlah tagihan di mesin EDC" },
-          { step: "2", text: "Minta pelanggan tap / gesek kartu" },
-          { step: "3", text: "Tunggu konfirmasi dari mesin EDC" },
-          { step: "4", text: "Tekan Proses Pembayaran setelah berhasil" },
-        ].map((s) => (
-          <XStack key={s.step} alignItems="flex-start" gap={10}>
-            <View style={styles.stepBadge}>
-              <TextBodySm fontWeight="700" color="#8B5CF6">
-                {s.step}
+          { id: "full", label: "Bayar Penuh" },
+          { id: "partial", label: "Bayar Sebagian" },
+          { id: "split_nominal", label: "Split Nominal" },
+          { id: "split_item", label: "Split per Item" },
+        ].map((item) => {
+          const active = mode === item.id;
+          return (
+            <TouchableOpacity
+              key={item.id}
+              onPress={() => setMode(item.id as PaymentFlowMode)}
+              style={[styles.modeChip, active && styles.modeChipActive]}
+            >
+              <TextBodySm
+                fontWeight="700"
+                color={active ? ColorBase.white : ColorNeutral.neutral700}
+              >
+                {item.label}
               </TextBodySm>
-            </View>
-            <TextBodySm flex={1} color="$colorSecondary">
-              {s.text}
-            </TextBodySm>
-          </XStack>
-        ))}
+            </TouchableOpacity>
+          );
+        })}
+      </XStack>
+    </YStack>
+  );
+
+  const amountPanel =
+    mode === "split_item" ? (
+      <YStack gap="$2">
+        <TextH3 fontWeight="700">Pilih item yang dibayar</TextH3>
+        {order.items.map((item) => {
+          const active = selectedItemIds.includes(item.id);
+          return (
+            <TouchableOpacity
+              key={item.id}
+              onPress={() => toggleItem(item.id)}
+              style={[styles.itemCard, active && styles.itemCardActive]}
+            >
+              <XStack alignItems="center" justifyContent="space-between" gap="$3">
+                <YStack flex={1} minWidth={0}>
+                  <TextBodyLg fontWeight="700">
+                    {item.name} x{item.qty}
+                  </TextBodyLg>
+                  <TextCaption color="$colorSecondary">
+                    {item.note || item.modifierLabels?.join(", ") || "Tanpa catatan"}
+                  </TextCaption>
+                </YStack>
+                <YStack alignItems="flex-end" gap={4}>
+                  <TextBodySm fontWeight="700">
+                    {formatPrice(item.unitPrice * item.qty)}
+                  </TextBodySm>
+                  <Ionicons
+                    name={active ? "checkbox" : "square-outline"}
+                    size={20}
+                    color={active ? ColorPrimary.primary600 : ColorNeutral.neutral400}
+                  />
+                </YStack>
+              </XStack>
+            </TouchableOpacity>
+          );
+        })}
+        <View style={styles.summaryBox}>
+          <TextBodySm color="$colorSecondary">Total item terpilih</TextBodySm>
+          <TextBodyLg fontWeight="700">{formatPrice(paymentAmount)}</TextBodyLg>
+        </View>
       </YStack>
+    ) : (
+      <YStack gap="$2">
+        <TextH3 fontWeight="700">
+          {mode === "full" ? "Pembayaran penuh" : "Nominal dibayar"}
+        </TextH3>
+        <TextInput
+          editable={mode !== "full"}
+          value={mode === "full" ? String(remaining) : amountInput}
+          onChangeText={setAmountInput}
+          keyboardType="number-pad"
+          placeholder="Masukkan nominal"
+          placeholderTextColor={ColorNeutral.neutral400}
+          style={[styles.amountInput, mode === "full" && styles.amountInputDisabled]}
+        />
+        {(mode === "partial" || mode === "split_nominal") && (
+          <XStack gap="$2" flexWrap="wrap">
+            {[remaining / 2, remaining / 3, remaining].map((value, index) => (
+              <TouchableOpacity
+                key={`${value}-${index}`}
+                onPress={() => setAmountInput(String(Math.round(value)))}
+                style={styles.quickAmountChip}
+              >
+                <TextBodySm fontWeight="700" color={ColorPrimary.primary600}>
+                  {index === 2 ? "Sisa Penuh" : formatPrice(Math.round(value))}
+                </TextBodySm>
+              </TouchableOpacity>
+            ))}
+          </XStack>
+        )}
+      </YStack>
+    );
+
+  const paymentHistory = (
+    <YStack gap="$2">
+      <TextH3 fontWeight="700">Riwayat pembayaran</TextH3>
+      {order.payments.length === 0 ? (
+        <TextBodySm color="$colorSecondary">Belum ada pembayaran tercatat.</TextBodySm>
+      ) : (
+        order.payments.map((payment) => (
+          <View key={payment.id} style={styles.historyRow}>
+            <YStack flex={1}>
+              <TextBodySm fontWeight="700">
+                {getPaymentMethodLabel(payment.method)}
+              </TextBodySm>
+              <TextCaption color="$colorSecondary">
+                {payment.label || "Pembayaran"}
+              </TextCaption>
+            </YStack>
+            <TextBodySm fontWeight="700">{formatPrice(payment.amountPaid)}</TextBodySm>
+          </View>
+        ))
+      )}
+    </YStack>
+  );
+
+  const orderInfo = (
+    <YStack gap="$3">
+      {totalCard}
+      <View style={styles.infoPanel}>
+        <TextCaption color="$colorSecondary">ORDER</TextCaption>
+        <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
+        <TextBodySm color="$colorSecondary" marginTop={6}>
+          {order.customerName || order.tableLabel || "Tanpa label pelanggan"}
+        </TextBodySm>
+        <TextBodySm color="$colorSecondary" marginTop={8}>
+          {buildOrderItemsSummary(order)}
+        </TextBodySm>
+      </View>
+      {modeSelector}
+      {amountPanel}
+      {paymentHistory}
+    </YStack>
+  );
+
+  const processButton = (
+    <View style={styles.bottomBar}>
+      <AppButton
+        variant="primary"
+        size="lg"
+        fullWidth
+        title={`Catat ${getPaymentLabel()} ${formatPrice(paymentAmount)}`}
+        onPress={handleProcess}
+        disabled={!canProcess}
+      />
+      <TextCaption color="$colorSecondary" textAlign="center" marginTop={8}>
+        Status order akan otomatis menjadi{" "}
+        {paymentAmount >= remaining ? "PAID" : "PARTIALLY_PAID"}.
+      </TextCaption>
     </View>
   );
 
-  // ── Process button ────────────────────────────────────────────────────────
-  const processButton = (
-    <AppButton
-      variant="primary"
-      size="lg"
-      fullWidth
-      title="Proses Pembayaran"
-      onPress={handleProcess}
-    />
-  );
-
-  // ── Tablet: 2-column layout ────────────────────────────────────────────────
   if (useTwoPaneLayout) {
-    const activeDetailPanel =
-      selectedMethod === "qris"
-        ? qrisPanel
-        : selectedMethod === "transfer"
-          ? transferPanel
-          : selectedMethod === "edc"
-            ? edcPanel
-            : null;
-
     return (
       <SafeAreaView style={styles.container}>
         <PageHeader title="Pilih Pembayaran" showBack onBack={() => router.back()} />
-
         <XStack flex={1}>
-          {/* Left: payment methods */}
           <ScrollView
             style={styles.tabletLeft}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 12 }}
           >
-            {totalCard}
-
-            <TextCaption
-              color="$colorSecondary"
-              fontWeight="700"
-              letterSpacing={0.8}
-              paddingHorizontal={4}
-              marginTop={4}
-            >
-              METODE PEMBAYARAN
-            </TextCaption>
-
-            {paymentMethodOptions.map((method) => (
-              <PaymentMethodCard
-                key={method.id}
-                {...method}
-                selected={selectedMethod === method.id}
-                onPress={() => setSelectedMethod(method.id)}
-              />
-            ))}
+            {orderInfo}
           </ScrollView>
-
-          {/* Divider */}
           <View style={styles.tabletDivider} />
-
-          {/* Right: detail + process button */}
           <View style={styles.tabletRight}>
             <ScrollView
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ padding: 16, paddingBottom: 100, gap: 12 }}
+              contentContainerStyle={{ padding: 16, paddingBottom: 120, gap: 12 }}
             >
-              {activeDetailPanel}
-            </ScrollView>
-            <View style={styles.tabletBottomBar}>
-              {processButton}
-              <TextCaption color="$colorSecondary" textAlign="center" marginTop={8}>
-                Pastikan pembayaran telah diterima
+              <TextCaption color="$colorSecondary" fontWeight="700" letterSpacing={0.8}>
+                METODE PEMBAYARAN
               </TextCaption>
-            </View>
+              {paymentMethodOptions.map((method) => (
+                <PaymentMethodCard
+                  key={method.id}
+                  {...method}
+                  selected={selectedMethod === method.id}
+                  onPress={() => setSelectedMethod(method.id)}
+                />
+              ))}
+            </ScrollView>
+            {processButton}
           </View>
         </XStack>
       </SafeAreaView>
     );
   }
 
-  // ── Phone layout ───────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.container}>
       <PageHeader title="Pilih Pembayaran" showBack onBack={() => router.back()} />
-
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 140, gap: 12 }}
       >
-        <YStack paddingHorizontal={16} gap={12} paddingTop={4}>
-          {totalCard}
-
-          <TextCaption
-            color="$colorSecondary"
-            fontWeight="700"
-            letterSpacing={0.8}
-            paddingHorizontal={4}
-            marginTop={4}
-          >
-            METODE PEMBAYARAN
-          </TextCaption>
-
-          {paymentMethodOptions.map((method) => (
-            <React.Fragment key={method.id}>
-              <PaymentMethodCard
-                {...method}
-                selected={selectedMethod === method.id}
-                onPress={() => setSelectedMethod(method.id)}
-              />
-
-              {method.id === "qris" && selectedMethod === "qris" && qrisPanel}
-              {method.id === "transfer" && selectedMethod === "transfer" && transferPanel}
-              {method.id === "edc" && selectedMethod === "edc" && edcPanel}
-            </React.Fragment>
-          ))}
-        </YStack>
-      </ScrollView>
-
-      <View style={styles.bottomBar}>
-        {processButton}
-        <TextCaption color="$colorSecondary" textAlign="center" marginTop={8}>
-          Pastikan pembayaran telah diterima
+        {orderInfo}
+        <TextCaption color="$colorSecondary" fontWeight="700" letterSpacing={0.8}>
+          METODE PEMBAYARAN
         </TextCaption>
-      </View>
+        {paymentMethodOptions.map((method) => (
+          <PaymentMethodCard
+            key={method.id}
+            {...method}
+            selected={selectedMethod === method.id}
+            onPress={() => setSelectedMethod(method.id)}
+          />
+        ))}
+      </ScrollView>
+      {processButton}
     </SafeAreaView>
   );
 }
@@ -393,90 +442,102 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     backgroundColor: ColorPrimary.primary700,
-    shadowColor: ColorPrimary.primary700,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
   },
   dotSeparator: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "rgba(255,255,255,0.6)",
-  },
-  qrisPanel: {
-    backgroundColor: ColorBase.white,
-    borderRadius: 16,
-    padding: 20,
-    alignItems: "center",
-    shadowColor: ColorBase.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-    marginTop: -4,
-  },
-  qrWrapper: {
-    padding: 12,
-    backgroundColor: ColorBase.white,
-    borderRadius: 12,
-    shadowColor: ColorBase.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    alignSelf: "center",
+    backgroundColor: "rgba(255,255,255,0.7)",
   },
   infoPanel: {
     backgroundColor: ColorBase.white,
     borderRadius: 16,
     padding: 16,
-    shadowColor: ColorBase.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-    marginTop: -4,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
   },
-  stepBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: "#EDE9FE",
+  modeChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: ColorBase.white,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+  },
+  modeChipActive: {
+    backgroundColor: ColorPrimary.primary600,
+    borderColor: ColorPrimary.primary600,
+  },
+  amountInput: {
+    backgroundColor: ColorBase.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    fontSize: 18,
+    color: ColorNeutral.neutral900,
+  },
+  amountInputDisabled: {
+    backgroundColor: ColorNeutral.neutral100,
+    color: ColorNeutral.neutral500,
+  },
+  quickAmountChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: ColorPrimary.primary50,
+  },
+  itemCard: {
+    backgroundColor: ColorBase.white,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+  },
+  itemCardActive: {
+    borderColor: ColorPrimary.primary600,
+    backgroundColor: ColorPrimary.primary50,
+  },
+  summaryBox: {
+    backgroundColor: ColorBase.white,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    justifyContent: "center",
-    marginTop: 1,
+  },
+  historyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: ColorBase.white,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
   },
   bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: ColorBase.white,
     borderTopWidth: 1,
-    borderTopColor: ColorNeutral.neutral100,
+    borderTopColor: ColorNeutral.neutral200,
     paddingHorizontal: 16,
     paddingTop: 14,
-    paddingBottom: 28,
+    paddingBottom: 24,
   },
   tabletLeft: {
-    flex: 0.45,
-    backgroundColor: ColorBase.bgScreen,
+    flex: 0.56,
   },
   tabletDivider: {
     width: 1,
     backgroundColor: ColorNeutral.neutral200,
   },
   tabletRight: {
-    flex: 0.55,
-    backgroundColor: ColorBase.white,
-  },
-  tabletBottomBar: {
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 24,
-    borderTopWidth: 1,
-    borderTopColor: ColorNeutral.neutral100,
+    flex: 0.44,
     backgroundColor: ColorBase.white,
   },
 });

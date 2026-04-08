@@ -1,0 +1,158 @@
+import type { CartItem } from "@/features/cart/store/cart.store";
+import type { PaymentMethod, Transaction } from "@/types";
+
+import type { PosFulfillmentStatus, PosOrder, PosOrderPayment } from "./pos.types";
+
+const WEB_ORDER_TIMEOUT_MS = 30 * 60 * 1000;
+
+export function mapOrderTypeToServiceMode(orderType: string) {
+  if (orderType === "Take Away") return "TAKEAWAY" as const;
+  if (orderType === "Delivery") return "DELIVERY" as const;
+  return "DINE_IN" as const;
+}
+
+export function buildPosOrderFromCart(params: {
+  orderId: string;
+  shiftId?: string;
+  cart: CartItem[];
+  customerName?: string;
+  tableLabel?: string;
+  orderType: string;
+  discountAmount: number;
+  taxAmount: number;
+  grandTotal: number;
+  source?: PosOrder["source"];
+}) {
+  const subtotal = params.cart.reduce(
+    (sum, item) => sum + item.unitPrice * item.quantity,
+    0,
+  );
+
+  return {
+    id: params.orderId,
+    createdAt: Date.now(),
+    shiftId: params.shiftId,
+    source: params.source ?? "WALK_IN",
+    status: "PENDING",
+    fulfillment: "QUEUED" as PosFulfillmentStatus,
+    customerName: params.customerName?.trim() || undefined,
+    tableLabel: params.tableLabel?.trim() || undefined,
+    serviceMode: mapOrderTypeToServiceMode(params.orderType),
+    items: params.cart.map((item) => ({
+      id: item.cartId,
+      productId: item.productId,
+      name: item.productName,
+      qty: item.quantity,
+      unitPrice: item.unitPrice,
+      note: item.note?.trim() || undefined,
+      modifierLabels: item.variantLabel ? [item.variantLabel] : undefined,
+    })),
+    payments: [],
+    subtotal,
+    discountAmount: params.discountAmount,
+    taxAmount: params.taxAmount,
+    grandTotal: params.grandTotal,
+  } satisfies PosOrder;
+}
+
+export function calculateOrderPaidAmount(order: PosOrder) {
+  return order.payments.reduce((sum, payment) => sum + payment.amountPaid, 0);
+}
+
+export function calculateOrderRemainingAmount(order: PosOrder) {
+  return Math.max(0, order.grandTotal - calculateOrderPaidAmount(order));
+}
+
+export function getPaymentMethodLabel(method: PaymentMethod) {
+  switch (method) {
+    case "tunai":
+      return "Tunai";
+    case "qris":
+      return "QRIS";
+    case "transfer":
+      return "Transfer";
+    case "edc":
+      return "Kartu";
+    case "ewallet":
+      return "E-Wallet";
+  }
+}
+
+export function getPaymentBucket(method: PaymentMethod) {
+  if (method === "tunai") return "cash";
+  if (method === "qris" || method === "ewallet") return "qris";
+  return "transfer";
+}
+
+export function appendPaymentToOrder(
+  order: PosOrder,
+  payment: PosOrderPayment,
+): PosOrder {
+  const payments = [...order.payments, payment];
+  const amountPaid = payments.reduce((sum, item) => sum + item.amountPaid, 0);
+
+  return {
+    ...order,
+    payments,
+    status: amountPaid >= order.grandTotal ? "PAID" : "PARTIALLY_PAID",
+  };
+}
+
+export function expireStaleWebOrders(orders: PosOrder[], currentTime = Date.now()) {
+  return orders.map((order) => {
+    if (
+      order.source === "WEB" &&
+      order.status === "PENDING" &&
+      currentTime - order.createdAt >= WEB_ORDER_TIMEOUT_MS
+    ) {
+      return { ...order, status: "EXPIRED" as const };
+    }
+    return order;
+  });
+}
+
+export function buildOrderItemsSummary(order: PosOrder) {
+  return order.items
+    .map((item) => `${item.name}${item.modifierLabels?.[0] ? ` (${item.modifierLabels[0]})` : ""} x${item.qty}`)
+    .join(", ");
+}
+
+export function mapPosOrderToTransaction(order: PosOrder): Transaction {
+  const paidAmount = calculateOrderPaidAmount(order);
+  const createdAt = order.createdAt;
+  const time =
+    new Date(createdAt).toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }) + " WIB";
+
+  const status: Transaction["status"] =
+    order.status === "CANCELLED" ? "Void" : "Lunas";
+
+  return {
+    id: order.id,
+    time,
+    createdAt,
+    shiftId: order.shiftId,
+    table: order.customerName || order.tableLabel || "Tanpa nama",
+    items: buildOrderItemsSummary(order),
+    amount: `Rp ${order.grandTotal.toLocaleString("id-ID")}`,
+    amountValue: paidAmount || order.grandTotal,
+    status,
+    paymentMethod: order.payments[0]
+      ? getPaymentMethodLabel(order.payments[0].method)
+      : "Belum dibayar",
+    paymentMethodId: order.payments[0]?.method,
+  };
+}
+
+export function getOutstandingItemIds(order: PosOrder, selectedIds: string[]) {
+  return order.items.filter((item) => selectedIds.includes(item.id));
+}
+
+export function getSelectedItemsAmount(order: PosOrder, selectedIds: string[]) {
+  return getOutstandingItemIds(order, selectedIds).reduce(
+    (sum, item) => sum + item.unitPrice * item.qty,
+    0,
+  );
+}

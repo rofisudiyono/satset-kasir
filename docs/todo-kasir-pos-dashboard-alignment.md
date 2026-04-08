@@ -119,7 +119,7 @@ TODO:
 - [x] Tutup shift:
   - [x] hitung expected cash = openingCash + salesCash (bukan total semua metode)
   - [x] tampilkan rekap per metode: Tunai / QRIS / Transfer-EDC (bucket)
-- [ ] Batasi transaksi yang dianggap “masuk shift” hanya yang terjadi saat shift OPEN (enforce di screen transaksi/pembayaran).
+- [x] Batasi transaksi yang dianggap “masuk shift” hanya yang terjadi saat shift OPEN (enforce di screen transaksi/pembayaran).
 
 Acceptance:
 - Buka shift menyimpan slot + opening cash.
@@ -128,16 +128,16 @@ Acceptance:
 ---
 
 ### P1 — Tab kerja Kasir (struktur navigasi baru)
-- [ ] Definisikan “tab kerja kasir” sesuai pos-dashboard:
-  - [ ] **Web Orders**
-  - [ ] **Input Manual**
-  - [ ] **Siap Antar**
-  - [ ] **Riwayat**
-  - [ ] **Reservasi** (disabled / coming soon)
-- [ ] Tentukan pendekatan navigasi:
-  - [ ] **Opsi A**: ganti tab router utama dari `Home | Transaksi | Inventori | Pengaturan` menjadi tab kerja kasir di atas
+- [x] Definisikan “tab kerja kasir” sesuai pos-dashboard:
+  - [x] **Web Orders**
+  - [x] **Input Manual**
+  - [x] **Siap Antar**
+  - [x] **Riwayat**
+  - [x] **Reservasi** (disabled / coming soon)
+- [x] Tentukan pendekatan navigasi:
+  - [x] **Opsi A**: ganti tab router utama dari `Home | Transaksi | Inventori | Pengaturan` menjadi tab kerja kasir di atas
   - [ ] **Opsi B**: pertahankan tab utama, tapi buat **Kasir Home** yang berisi tab kerja internal (lebih minim perubahan global)
-- [ ] Implement minimal UI shell untuk 4 tab kerja (tanpa fitur penuh dulu) agar tim bisa iterasi per tab.
+- [x] Implement minimal UI shell untuk 4 tab kerja (tanpa fitur penuh dulu) agar tim bisa iterasi per tab.
 
 Deliverable:
 - Kasir punya 4 tab kerja yang bisa diakses cepat (tablet-friendly).
@@ -151,16 +151,16 @@ Referensi file:
 - `src/features/catalog/store/catalog.store.ts`
 
 TODO:
-- [ ] Selaraskan istilah & perilaku:
-  - [ ] `Transaksi Baru` = **Input Manual**
-- [ ] Tambahkan pemilihan **meja/takeaway** + nama pelanggan opsional (sebelum checkout).
-- [ ] Tambahkan struktur item yang mendekati POS:
-  - [ ] note per item (sudah ada? jika belum, tambah)
-  - [ ] modifier/varian per item (repo sudah punya variant sheet; jadikan bagian dari item modifiers)
+- [x] Selaraskan istilah & perilaku:
+  - [x] `Transaksi Baru` = **Input Manual**
+- [x] Tambahkan pemilihan **meja/takeaway** + nama pelanggan opsional (sebelum checkout).
+- [x] Tambahkan struktur item yang mendekati POS:
+  - [x] note per item (sudah ada? jika belum, tambah)
+  - [x] modifier/varian per item (repo sudah punya variant sheet; jadikan bagian dari item modifiers)
 - [ ] Availability menu (match `flow-summary.md` + `flow-kasir.md`):
   - [ ] `is_active=false` → tidak tampil
   - [ ] `is_available=false` → disabled (di repo saat ini baru ada `stockStatus`; perlu mapping eksplisit empty→unavailable)
-- [ ] Setelah lanjut pembayaran, hasilkan **Order** status `PENDING` (bukan langsung “Transaction” final).
+- [x] Setelah lanjut pembayaran, hasilkan **Order** status `PENDING` (bukan langsung “Transaction” final).
 
 Acceptance:
 - Kasir bisa input order manual lengkap (meja/takeaway + notes) dan lanjut ke pembayaran.
@@ -174,18 +174,18 @@ Referensi file:
 - `src/features/payment/*`
 
 TODO:
-- [ ] Selaraskan daftar metode ke kebutuhan kasir (front-end dulu):
-  - [ ] Cash
-  - [ ] QRIS
-  - [ ] Transfer
-  - [ ] Kartu (DEBIT/CREDIT)
-  - [ ] E-Wallet (jika belum, sementara treat sebagai QRIS bucket)
-- [ ] Saat metode Cash:
-  - [ ] input `amountReceived` dan hitung kembalian (wajib)
-- [ ] Saat payment sukses:
-  - [ ] buat `Payment` record dan update Order → `PAID`
-  - [ ] update shift bucket sales (cash/qris/transfer)
-- [ ] Update “Riwayat” memakai Order/Payment baru (bukan string `Transaction.amount`).
+- [x] Selaraskan daftar metode ke kebutuhan kasir (front-end dulu):
+  - [x] Cash
+  - [x] QRIS
+  - [x] Transfer
+  - [x] Kartu (DEBIT/CREDIT)
+  - [x] E-Wallet (jika belum, sementara treat sebagai QRIS bucket)
+- [x] Saat metode Cash:
+  - [x] input `amountReceived` dan hitung kembalian (wajib)
+- [x] Saat payment sukses:
+  - [x] buat `Payment` record dan update Order → `PAID`
+  - [x] update shift bucket sales (cash/qris/transfer)
+- [x] Update “Riwayat” memakai Order/Payment baru (bukan string `Transaction.amount`).
 
 Acceptance:
 - Pembayaran full membuat order `PAID`, tercatat di Riwayat, dan mempengaruhi rekap shift.
@@ -194,10 +194,10 @@ Acceptance:
 
 ### P2 — Split Bill (per item & per nominal)
 TODO:
-- [ ] Buat UI “Split Bill” di flow pembayaran:
-  - [ ] Mode per item (assign item ke payer)
-  - [ ] Mode per nominal (validasi sum == grand total, tombol “Bagi Rata”)
-- [ ] Simpan sebagai beberapa `Payment` dengan label (mis. “Split 1/3”).
+- [x] Buat UI “Split Bill” di flow pembayaran:
+  - [x] Mode per item (assign item ke payer)
+  - [x] Mode per nominal (validasi sum == grand total, tombol “Bagi Rata”)
+- [x] Simpan sebagai beberapa `Payment` dengan label (mis. “Split 1/3”).
 - [ ] (Opsional) receipt per payment.
 
 Acceptance:
@@ -207,11 +207,11 @@ Acceptance:
 
 ### P2 — Bayar Sebagian (PARTIALLY_PAID) + Pelunasan dari Riwayat
 TODO:
-- [ ] Tambah aksi “Bayar Sebagian” pada halaman pembayaran:
-  - [ ] input nominal dibayar sekarang
-  - [ ] Order status → `PARTIALLY_PAID`
-- [ ] Di Riwayat, order `PARTIALLY_PAID` punya aksi “Lunasi”:
-  - [ ] tambah payment baru sampai lunas → status `PAID`
+- [x] Tambah aksi “Bayar Sebagian” pada halaman pembayaran:
+  - [x] input nominal dibayar sekarang
+  - [x] Order status → `PARTIALLY_PAID`
+- [x] Di Riwayat, order `PARTIALLY_PAID` punya aksi “Lunasi”:
+  - [x] tambah payment baru sampai lunas → status `PAID`
 
 Acceptance:
 - Partial payment bisa dilunasi kapan saja dari Riwayat.
@@ -220,11 +220,11 @@ Acceptance:
 
 ### P2 — Web Orders + timeout 30 menit
 TODO:
-- [ ] Tambah tab/screen **Web Orders**
-- [ ] Tambah model order `source=WEB` + status `PENDING`
-- [ ] Implement rule timeout 30 menit:
-  - [ ] order yang belum dikonfirmasi dalam 30 menit → status `EXPIRED` (atau `CANCELLED`, putuskan 1) dan hilang dari daftar aktif
-- [ ] Aksi kasir: “Konfirmasi” → masuk flow pembayaran / diproses.
+- [x] Tambah tab/screen **Web Orders**
+- [x] Tambah model order `source=WEB` + status `PENDING`
+- [x] Implement rule timeout 30 menit:
+  - [x] order yang belum dikonfirmasi dalam 30 menit → status `EXPIRED` (atau `CANCELLED`, putuskan 1) dan hilang dari daftar aktif
+- [x] Aksi kasir: “Konfirmasi” → masuk flow pembayaran / diproses.
 
 Acceptance:
 - Web order yang expired tidak bisa diproses dari tab Web Orders.
@@ -233,12 +233,12 @@ Acceptance:
 
 ### P2 — Siap Antar (READY → SERVED)
 TODO:
-- [ ] Tambah tab/screen **Siap Antar**
-- [ ] Tampilkan order fulfillment `READY`
-- [ ] Aksi “Sudah Diantar” → fulfillment `SERVED` (keluar dari daftar)
-- [ ] Siapkan integrasi event dari dapur:
-  - [ ] fase awal: manual toggle status untuk simulasi
-  - [ ] fase lanjut: subscribe event (polling/SSE/WebSocket)
+- [x] Tambah tab/screen **Siap Antar**
+- [x] Tampilkan order fulfillment `READY`
+- [x] Aksi “Sudah Diantar” → fulfillment `SERVED` (keluar dari daftar)
+- [x] Siapkan integrasi event dari dapur:
+  - [x] fase awal: manual toggle status untuk simulasi
+  - [x] fase lanjut: subscribe event (polling/SSE/WebSocket)
 
 Acceptance:
 - Kasir punya daftar order READY dan bisa menandai “Sudah Diantar”.
@@ -250,12 +250,12 @@ Referensi file saat ini:
 - `src/app/(tabs)/transaksi.tsx`
 
 TODO:
-- [ ] Ubah dari “Riwayat Transaksi” generik menjadi **Riwayat Order** konteks kasir:
-  - [ ] default filter: shift aktif (atau hari ini) + status
-  - [ ] detail order menampilkan item, pembayaran (multi), meja/takeaway, customer
-- [ ] Void/refund rules (sesuaikan policy):
-  - [ ] void untuk `PENDING/PARTIALLY_PAID`
-  - [ ] refund untuk `PAID` (boleh diparkir P3 bila admin-only)
+- [x] Ubah dari “Riwayat Transaksi” generik menjadi **Riwayat Order** konteks kasir:
+  - [x] default filter: shift aktif (atau hari ini) + status
+  - [x] detail order menampilkan item, pembayaran (multi), meja/takeaway, customer
+- [x] Void/refund rules (sesuaikan policy):
+  - [x] void untuk `PENDING/PARTIALLY_PAID`
+  - [x] refund untuk `PAID` (boleh diparkir P3 bila admin-only)
 
 Acceptance:
 - Riwayat menunjukkan order sesuai shift dan menyediakan aksi yang tepat.
@@ -263,5 +263,5 @@ Acceptance:
 ---
 
 ### P3 — Integrasi KDS real-time (opsional setelah core kasir siap)
-- [ ] Tambah channel event (polling/SSE/WebSocket) untuk update fulfillment dari dapur.
-- [ ] Notifikasi saat order jadi `READY`.
+- [x] Tambah channel event (polling/SSE/WebSocket) untuk update fulfillment dari dapur.
+- [x] Notifikasi saat order jadi `READY`.

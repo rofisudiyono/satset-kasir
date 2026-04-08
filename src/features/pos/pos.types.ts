@@ -50,12 +50,14 @@ export interface PosOrderPayment {
 export interface PosOrder {
   id: string;
   createdAt: number; // epoch ms
+  shiftId?: string;
   source: PosOrderSource;
   status: PosOrderStatus;
   fulfillment: PosFulfillmentStatus;
 
   tableLabel?: string;
   customerName?: string;
+  serviceMode?: "DINE_IN" | "TAKEAWAY" | "DELIVERY";
 
   items: PosOrderItem[];
   payments: PosOrderPayment[];
@@ -84,4 +86,3 @@ export interface PosShift {
   discrepancy?: number;
   closeNote?: string;
 }
-

@@ -23,7 +23,7 @@ import {
   isShiftStartedAtom,
   shiftDataAtom,
 } from "@/features/shift/store/shift.store";
-import { transactionsAtom } from "@/features/transactions/store/transaction.store";
+import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import {
   ColorBase,
   ColorDanger,
@@ -40,7 +40,7 @@ export default function TutupShiftPage() {
   const [, setIsShiftStarted] = useAtom(isShiftStartedAtom);
   const [, setShiftData] = useAtom(shiftDataAtom);
   const shiftData = useAtomValue(shiftDataAtom);
-  const transactions = useAtomValue(transactionsAtom);
+  const orders = useAtomValue(posOrdersAtom);
 
   const [inputValue, setInputValue] = useState("0");
 
@@ -48,30 +48,47 @@ export default function TutupShiftPage() {
 
   // Compute shift stats
   const shiftId = shiftData?.shiftId;
-  const shiftTxs = transactions.filter((t) => {
-    if (t.status !== "Lunas") return false;
-    if (!shiftId) return false;
-    return t.shiftId === shiftId;
+  const shiftOrders = orders.filter((order) => {
+    if (order.status !== "PAID") return false;
+    if (!shiftData?.openedAt) return true;
+    if (order.shiftId && shiftId) return order.shiftId === shiftId;
+    return order.createdAt >= shiftData.openedAt;
   });
 
-  const totalPendapatan = shiftTxs.reduce((sum, t) => {
-    return sum + (t.amountValue ?? Number(t.amount.replace(/[^0-9]/g, "")));
-  }, 0);
+  const totalPendapatan = shiftOrders.reduce((sum, order) => sum + order.grandTotal, 0);
 
-  const totalTransaksi = shiftTxs.length;
-  const totalVoid = transactions.filter(
-    (t) => t.status === "Void" && t.shiftId === shiftId,
-  ).length;
+  const totalTransaksi = shiftOrders.length;
+  const totalVoid = orders.filter((order) => {
+    if (order.status !== "CANCELLED") return false;
+    if (!shiftData?.openedAt) return true;
+    if (order.shiftId && shiftId) return order.shiftId === shiftId;
+    return order.createdAt >= shiftData.openedAt;
+  }).length;
 
-  const salesCash = shiftTxs
-    .filter((t) => t.paymentMethodId === "tunai")
-    .reduce((s, t) => s + (t.amountValue ?? 0), 0);
-  const salesQris = shiftTxs
-    .filter((t) => t.paymentMethodId === "qris")
-    .reduce((s, t) => s + (t.amountValue ?? 0), 0);
-  const salesTransfer = shiftTxs
-    .filter((t) => t.paymentMethodId === "transfer" || t.paymentMethodId === "edc")
-    .reduce((s, t) => s + (t.amountValue ?? 0), 0);
+  const salesCash = shiftOrders.reduce(
+    (sum, order) =>
+      sum +
+      order.payments
+        .filter((payment) => payment.method === "tunai")
+        .reduce((sub, payment) => sub + payment.amountPaid, 0),
+    0,
+  );
+  const salesQris = shiftOrders.reduce(
+    (sum, order) =>
+      sum +
+      order.payments
+        .filter((payment) => payment.method === "qris" || payment.method === "ewallet")
+        .reduce((sub, payment) => sub + payment.amountPaid, 0),
+    0,
+  );
+  const salesTransfer = shiftOrders.reduce(
+    (sum, order) =>
+      sum +
+      order.payments
+        .filter((payment) => payment.method === "transfer" || payment.method === "edc")
+        .reduce((sub, payment) => sub + payment.amountPaid, 0),
+    0,
+  );
 
   // Rekonsiliasi
   const openingCash = shiftData?.openingCash ?? 0;

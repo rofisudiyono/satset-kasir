@@ -24,30 +24,30 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   {
-    label: "Beranda",
-    icon: "home-outline",
-    iconActive: "home",
+    label: "Web Orders",
+    icon: "globe-outline",
+    iconActive: "globe",
     segment: "/",
     href: "/",
   },
   {
-    label: "Transaksi",
-    icon: "receipt-outline",
-    iconActive: "receipt",
+    label: "Input Manual",
+    icon: "create-outline",
+    iconActive: "create",
     segment: "/transaksi",
     href: "/transaksi",
   },
   {
-    label: "Inventori",
-    icon: "cube-outline",
-    iconActive: "cube",
+    label: "Siap Antar",
+    icon: "bag-check-outline",
+    iconActive: "bag-check",
     segment: "/inventori",
     href: "/inventori",
   },
   {
-    label: "Pengaturan",
-    icon: "settings-outline",
-    iconActive: "settings",
+    label: "Riwayat",
+    icon: "time-outline",
+    iconActive: "time",
     segment: "/pengaturan",
     href: "/pengaturan",
   },
@@ -60,6 +60,9 @@ export function SideNav() {
 
   function isActive(item: NavItem) {
     if (item.segment === "/") return pathname === "/";
+    if (item.segment === "/transaksi" && pathname.startsWith("/transaksi-baru")) {
+      return true;
+    }
     return pathname.startsWith(item.segment);
   }
 
@@ -107,6 +110,15 @@ export function SideNav() {
 
       {/* Shift button */}
       <View style={styles.footer}>
+        <View style={styles.reservationBadge}>
+          <Ionicons
+            name="calendar-clear-outline"
+            size={14}
+            color={ColorNeutral.neutral500}
+          />
+          <TextCaption color="$colorSecondary">Reservasi segera hadir</TextCaption>
+        </View>
+
         <TouchableOpacity
           activeOpacity={0.85}
           style={[
@@ -184,6 +196,15 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: ColorNeutral.neutral100,
+  },
+  reservationBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: ColorNeutral.neutral100,
   },
   shiftBtn: {
     flexDirection: "row",

@@ -18,6 +18,9 @@ import {
   heldOrdersAtom,
 } from "@/features/cart/store/cart.store";
 import { promoDefinitions } from "@/features/payment/api/payment.data";
+import { posOrdersAtom } from "@/features/pos/store/pos.store";
+import { buildPosOrderFromCart } from "@/features/pos/pos.utils";
+import { shiftDataAtom } from "@/features/shift/store/shift.store";
 import { TextH3 } from "@/components";
 import {
   ColorBase,
@@ -33,6 +36,8 @@ export function CartPanel() {
   const [cart, setCart] = useAtom(cartAtom);
   const [, setHeldOrders] = useAtom(heldOrdersAtom);
   const [, setCartSnapshot] = useAtom(cartSnapshotAtom);
+  const [posOrders, setPosOrders] = useAtom(posOrdersAtom);
+  const [shiftData] = useAtom(shiftDataAtom);
 
   const [customerName, setCustomerName] = useState("");
   const [tableNumber, setTableNumber] = useState("");
@@ -41,7 +46,6 @@ export function CartPanel() {
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const [promoEnabled, setPromoEnabled] = useState(false);
 
-  const totalItems = cart.reduce((s, c) => s + c.quantity, 0);
   const subtotal = cart.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
   const discount = appliedPromo && promoEnabled ? appliedPromo.discount : 0;
   const afterDiscount = subtotal - discount;
@@ -109,22 +113,36 @@ export function CartPanel() {
   }
 
   function handlePay() {
+    if (cart.length === 0) return;
+
     setCartSnapshot([...cart]);
-    const itemsSummary = cart
-      .map(
-        (c) =>
-          `${c.productName}${c.variantLabel ? ` (${c.variantLabel})` : ""} x${c.quantity}`,
-      )
-      .join(", ");
-    const label = customerName || tableNumber || orderType;
+    const orderId = `#ORD-${String(posOrders.length + 1).padStart(4, "0")}`;
+    const tableLabel =
+      tableNumber.trim() ||
+      (orderType === "Dine In"
+        ? "Dine In"
+        : orderType === "Take Away"
+          ? "Takeaway"
+          : "Delivery");
+
+    const order = buildPosOrderFromCart({
+      orderId,
+      shiftId: shiftData?.shiftId,
+      cart,
+      customerName,
+      tableLabel,
+      orderType,
+      discountAmount: discount,
+      taxAmount: ppn,
+      grandTotal: total,
+    });
+
+    setPosOrders((prev) => [order, ...prev]);
+
     router.push({
       pathname: "/pilih-pembayaran",
       params: {
-        total: String(total),
-        totalItems: String(totalItems),
-        discount: String(discount),
-        items: itemsSummary,
-        customerLabel: label,
+        orderId,
       },
     });
   }
