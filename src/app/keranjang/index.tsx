@@ -31,6 +31,7 @@ import {
   isShiftStartedAtom,
   shiftDataAtom,
 } from "@/features/shift/store/shift.store";
+import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { ColorBase, ColorDanger, ColorPrimary } from "@/themes/Colors";
 import type { AppliedPromo, OrderType } from "@/types";
 
@@ -44,6 +45,7 @@ export default function KeranjangPage() {
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
   const [shiftData] = useAtom(shiftDataAtom);
   const [posOrders, setPosOrders] = useAtom(posOrdersAtom);
+  const { isTablet, contentMaxWidth, horizontalPadding } = useResponsiveLayout();
 
   const [customerName, setCustomerName] = useState("");
   const [tableNumber, setTableNumber] = useState("");
@@ -190,12 +192,23 @@ export default function KeranjangPage() {
         showBack
         onBack={() => router.back()}
         actions={trashBtn}
+        maxWidth={contentMaxWidth}
       />
 
-      <XStack flex={1} gap={0}>
-        {/* Left: cart items */}
+      <XStack
+        flex={1}
+        gap={0}
+        flexDirection={isTablet ? "row" : "column"}
+        style={[
+          styles.shell,
+          {
+            maxWidth: contentMaxWidth,
+            paddingHorizontal: horizontalPadding,
+          },
+        ]}
+      >
         <ScrollView
-          style={styles.tabletLeft}
+          style={[styles.tabletLeft, !isTablet && styles.stackPanel]}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         >
@@ -207,12 +220,10 @@ export default function KeranjangPage() {
           />
         </ScrollView>
 
-        {/* Divider */}
-        <View style={styles.tabletDivider} />
+        {isTablet ? <View style={styles.tabletDivider} /> : null}
 
-        {/* Right: summary + actions */}
         <ScrollView
-          style={styles.tabletRight}
+          style={[styles.tabletRight, !isTablet && styles.stackPanel]}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         >
@@ -287,6 +298,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: ColorBase.bgScreen,
   },
+  shell: {
+    width: "100%",
+    alignSelf: "center",
+    flex: 1,
+  },
   trashBtn: {
     width: 40,
     height: 40,
@@ -306,5 +322,12 @@ const styles = StyleSheet.create({
   tabletRight: {
     flex: 0.45,
     backgroundColor: ColorBase.white,
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  stackPanel: {
+    flex: 1,
+    borderRadius: 20,
+    overflow: "hidden",
   },
 });

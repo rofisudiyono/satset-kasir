@@ -24,6 +24,7 @@ import {
 } from "@/features/pos/pos.utils";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
+import { useResponsiveLayout } from "@/hooks/use-responsive";
 import {
   ColorBase,
   ColorGreen,
@@ -39,6 +40,7 @@ export default function PembayaranTunaiPage() {
   const [, setCart] = useAtom(cartAtom);
   const [cartSnapshot, setCartSnapshot] = useAtom(cartSnapshotAtom);
   const [, setCatalogStock] = useAtom(catalogStockAtom);
+  const { isTablet, contentMaxWidth, horizontalPadding } = useResponsiveLayout();
   const params = useLocalSearchParams<{
     orderId: string;
     amountToPay: string;
@@ -257,17 +259,28 @@ export default function PembayaranTunaiPage() {
         title="Pembayaran Tunai"
         showBack
         onBack={() => router.back()}
+        maxWidth={contentMaxWidth}
       />
-      <XStack flex={1}>
+      <XStack
+        flex={1}
+        flexDirection={isTablet ? "row" : "column"}
+        style={[
+          styles.shell,
+          {
+            maxWidth: contentMaxWidth,
+            paddingHorizontal: horizontalPadding,
+          },
+        ]}
+      >
         <ScrollView
-          style={styles.tabletInfoPanel}
+          style={[styles.tabletInfoPanel, !isTablet && styles.stackPanel]}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ padding: 24, paddingBottom: 32 }}
         >
           {infoSection}
         </ScrollView>
-        <View style={styles.tabletDivider} />
-        <View style={styles.tabletNumpadPanel}>
+        {isTablet ? <View style={styles.tabletDivider} /> : null}
+        <View style={[styles.tabletNumpadPanel, !isTablet && styles.stackPanel]}>
           <View style={styles.tabletNumpadContent}>
             <NumpadGrid onPress={handleNumpad} />
           </View>
@@ -282,6 +295,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: ColorBase.bgScreen,
+  },
+  shell: {
+    width: "100%",
+    alignSelf: "center",
+    flex: 1,
   },
   content: {
     flex: 1,
@@ -348,5 +366,10 @@ const styles = StyleSheet.create({
   tabletInfoPanel: {
     flex: 0.5,
     backgroundColor: ColorBase.white,
+  },
+  stackPanel: {
+    flex: 1,
+    borderRadius: 20,
+    overflow: "hidden",
   },
 });

@@ -20,6 +20,7 @@ import {
   isShiftStartedAtom,
   shiftDataAtom,
 } from "@/features/shift/store/shift.store";
+import { useResponsiveLayout } from "@/hooks/use-responsive";
 import {
   ColorBase,
   ColorNeutral,
@@ -44,6 +45,7 @@ export default function BukaShiftPage() {
   const [slot, setSlot] = useState<ShiftSlot>("PAGI");
   const [, setIsShiftStarted] = useAtom(isShiftStartedAtom);
   const [, setShiftData] = useAtom(shiftDataAtom);
+  const { isTablet, contentMaxWidth, horizontalPadding } = useResponsiveLayout();
 
   const now = new Date();
   const currentDateTime =
@@ -102,15 +104,31 @@ export default function BukaShiftPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <PageHeader title="Buka Shift" showBack onBack={() => router.back()} />
+      <PageHeader
+        title="Buka Shift"
+        showBack
+        onBack={() => router.back()}
+        maxWidth={contentMaxWidth}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
       >
-        <YStack flex={1} paddingHorizontal={16} paddingTop={8} gap="$4">
-          {/* ── Welcome ── */}
-          <YStack alignItems="center" gap="$3">
+        <XStack
+          flex={1}
+          flexDirection={isTablet ? "row" : "column"}
+          gap="$4"
+          style={[
+            styles.shell,
+            {
+              maxWidth: contentMaxWidth,
+              paddingHorizontal: horizontalPadding,
+            },
+          ]}
+        >
+          <YStack flex={isTablet ? 0.56 : undefined} gap="$4">
+            <YStack alignItems="center" gap="$3" style={styles.heroCard}>
             <YStack
               width={80}
               height={80}
@@ -137,17 +155,16 @@ export default function BukaShiftPage() {
                 {currentDateTime}
               </TextBodySm>
             </YStack>
-          </YStack>
+            </YStack>
 
-          {/* ── Modal Awal Kas ── */}
-          <YStack
-            backgroundColor={ColorBase.white}
-            borderRadius={16}
-            padding="$4"
-            gap="$3"
-            borderWidth={1}
-            borderColor={ColorNeutral.neutral200}
-          >
+            <YStack
+              backgroundColor={ColorBase.white}
+              borderRadius={16}
+              padding="$4"
+              gap="$3"
+              borderWidth={1}
+              borderColor={ColorNeutral.neutral200}
+            >
             {/* Shift slot */}
             <YStack gap={8}>
               <TextH3 fontWeight="700">Slot Shift</TextH3>
@@ -238,11 +255,15 @@ export default function BukaShiftPage() {
               onChangeText={setNote}
               multiline={false}
             />
+            </YStack>
           </YStack>
 
-          {/* ── Numpad ── */}
-          <NumpadGrid onPress={handleNumpad} />
-        </YStack>
+          <YStack flex={isTablet ? 0.44 : undefined} gap="$4">
+            <View style={styles.numpadCard}>
+              <NumpadGrid onPress={handleNumpad} />
+            </View>
+          </YStack>
+        </XStack>
       </ScrollView>
 
       {/* ── Bottom CTA ── */}
@@ -273,6 +294,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: ColorBase.bgScreen,
+  },
+  shell: {
+    width: "100%",
+    alignSelf: "center",
+    paddingTop: 8,
+    paddingBottom: 24,
+  },
+  heroCard: {
+    backgroundColor: ColorBase.white,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+  },
+  numpadCard: {
+    backgroundColor: ColorBase.white,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
   },
   presetChip: {
     paddingHorizontal: 14,

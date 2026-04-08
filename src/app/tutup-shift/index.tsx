@@ -24,6 +24,7 @@ import {
   shiftDataAtom,
 } from "@/features/shift/store/shift.store";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
+import { useResponsiveLayout } from "@/hooks/use-responsive";
 import {
   ColorBase,
   ColorDanger,
@@ -41,6 +42,7 @@ export default function TutupShiftPage() {
   const [, setShiftData] = useAtom(shiftDataAtom);
   const shiftData = useAtomValue(shiftDataAtom);
   const orders = useAtomValue(posOrdersAtom);
+  const { isTablet, contentMaxWidth, horizontalPadding } = useResponsiveLayout();
 
   const [inputValue, setInputValue] = useState("0");
 
@@ -139,109 +141,123 @@ export default function TutupShiftPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <PageHeader title="Tutup Shift" showBack onBack={() => router.back()} />
+      <PageHeader
+        title="Tutup Shift"
+        showBack
+        onBack={() => router.back()}
+        maxWidth={contentMaxWidth}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
       >
-        <YStack paddingHorizontal={16} gap={12} paddingTop={8}>
-          {/* Shift summary card */}
-          <YStack
-            backgroundColor={ColorPrimary.primary700}
-            borderRadius={16}
-            padding={20}
-            gap={12}
-          >
-            <XStack alignItems="center" gap={8}>
-              <YStack
-                width={8}
-                height={8}
-                borderRadius={4}
-                backgroundColor={ColorSuccess.success400}
-              />
-              <TextBodyLg fontWeight="700" color={ColorBase.white}>
-                Ringkasan Shift
-              </TextBodyLg>
-            </XStack>
-            <XStack gap={8}>
-              <ShiftInfoBox label="Mulai" value={shiftData?.startTime ?? "-"} />
-              <ShiftInfoBox label="Kasir" value={shiftData?.cashierName ?? "-"} />
-            </XStack>
-            <XStack gap={8}>
-              <ShiftInfoBox
-                label="Total Transaksi"
-                value={String(totalTransaksi)}
-              />
-              <ShiftInfoBox
-                label="Pendapatan"
-                value={`Rp ${totalPendapatan.toLocaleString("id-ID")}`}
-              />
-              <ShiftInfoBox
-                label="Void"
-                value={String(totalVoid)}
-                valueColor={ColorDanger.danger400}
-              />
-            </XStack>
-          </YStack>
-
-          {/* Payment buckets */}
-          <YStack
-            backgroundColor={ColorBase.white}
-            borderRadius={16}
-            padding={20}
-            gap={10}
-            borderWidth={1}
-            borderColor={ColorNeutral.neutral200}
-          >
-            <TextH3 fontWeight="700">Rincian Metode Pembayaran</TextH3>
-            <XStack justifyContent="space-between">
-              <TextBodySm color={ColorNeutral.neutral600}>Tunai</TextBodySm>
-              <TextBodySm fontWeight="700">{formatPrice(salesCash)}</TextBodySm>
-            </XStack>
-            <XStack justifyContent="space-between">
-              <TextBodySm color={ColorNeutral.neutral600}>QRIS</TextBodySm>
-              <TextBodySm fontWeight="700">{formatPrice(salesQris)}</TextBodySm>
-            </XStack>
-            <XStack justifyContent="space-between">
-              <TextBodySm color={ColorNeutral.neutral600}>Transfer/EDC</TextBodySm>
-              <TextBodySm fontWeight="700">{formatPrice(salesTransfer)}</TextBodySm>
-            </XStack>
-          </YStack>
-
-          {/* Kas Akhir input */}
-          <YStack
-            backgroundColor={ColorBase.white}
-            borderRadius={16}
-            padding={20}
-            gap={12}
-            borderWidth={1}
-            borderColor={ColorNeutral.neutral200}
-          >
-            <YStack gap={4}>
-              <TextH3 fontWeight="700">Hitung Kas Akhir</TextH3>
-              <TextBodySm color={ColorNeutral.neutral500}>
-                Masukkan jumlah uang aktual di laci kasir
-              </TextBodySm>
-            </YStack>
-            <YStack alignItems="center" paddingVertical={4}>
-              <TextH1 fontWeight="800" color={ColorPrimary.primary600}>
-                {formatPrice(kasAkhir)}
-              </TextH1>
+        <XStack
+          flexDirection={isTablet ? "row" : "column"}
+          gap="$4"
+          style={[
+            styles.shell,
+            {
+              maxWidth: contentMaxWidth,
+              paddingHorizontal: horizontalPadding,
+            },
+          ]}
+        >
+          <YStack flex={isTablet ? 0.56 : undefined} gap={12}>
+            <YStack
+              backgroundColor={ColorPrimary.primary700}
+              borderRadius={16}
+              padding={20}
+              gap={12}
+            >
+              <XStack alignItems="center" gap={8}>
+                <YStack
+                  width={8}
+                  height={8}
+                  borderRadius={4}
+                  backgroundColor={ColorSuccess.success400}
+                />
+                <TextBodyLg fontWeight="700" color={ColorBase.white}>
+                  Ringkasan Shift
+                </TextBodyLg>
+              </XStack>
+              <XStack gap={8} flexWrap="wrap">
+                <ShiftInfoBox label="Mulai" value={shiftData?.startTime ?? "-"} />
+                <ShiftInfoBox label="Kasir" value={shiftData?.cashierName ?? "-"} />
+              </XStack>
+              <XStack gap={8} flexWrap="wrap">
+                <ShiftInfoBox
+                  label="Total Transaksi"
+                  value={String(totalTransaksi)}
+                />
+                <ShiftInfoBox
+                  label="Pendapatan"
+                  value={`Rp ${totalPendapatan.toLocaleString("id-ID")}`}
+                />
+                <ShiftInfoBox
+                  label="Void"
+                  value={String(totalVoid)}
+                  valueColor={ColorDanger.danger400}
+                />
+              </XStack>
             </YStack>
 
-            <NumpadGrid onPress={handleNumpad} />
+            <YStack
+              backgroundColor={ColorBase.white}
+              borderRadius={16}
+              padding={20}
+              gap={10}
+              borderWidth={1}
+              borderColor={ColorNeutral.neutral200}
+            >
+              <TextH3 fontWeight="700">Rincian Metode Pembayaran</TextH3>
+              <XStack justifyContent="space-between">
+                <TextBodySm color={ColorNeutral.neutral600}>Tunai</TextBodySm>
+                <TextBodySm fontWeight="700">{formatPrice(salesCash)}</TextBodySm>
+              </XStack>
+              <XStack justifyContent="space-between">
+                <TextBodySm color={ColorNeutral.neutral600}>QRIS</TextBodySm>
+                <TextBodySm fontWeight="700">{formatPrice(salesQris)}</TextBodySm>
+              </XStack>
+              <XStack justifyContent="space-between">
+                <TextBodySm color={ColorNeutral.neutral600}>Transfer/EDC</TextBodySm>
+                <TextBodySm fontWeight="700">{formatPrice(salesTransfer)}</TextBodySm>
+              </XStack>
+            </YStack>
           </YStack>
 
-          {/* Rekonsiliasi */}
-          <YStack
-            backgroundColor={ColorBase.white}
-            borderRadius={16}
-            padding={20}
-            gap={10}
-            borderWidth={1}
-            borderColor={ColorNeutral.neutral200}
-          >
+          <YStack flex={isTablet ? 0.44 : undefined} gap={12}>
+            <YStack
+              backgroundColor={ColorBase.white}
+              borderRadius={16}
+              padding={20}
+              gap={12}
+              borderWidth={1}
+              borderColor={ColorNeutral.neutral200}
+            >
+              <YStack gap={4}>
+                <TextH3 fontWeight="700">Hitung Kas Akhir</TextH3>
+                <TextBodySm color={ColorNeutral.neutral500}>
+                  Masukkan jumlah uang aktual di laci kasir
+                </TextBodySm>
+              </YStack>
+              <YStack alignItems="center" paddingVertical={4}>
+                <TextH1 fontWeight="800" color={ColorPrimary.primary600}>
+                  {formatPrice(kasAkhir)}
+                </TextH1>
+              </YStack>
+
+              <NumpadGrid onPress={handleNumpad} />
+            </YStack>
+
+            <YStack
+              backgroundColor={ColorBase.white}
+              borderRadius={16}
+              padding={20}
+              gap={10}
+              borderWidth={1}
+              borderColor={ColorNeutral.neutral200}
+            >
             <TextH3 fontWeight="700">Rekonsiliasi Kas</TextH3>
             <XStack justifyContent="space-between">
               <TextBodySm color={ColorNeutral.neutral600}>Modal Awal</TextBodySm>
@@ -321,8 +337,9 @@ export default function TutupShiftPage() {
                   : "Kas kurang — periksa transaksi yang belum tercatat"}
               </TextCaption>
             )}
+            </YStack>
           </YStack>
-        </YStack>
+        </XStack>
       </ScrollView>
 
       <BottomBar absolute paddingBottom={28}>
@@ -352,5 +369,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: ColorBase.bgScreen,
+  },
+  shell: {
+    width: "100%",
+    alignSelf: "center",
+    paddingTop: 8,
   },
 });

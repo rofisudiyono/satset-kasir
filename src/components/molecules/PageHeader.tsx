@@ -5,7 +5,9 @@
  * and Pengaturan pages.
  */
 import React from "react";
+import { StyleSheet, View } from "react-native";
 import { XStack, YStack } from "tamagui";
+import { ColorBase, ColorNeutral } from "@/themes/Colors";
 
 import { IconButton } from "../atoms/IconButton";
 import { TextBodySm, TextH2, TextH3 } from "../atoms/Typography";
@@ -21,6 +23,7 @@ export interface PageHeaderProps {
   actions?: React.ReactNode;
   /** Use TextH2 for title instead of TextH3. Default false */
   largeTitle?: boolean;
+  maxWidth?: number | string;
 }
 
 export function PageHeader({
@@ -30,45 +33,65 @@ export function PageHeader({
   onBack,
   actions,
   largeTitle = false,
+  maxWidth = "100%",
 }: PageHeaderProps) {
   return (
-    <XStack
-      paddingHorizontal="$4"
-      paddingTop="$3"
-      paddingBottom="$3"
-      alignItems="center"
-      gap="$3"
-    >
-      {showBack && <IconButton iconName="arrow-back" onPress={onBack} />}
+    <View style={styles.shell}>
+      <XStack
+        paddingHorizontal="$4"
+        paddingTop="$3"
+        paddingBottom="$3"
+        alignItems="center"
+        gap="$3"
+        flexWrap="wrap"
+        style={[styles.header, { maxWidth }]}
+      >
+        {showBack && <IconButton iconName="arrow-back" onPress={onBack} />}
 
-      {subtitle ? (
-        <YStack flex={1} gap={2}>
-          {largeTitle ? (
-            <TextH2 fontWeight="700">{title}</TextH2>
-          ) : (
-            <TextH3 fontWeight="700">{title}</TextH3>
-          )}
-          <TextBodySm color="$colorSecondary">{subtitle}</TextBodySm>
-        </YStack>
-      ) : (
-        <>
-          {largeTitle ? (
-            <TextH2 fontWeight="700" flex={1}>
-              {title}
-            </TextH2>
-          ) : (
-            <TextH3
-              fontWeight="700"
-              flex={1}
-              textAlign={showBack ? "center" : "left"}
-            >
-              {title}
-            </TextH3>
-          )}
-        </>
-      )}
+        {subtitle ? (
+          <YStack flex={1} gap={2} minWidth={220}>
+            {largeTitle ? (
+              <TextH2 fontWeight="700">{title}</TextH2>
+            ) : (
+              <TextH3 fontWeight="700">{title}</TextH3>
+            )}
+            <TextBodySm color="$colorSecondary">{subtitle}</TextBodySm>
+          </YStack>
+        ) : (
+          <>
+            {largeTitle ? (
+              <TextH2 fontWeight="700" flex={1}>
+                {title}
+              </TextH2>
+            ) : (
+              <TextH3
+                fontWeight="700"
+                flex={1}
+                textAlign={showBack ? "center" : "left"}
+              >
+                {title}
+              </TextH3>
+            )}
+          </>
+        )}
 
-      {actions}
-    </XStack>
+        {actions ? <View style={styles.actions}>{actions}</View> : null}
+      </XStack>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  shell: {
+    backgroundColor: ColorBase.bgScreen,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: ColorNeutral.neutral200,
+  },
+  header: {
+    width: "100%",
+    alignSelf: "center",
+  },
+  actions: {
+    marginLeft: "auto",
+  },
+});

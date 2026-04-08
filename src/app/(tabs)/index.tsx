@@ -8,6 +8,7 @@ import { XStack, YStack } from "tamagui";
 import { AppButton, PageHeader, TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components";
 import { posOrdersAtom, ensurePosSeedDataAtom, expireWebOrdersAtom } from "@/features/pos/store/pos.store";
 import { buildOrderItemsSummary } from "@/features/pos/pos.utils";
+import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { ColorBase, ColorDanger, ColorNeutral, ColorPrimary, ColorWarning } from "@/themes/Colors";
 import { formatPrice } from "@/utils";
 
@@ -16,6 +17,8 @@ export default function WebOrdersTabPage() {
   const [orders, setOrders] = useAtom(posOrdersAtom);
   const ensureSeedData = useSetAtom(ensurePosSeedDataAtom);
   const expireWebOrders = useSetAtom(expireWebOrdersAtom);
+  const { isTablet, contentMaxWidth, horizontalPadding, sectionGap } =
+    useResponsiveLayout();
 
   useEffect(() => {
     ensureSeedData();
@@ -43,6 +46,7 @@ export default function WebOrdersTabPage() {
       <PageHeader
         title="Web Orders"
         subtitle="Order dari QR/Web yang perlu dikonfirmasi dalam 30 menit"
+        maxWidth={contentMaxWidth}
         actions={
           <AppButton variant="outline" size="sm" onPress={() => expireWebOrders()}>
             Refresh
@@ -50,16 +54,27 @@ export default function WebOrdersTabPage() {
         }
       />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        {/* Summary cards */}
-        <XStack gap="$3">
-          <View style={[styles.summaryCard, { backgroundColor: ColorPrimary.primary600 }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingHorizontal: horizontalPadding,
+            gap: sectionGap,
+            maxWidth: contentMaxWidth,
+            alignSelf: "center",
+            width: "100%",
+          },
+        ]}
+      >
+        <XStack gap="$3" flexWrap="wrap">
+          <View style={[styles.summaryCard, styles.summaryCardPrimary]}>
             <TextCaption color="rgba(255,255,255,0.8)">Perlu Konfirmasi</TextCaption>
             <TextBodyLg fontWeight="700" color={ColorBase.white}>
               {activeOrders.length}
             </TextBodyLg>
           </View>
-          <View style={[styles.summaryCard, { backgroundColor: ColorWarning.warning100 }]}>
+          <View style={[styles.summaryCard, styles.summaryCardWarning]}>
             <TextCaption color={ColorWarning.warning700}>Expired</TextCaption>
             <TextBodyLg fontWeight="700" color={ColorWarning.warning700}>
               {expiredOrders.length}
@@ -67,85 +82,90 @@ export default function WebOrdersTabPage() {
           </View>
         </XStack>
 
-        {/* Daftar aktif */}
-        <YStack gap="$3">
-          <TextH3 fontWeight="700">Daftar aktif</TextH3>
-          {activeOrders.length === 0 ? (
-            <View style={styles.emptyCard}>
-              <TextBodySm color="$colorSecondary">Tidak ada web order aktif.</TextBodySm>
-            </View>
-          ) : (
-            activeOrders.map((order) => (
-              <View key={order.id} style={styles.orderCard}>
-                {/* Baris 1: Badge + ID  |  Total */}
-                <XStack justifyContent="space-between" alignItems="flex-start">
-                  <XStack gap={8} alignItems="center">
-                    <View style={styles.pendingBadge}>
-                      <TextCaption color={ColorPrimary.primary600} fontWeight="700">
-                        Menunggu
+        <XStack
+          gap="$4"
+          flexDirection={isTablet ? "row" : "column"}
+          alignItems="stretch"
+        >
+          <YStack gap="$3" flex={isTablet ? 1.15 : undefined}>
+            <TextH3 fontWeight="700">Daftar aktif</TextH3>
+            {activeOrders.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <TextBodySm color="$colorSecondary">Tidak ada web order aktif.</TextBodySm>
+              </View>
+            ) : (
+              activeOrders.map((order) => (
+                <View key={order.id} style={styles.orderCard}>
+                  <XStack justifyContent="space-between" alignItems="flex-start">
+                    <XStack gap={8} alignItems="center" flexWrap="wrap" flex={1}>
+                      <View style={styles.pendingBadge}>
+                        <TextCaption color={ColorPrimary.primary600} fontWeight="700">
+                          Menunggu
+                        </TextCaption>
+                      </View>
+                      <TextCaption color={ColorNeutral.neutral500} fontWeight="600">
+                        {order.id}
+                      </TextCaption>
+                    </XStack>
+                    <YStack alignItems="flex-end" gap={1}>
+                      <TextCaption color={ColorNeutral.neutral500}>Total</TextCaption>
+                      <TextBodyLg fontWeight="700" color={ColorPrimary.primary600}>
+                        {formatPrice(order.grandTotal)}
+                      </TextBodyLg>
+                    </YStack>
+                  </XStack>
+
+                  <YStack gap={4}>
+                    <TextBodyLg fontWeight="700">
+                      {[order.tableLabel, order.customerName].filter(Boolean).join(" • ")}
+                    </TextBodyLg>
+                    <TextBodySm color="$colorSecondary">
+                      {buildOrderItemsSummary(order)}
+                    </TextBodySm>
+                  </YStack>
+
+                  <AppButton
+                    variant="primary"
+                    size="md"
+                    fullWidth
+                    title="Proses / Pembayaran"
+                    onPress={() => handleConfirm(order.id)}
+                  />
+                </View>
+              ))
+            )}
+          </YStack>
+
+          <YStack gap="$3" flex={isTablet ? 0.85 : undefined}>
+            <TextH3 fontWeight="700">Order expired</TextH3>
+            {expiredOrders.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <TextBodySm color="$colorSecondary">Belum ada web order expired.</TextBodySm>
+              </View>
+            ) : (
+              expiredOrders.map((order) => (
+                <View key={order.id} style={styles.orderCard}>
+                  <XStack justifyContent="space-between" alignItems="center" gap="$3">
+                    <YStack gap={2} flex={1}>
+                      <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
+                      <TextBodySm color="$colorSecondary">
+                        {[order.tableLabel, order.customerName].filter(Boolean).join(" • ")}
+                      </TextBodySm>
+                    </YStack>
+                    <View style={styles.expiredBadge}>
+                      <TextCaption color={ColorDanger.danger600} fontWeight="700">
+                        EXPIRED
                       </TextCaption>
                     </View>
-                    <TextCaption color={ColorNeutral.neutral500} fontWeight="600">
-                      {order.id}
-                    </TextCaption>
                   </XStack>
-                  <YStack alignItems="flex-end" gap={1}>
-                    <TextCaption color={ColorNeutral.neutral500}>Total</TextCaption>
-                    <TextBodyLg fontWeight="700" color={ColorPrimary.primary600}>
-                      {formatPrice(order.grandTotal)}
-                    </TextBodyLg>
-                  </YStack>
-                </XStack>
-
-                {/* Baris 2: Meja • Nama + ringkasan item */}
-                <YStack gap={4}>
-                  <TextBodyLg fontWeight="700">
-                    {[order.tableLabel, order.customerName].filter(Boolean).join(" • ")}
-                  </TextBodyLg>
                   <TextBodySm color="$colorSecondary">
                     {buildOrderItemsSummary(order)}
                   </TextBodySm>
-                </YStack>
-
-                {/* Tombol aksi */}
-                <AppButton
-                  variant="primary"
-                  size="md"
-                  fullWidth
-                  title="Proses / Pembayaran"
-                  onPress={() => handleConfirm(order.id)}
-                />
-              </View>
-            ))
-          )}
-        </YStack>
-
-        {/* Order expired */}
-        {expiredOrders.length > 0 && (
-          <YStack gap="$3">
-            <TextH3 fontWeight="700">Order expired</TextH3>
-            {expiredOrders.map((order) => (
-              <View key={order.id} style={styles.orderCard}>
-                <XStack justifyContent="space-between" alignItems="center">
-                  <YStack gap={2}>
-                    <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
-                    <TextBodySm color="$colorSecondary">
-                      {[order.tableLabel, order.customerName].filter(Boolean).join(" • ")}
-                    </TextBodySm>
-                  </YStack>
-                  <View style={styles.expiredBadge}>
-                    <TextCaption color={ColorDanger.danger600} fontWeight="700">
-                      EXPIRED
-                    </TextCaption>
-                  </View>
-                </XStack>
-                <TextBodySm color="$colorSecondary">
-                  {buildOrderItemsSummary(order)}
-                </TextBodySm>
-              </View>
-            ))}
+                </View>
+              ))
+            )}
           </YStack>
-        )}
+        </XStack>
       </ScrollView>
     </SafeAreaView>
   );
@@ -163,8 +183,15 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
+    minWidth: 220,
     borderRadius: 16,
     padding: 16,
+  },
+  summaryCardPrimary: {
+    backgroundColor: ColorPrimary.primary600,
+  },
+  summaryCardWarning: {
+    backgroundColor: ColorWarning.warning100,
   },
   orderCard: {
     backgroundColor: ColorBase.white,

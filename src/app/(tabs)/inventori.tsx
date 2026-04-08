@@ -8,6 +8,7 @@ import { XStack, YStack } from "tamagui";
 import { AppButton, PageHeader, TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components";
 import { enqueueKdsFulfillmentEventAtom, ensurePosSeedDataAtom, markOrderServedAtom, posOrdersAtom } from "@/features/pos/store/pos.store";
 import { buildOrderItemsSummary } from "@/features/pos/pos.utils";
+import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { ColorBase, ColorNeutral, ColorPrimary, ColorSuccess, ColorWarning } from "@/themes/Colors";
 import { formatPrice } from "@/utils";
 
@@ -16,6 +17,8 @@ export default function SiapAntarTabPage() {
   const ensureSeedData = useSetAtom(ensurePosSeedDataAtom);
   const markServed = useSetAtom(markOrderServedAtom);
   const enqueueEvent = useSetAtom(enqueueKdsFulfillmentEventAtom);
+  const { isTablet, contentMaxWidth, horizontalPadding, sectionGap } =
+    useResponsiveLayout();
 
   useEffect(() => {
     ensureSeedData();
@@ -31,11 +34,24 @@ export default function SiapAntarTabPage() {
       <PageHeader
         title="Siap Antar"
         subtitle="Order READY dari dapur dan aksi Sudah Diantar"
+        maxWidth={contentMaxWidth}
       />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingHorizontal: horizontalPadding,
+            gap: sectionGap,
+            maxWidth: contentMaxWidth,
+            alignSelf: "center",
+            width: "100%",
+          },
+        ]}
+      >
         <YStack gap="$3">
-          <XStack gap="$3">
+          <XStack gap="$3" flexWrap="wrap">
             <View style={[styles.summaryCard, { backgroundColor: ColorSuccess.success50 }]}>
               <TextCaption color={ColorSuccess.success700}>READY</TextCaption>
               <TextBodyLg fontWeight="700" color={ColorSuccess.success700}>
@@ -49,87 +65,95 @@ export default function SiapAntarTabPage() {
               </TextBodyLg>
             </View>
           </XStack>
-
-          <TextH3 fontWeight="700">Order siap diantar</TextH3>
-          {readyOrders.length === 0 ? (
-            <View style={styles.emptyCard}>
-              <TextBodySm color="$colorSecondary">Belum ada order READY.</TextBodySm>
-            </View>
-          ) : (
-            readyOrders.map((order) => (
-              <View key={order.id} style={styles.orderCard}>
-                <XStack justifyContent="space-between" alignItems="center">
-                  <YStack gap={2}>
-                    <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
-                    <TextCaption color="$colorSecondary">
-                      {order.customerName || order.tableLabel || "Takeaway"}
-                    </TextCaption>
-                  </YStack>
-                  <View style={styles.readyBadge}>
-                    <TextCaption color={ColorSuccess.success700} fontWeight="700">
-                      READY
-                    </TextCaption>
-                  </View>
-                </XStack>
-                <TextBodySm color="$colorSecondary">
-                  {buildOrderItemsSummary(order)}
-                </TextBodySm>
-                <XStack justifyContent="space-between" alignItems="center">
-                  <TextBodySm fontWeight="700">{formatPrice(order.grandTotal)}</TextBodySm>
-                  <AppButton
-                    variant="success"
-                    size="sm"
-                    onPress={() => markServed(order.id)}
-                  >
-                    Sudah Diantar
-                  </AppButton>
-                </XStack>
-              </View>
-            ))
-          )}
         </YStack>
 
-        <YStack gap="$3">
-          <TextH3 fontWeight="700">Simulasi event dapur</TextH3>
-          {preparingOrders.length === 0 ? (
-            <View style={styles.emptyCard}>
-              <TextBodySm color="$colorSecondary">Tidak ada order PREPARING.</TextBodySm>
-            </View>
-          ) : (
-            preparingOrders.map((order) => (
-              <View key={order.id} style={styles.orderCard}>
-                <XStack justifyContent="space-between" alignItems="center">
-                  <YStack gap={2}>
-                    <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
-                    <TextCaption color="$colorSecondary">
-                      {order.customerName || order.tableLabel || "Takeaway"}
-                    </TextCaption>
-                  </YStack>
-                  <TouchableOpacity
-                    onPress={() =>
-                      enqueueEvent({
-                        id: `kds-sim-${Date.now()}`,
-                        orderId: order.id,
-                        fulfillment: "READY",
-                        source: "MANUAL",
-                        createdAt: Date.now(),
-                      })
-                    }
-                    style={styles.simulateButton}
-                  >
-                    <Ionicons name="flash-outline" size={16} color={ColorPrimary.primary600} />
-                    <TextCaption color={ColorPrimary.primary600} fontWeight="700">
-                      Tandai READY
-                    </TextCaption>
-                  </TouchableOpacity>
-                </XStack>
-                <TextBodySm color="$colorSecondary">
-                  {buildOrderItemsSummary(order)}
-                </TextBodySm>
+        <XStack
+          gap="$4"
+          flexDirection={isTablet ? "row" : "column"}
+          alignItems="stretch"
+        >
+          <YStack gap="$3" flex={isTablet ? 1.05 : undefined}>
+            <TextH3 fontWeight="700">Order siap diantar</TextH3>
+            {readyOrders.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <TextBodySm color="$colorSecondary">Belum ada order READY.</TextBodySm>
               </View>
-            ))
-          )}
-        </YStack>
+            ) : (
+              readyOrders.map((order) => (
+                <View key={order.id} style={styles.orderCard}>
+                  <XStack justifyContent="space-between" alignItems="center" gap="$3">
+                    <YStack gap={2} flex={1}>
+                      <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
+                      <TextCaption color="$colorSecondary">
+                        {order.customerName || order.tableLabel || "Takeaway"}
+                      </TextCaption>
+                    </YStack>
+                    <View style={styles.readyBadge}>
+                      <TextCaption color={ColorSuccess.success700} fontWeight="700">
+                        READY
+                      </TextCaption>
+                    </View>
+                  </XStack>
+                  <TextBodySm color="$colorSecondary">
+                    {buildOrderItemsSummary(order)}
+                  </TextBodySm>
+                  <XStack justifyContent="space-between" alignItems="center" gap="$3">
+                    <TextBodySm fontWeight="700">{formatPrice(order.grandTotal)}</TextBodySm>
+                    <AppButton
+                      variant="success"
+                      size="sm"
+                      onPress={() => markServed(order.id)}
+                    >
+                      Sudah Diantar
+                    </AppButton>
+                  </XStack>
+                </View>
+              ))
+            )}
+          </YStack>
+
+          <YStack gap="$3" flex={isTablet ? 0.95 : undefined}>
+            <TextH3 fontWeight="700">Simulasi event dapur</TextH3>
+            {preparingOrders.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <TextBodySm color="$colorSecondary">Tidak ada order PREPARING.</TextBodySm>
+              </View>
+            ) : (
+              preparingOrders.map((order) => (
+                <View key={order.id} style={styles.orderCard}>
+                  <XStack justifyContent="space-between" alignItems="center" gap="$3">
+                    <YStack gap={2} flex={1}>
+                      <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
+                      <TextCaption color="$colorSecondary">
+                        {order.customerName || order.tableLabel || "Takeaway"}
+                      </TextCaption>
+                    </YStack>
+                    <TouchableOpacity
+                      onPress={() =>
+                        enqueueEvent({
+                          id: `kds-sim-${Date.now()}`,
+                          orderId: order.id,
+                          fulfillment: "READY",
+                          source: "MANUAL",
+                          createdAt: Date.now(),
+                        })
+                      }
+                      style={styles.simulateButton}
+                    >
+                      <Ionicons name="flash-outline" size={16} color={ColorPrimary.primary600} />
+                      <TextCaption color={ColorPrimary.primary600} fontWeight="700">
+                        Tandai READY
+                      </TextCaption>
+                    </TouchableOpacity>
+                  </XStack>
+                  <TextBodySm color="$colorSecondary">
+                    {buildOrderItemsSummary(order)}
+                  </TextBodySm>
+                </View>
+              ))
+            )}
+          </YStack>
+        </XStack>
       </ScrollView>
     </SafeAreaView>
   );
@@ -147,6 +171,7 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
+    minWidth: 220,
     borderRadius: 16,
     padding: 16,
   },

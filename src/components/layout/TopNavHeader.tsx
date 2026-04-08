@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -38,6 +39,7 @@ type NavItem = {
 export function TopNavHeader() {
   const router = useRouter();
   const pathname = usePathname();
+  const { width } = useWindowDimensions();
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
   const [shiftData] = useAtom(shiftDataAtom);
   const [heldOrders] = useAtom(heldOrdersAtom);
@@ -88,10 +90,11 @@ export function TopNavHeader() {
 
   const cashierLabel = shiftData?.cashierName ?? "Kasir 01";
   const shiftLabel = shiftData?.slot ?? "SHIFT";
+  const shellMaxWidth = width >= 1360 ? 1480 : width >= 1024 ? 1240 : width;
 
   return (
     <SafeAreaView edges={["top"]} style={styles.safeArea}>
-      <View style={styles.shell}>
+      <View style={[styles.shell, { maxWidth: shellMaxWidth }]}>
         <XStack style={styles.topRow}>
           <XStack alignItems="center" gap="$3" flex={1}>
             <View style={styles.brandIcon}>
@@ -108,7 +111,12 @@ export function TopNavHeader() {
             </YStack>
           </XStack>
 
-          <XStack alignItems="center" gap="$3">
+          <XStack
+            alignItems="center"
+            gap="$3"
+            flexWrap="wrap"
+            justifyContent="flex-end"
+          >
             <View style={styles.shiftPill}>
               <TextCaption color={ColorNeutral.neutral500}>Shift</TextCaption>
               <TextBodySm fontWeight="700" color={ColorNeutral.neutral800}>
@@ -335,6 +343,8 @@ const styles = StyleSheet.create({
     backgroundColor: ColorBase.white,
   },
   shell: {
+    width: "100%",
+    alignSelf: "center",
     backgroundColor: ColorBase.white,
     borderBottomWidth: 1,
     borderBottomColor: ColorNeutral.neutral200,
@@ -342,6 +352,7 @@ const styles = StyleSheet.create({
   topRow: {
     alignItems: "center",
     justifyContent: "space-between",
+    flexWrap: "wrap",
     paddingHorizontal: 18,
     paddingTop: 10,
     paddingBottom: 14,
@@ -399,6 +410,7 @@ const styles = StyleSheet.create({
   },
   navRow: {
     gap: 10,
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingBottom: 14,
     paddingTop: 2,

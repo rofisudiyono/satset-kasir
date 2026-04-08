@@ -36,6 +36,7 @@ import {
 } from "@/features/pos/pos.utils";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
+import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
 import type { PaymentMethod } from "@/types";
 import { formatPrice } from "@/utils";
@@ -49,6 +50,7 @@ export default function PilihPembayaranPage() {
   const [, setCart] = useAtom(cartAtom);
   const [cartSnapshot, setCartSnapshot] = useAtom(cartSnapshotAtom);
   const [, setCatalogStock] = useAtom(catalogStockAtom);
+  const { isTablet, contentMaxWidth, horizontalPadding } = useResponsiveLayout();
   const params = useLocalSearchParams<{ orderId: string }>();
 
   const order = useMemo(
@@ -400,17 +402,28 @@ export default function PilihPembayaranPage() {
         title="Pilih Pembayaran"
         showBack
         onBack={() => router.back()}
+        maxWidth={contentMaxWidth}
       />
-      <XStack flex={1}>
+      <XStack
+        flex={1}
+        flexDirection={isTablet ? "row" : "column"}
+        style={[
+          styles.shell,
+          {
+            maxWidth: contentMaxWidth,
+            paddingHorizontal: horizontalPadding,
+          },
+        ]}
+      >
         <ScrollView
-          style={styles.tabletLeft}
+          style={[styles.tabletLeft, !isTablet && styles.stackPanel]}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 12 }}
         >
           {orderInfo}
         </ScrollView>
-        <View style={styles.tabletDivider} />
-        <View style={styles.tabletRight}>
+        {isTablet ? <View style={styles.tabletDivider} /> : null}
+        <View style={[styles.tabletRight, !isTablet && styles.stackPanel]}>
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
@@ -446,6 +459,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: ColorBase.bgScreen,
+  },
+  shell: {
+    width: "100%",
+    alignSelf: "center",
+    flex: 1,
   },
   totalCard: {
     borderRadius: 20,
@@ -548,5 +566,12 @@ const styles = StyleSheet.create({
   tabletRight: {
     flex: 0.44,
     backgroundColor: ColorBase.white,
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  stackPanel: {
+    flex: 1,
+    borderRadius: 20,
+    overflow: "hidden",
   },
 });
