@@ -64,13 +64,16 @@ export function RecentTransactions() {
               paddingHorizontal="$4"
               paddingVertical="$3"
               alignItems="center"
+              gap="$3"
             >
-              <YStack flex={1} gap={2}>
+              <YStack flex={1} minWidth={0} gap={2}>
                 <TextBodyLg fontWeight="700">{trx.id}</TextBodyLg>
                 <TextCaption color="$colorSecondary">{trx.time}</TextCaption>
               </YStack>
-              <XStack alignItems="center" gap="$3">
-                <TextBodyLg fontWeight="700">{trx.amount}</TextBodyLg>
+              <XStack alignItems="center" gap="$3" flexShrink={0}>
+                <TextBodyLg fontWeight="700" numberOfLines={1}>
+                  {trx.amount}
+                </TextBodyLg>
                 <StatusBadge status={trx.status} />
               </XStack>
             </XStack>

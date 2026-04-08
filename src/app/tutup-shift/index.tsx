@@ -47,16 +47,35 @@ export default function TutupShiftPage() {
   const kasAkhir = Number(inputValue);
 
   // Compute shift stats
-  const shiftTxs = transactions.filter((t) => t.status === "Lunas");
+  const shiftId = shiftData?.shiftId;
+  const shiftTxs = transactions.filter((t) => {
+    if (t.status !== "Lunas") return false;
+    if (!shiftId) return false;
+    return t.shiftId === shiftId;
+  });
+
   const totalPendapatan = shiftTxs.reduce((sum, t) => {
-    return sum + Number(t.amount.replace(/[^0-9]/g, ""));
+    return sum + (t.amountValue ?? Number(t.amount.replace(/[^0-9]/g, "")));
   }, 0);
-  const totalTransaksi = transactions.length;
-  const totalVoid = transactions.filter((t) => t.status === "Void").length;
+
+  const totalTransaksi = shiftTxs.length;
+  const totalVoid = transactions.filter(
+    (t) => t.status === "Void" && t.shiftId === shiftId,
+  ).length;
+
+  const salesCash = shiftTxs
+    .filter((t) => t.paymentMethodId === "tunai")
+    .reduce((s, t) => s + (t.amountValue ?? 0), 0);
+  const salesQris = shiftTxs
+    .filter((t) => t.paymentMethodId === "qris")
+    .reduce((s, t) => s + (t.amountValue ?? 0), 0);
+  const salesTransfer = shiftTxs
+    .filter((t) => t.paymentMethodId === "transfer" || t.paymentMethodId === "edc")
+    .reduce((s, t) => s + (t.amountValue ?? 0), 0);
 
   // Rekonsiliasi
   const openingCash = shiftData?.openingCash ?? 0;
-  const expectedCash = openingCash + totalPendapatan;
+  const expectedCash = openingCash + salesCash;
   const selisih = kasAkhir - expectedCash;
 
   function handleNumpad(key: string) {
@@ -149,6 +168,30 @@ export default function TutupShiftPage() {
             </XStack>
           </YStack>
 
+          {/* Payment buckets */}
+          <YStack
+            backgroundColor={ColorBase.white}
+            borderRadius={16}
+            padding={20}
+            gap={10}
+            borderWidth={1}
+            borderColor={ColorNeutral.neutral200}
+          >
+            <TextH3 fontWeight="700">Rincian Metode Pembayaran</TextH3>
+            <XStack justifyContent="space-between">
+              <TextBodySm color={ColorNeutral.neutral600}>Tunai</TextBodySm>
+              <TextBodySm fontWeight="700">{formatPrice(salesCash)}</TextBodySm>
+            </XStack>
+            <XStack justifyContent="space-between">
+              <TextBodySm color={ColorNeutral.neutral600}>QRIS</TextBodySm>
+              <TextBodySm fontWeight="700">{formatPrice(salesQris)}</TextBodySm>
+            </XStack>
+            <XStack justifyContent="space-between">
+              <TextBodySm color={ColorNeutral.neutral600}>Transfer/EDC</TextBodySm>
+              <TextBodySm fontWeight="700">{formatPrice(salesTransfer)}</TextBodySm>
+            </XStack>
+          </YStack>
+
           {/* Kas Akhir input */}
           <YStack
             backgroundColor={ColorBase.white}
@@ -192,7 +235,7 @@ export default function TutupShiftPage() {
                 + Pendapatan Tunai
               </TextBodySm>
               <TextBodySm fontWeight="600" color={ColorGreen.green600}>
-                {formatPrice(totalPendapatan)}
+                {formatPrice(salesCash)}
               </TextBodySm>
             </XStack>
             <DottedSeparator />

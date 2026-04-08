@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAtom } from "jotai";
 import React, { useState } from "react";
-import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView, XStack, YStack } from "tamagui";
 
@@ -27,13 +27,21 @@ import {
   ColorWarning,
 } from "@/themes/Colors";
 import { formatPrice } from "@/utils";
+import type { ShiftSlot } from "@/types";
 
 const PRESET_AMOUNTS = [200_000, 500_000, 1_000_000];
+const SHIFT_SLOTS: { id: ShiftSlot; label: string; icon: keyof typeof Ionicons.glyphMap }[] =
+  [
+    { id: "PAGI", label: "Pagi", icon: "sunny-outline" },
+    { id: "SIANG", label: "Siang", icon: "partly-sunny-outline" },
+    { id: "MALAM", label: "Malam", icon: "moon-outline" },
+  ];
 
 export default function BukaShiftPage() {
   const router = useRouter();
   const [inputValue, setInputValue] = useState("500000");
   const [note, setNote] = useState("");
+  const [slot, setSlot] = useState<ShiftSlot>("PAGI");
   const [, setIsShiftStarted] = useAtom(isShiftStartedAtom);
   const [, setShiftData] = useAtom(shiftDataAtom);
 
@@ -73,12 +81,16 @@ export default function BukaShiftPage() {
   }
 
   function handleMulaiShift() {
+    const openedAt = Date.now();
     const startTime =
       new Date().toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
       }) + " WIB";
     setShiftData({
+      shiftId: `shift_${openedAt}`,
+      openedAt,
+      slot,
       openingCash: amount,
       startTime,
       cashierName: "Budi Santoso",
@@ -136,6 +148,47 @@ export default function BukaShiftPage() {
             borderWidth={1}
             borderColor={ColorNeutral.neutral200}
           >
+            {/* Shift slot */}
+            <YStack gap={8}>
+              <TextH3 fontWeight="700">Slot Shift</TextH3>
+              <TextBodySm color={ColorNeutral.neutral500}>
+                Pilih slot shift untuk pencatatan laporan
+              </TextBodySm>
+              <XStack gap="$2" flexWrap="wrap">
+                {SHIFT_SLOTS.map((s) => {
+                  const active = slot === s.id;
+                  return (
+                    <TouchableOpacity
+                      key={s.id}
+                      onPress={() => setSlot(s.id)}
+                      activeOpacity={0.8}
+                      style={[
+                        styles.slotChip,
+                        active && styles.slotChipActive,
+                      ]}
+                    >
+                      <Ionicons
+                        name={s.icon}
+                        size={16}
+                        color={
+                          active ? ColorBase.white : ColorNeutral.neutral600
+                        }
+                        style={{ marginRight: 6 }}
+                      />
+                      <TextBodySm
+                        fontWeight="700"
+                        color={active ? ColorBase.white : ColorNeutral.neutral700}
+                      >
+                        {s.label}
+                      </TextBodySm>
+                    </TouchableOpacity>
+                  );
+                })}
+              </XStack>
+            </YStack>
+
+            <View style={styles.sectionDivider} />
+
             <YStack gap={4}>
               <TextH3 fontWeight="700">Modal Awal Kas</TextH3>
               <TextBodySm color={ColorNeutral.neutral500}>
@@ -243,5 +296,23 @@ const styles = StyleSheet.create({
     fontFamily: "System",
     fontSize: 14,
     color: ColorNeutral.neutral800,
+  },
+  slotChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+    backgroundColor: ColorBase.white,
+  },
+  slotChipActive: {
+    backgroundColor: ColorPrimary.primary600,
+    borderColor: ColorPrimary.primary600,
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: ColorNeutral.neutral200,
   },
 });

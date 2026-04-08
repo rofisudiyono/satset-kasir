@@ -33,7 +33,7 @@ import type { CatalogProduct, CategoryFilter } from "@/types";
 
 export default function TransaksiBaruPage() {
   const router = useRouter();
-  const { isTablet } = useDeviceLayout();
+  const { useTwoPaneLayout } = useDeviceLayout();
   const { width: screenWidth } = useWindowDimensions();
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("Semua");
   const [cart, setCart] = useAtom(cartAtom);
@@ -127,14 +127,14 @@ export default function TransaksiBaruPage() {
               onPress={() => router.push("/pesanan-ditahan" as never)}
               badge={heldOrders.length > 0 ? heldOrders.length : undefined}
             />
-            {!isTablet && <CartIconButton totalItems={totalItems} />}
+            {!useTwoPaneLayout && <CartIconButton totalItems={totalItems} />}
           </>
         }
       />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: isTablet ? 32 : totalItems > 0 ? 120 : 32,
+          paddingBottom: useTwoPaneLayout ? 32 : totalItems > 0 ? 120 : 32,
         }}
       >
         <YStack paddingHorizontal="$4" gap="$3">
@@ -144,14 +144,14 @@ export default function TransaksiBaruPage() {
             categoryFilter={categoryFilter}
             onCategoryChange={setCategoryFilter}
             onAddProduct={handleAddProduct}
-            availableWidth={isTablet ? catalogPanelWidth : undefined}
+            availableWidth={useTwoPaneLayout ? catalogPanelWidth : undefined}
           />
         </YStack>
       </ScrollView>
     </>
   );
 
-  if (isTablet) {
+  if (useTwoPaneLayout) {
     return (
       <SafeAreaView style={styles.container} edges={["top"]}>
         <View style={styles.splitLayout}>

@@ -23,6 +23,7 @@ import {
   buildTransaction,
   transactionsAtom,
 } from "@/features/transactions/store/transaction.store";
+import { shiftDataAtom } from "@/features/shift/store/shift.store";
 import {
   BarcodePlaceholder,
   DottedSeparator,
@@ -47,6 +48,7 @@ export default function PembayaranSuksesPage() {
   const router = useRouter();
   const setCart = useSetAtom(cartAtom);
   const [transactions, setTransactions] = useAtom(transactionsAtom);
+  const [shiftData] = useAtom(shiftDataAtom);
   const [, setCatalogStock] = useAtom(catalogStockAtom);
   const [cartSnapshot, setCartSnapshot] = useAtom(cartSnapshotAtom);
   const params = useLocalSearchParams<{
@@ -54,6 +56,7 @@ export default function PembayaranSuksesPage() {
     totalItems: string;
     discount: string;
     method: string;
+    methodId?: "tunai" | "qris" | "transfer" | "edc";
     received: string;
     change: string;
     items: string;
@@ -63,6 +66,7 @@ export default function PembayaranSuksesPage() {
   const total = Number(params.total ?? 0);
   const discount = Number(params.discount ?? 0);
   const method = params.method ?? "Tunai";
+  const methodId = params.methodId;
   const received = Number(params.received ?? 0);
   const change = Number(params.change ?? 0);
   const items = params.items ?? "";
@@ -80,7 +84,15 @@ export default function PembayaranSuksesPage() {
 
     // Save transaction
     const tx = buildTransaction(
-      { total, items, method, customerName: customerLabel },
+      {
+        total,
+        items,
+        methodLabel: method,
+        methodId,
+        customerName: customerLabel,
+        shiftId: shiftData?.shiftId,
+        createdAt: Date.now(),
+      },
       transactions.length,
     );
     setTransactions((prev) => [tx, ...prev]);

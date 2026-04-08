@@ -26,7 +26,7 @@ import { formatPrice, getCashSuggestions } from "@/utils";
 
 export default function PembayaranTunaiPage() {
   const router = useRouter();
-  const { isTablet } = useDeviceLayout();
+  const { useTwoPaneLayout } = useDeviceLayout();
   const params = useLocalSearchParams<{
     total: string;
     totalItems: string;
@@ -78,6 +78,7 @@ export default function PembayaranTunaiPage() {
         totalItems: String(totalItems),
         discount: String(discount),
         method: "Tunai",
+        methodId: "tunai",
         received: String(receivedAmount),
         change: String(change > 0 ? change : 0),
         items,
@@ -201,7 +202,7 @@ export default function PembayaranTunaiPage() {
   );
 
   // ── Tablet: 2-column layout ────────────────────────────────────────────────
-  if (isTablet) {
+  if (useTwoPaneLayout) {
     return (
       <SafeAreaView style={styles.container}>
         <PageHeader

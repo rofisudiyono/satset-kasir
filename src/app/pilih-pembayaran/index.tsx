@@ -37,7 +37,7 @@ const QR_DURATION = 5 * 60;
 
 export default function PilihPembayaranPage() {
   const router = useRouter();
-  const { isTablet } = useDeviceLayout();
+  const { useTwoPaneLayout } = useDeviceLayout();
   const params = useLocalSearchParams<{
     total: string;
     totalItems: string;
@@ -125,6 +125,7 @@ export default function PilihPembayaranPage() {
               params: {
                 ...baseParams,
                 method: methodLabel,
+                methodId: selectedMethod,
                 received: String(total),
                 change: "0",
               },
@@ -188,7 +189,8 @@ export default function PilihPembayaranPage() {
       </XStack>
       <TextBodySm color="$colorSecondary" marginTop={8} textAlign="center">
         Setelah pelanggan scan, tekan{" "}
-        <TextBodySm fontWeight="700">"Proses Pembayaran"</TextBodySm> untuk konfirmasi.
+        <TextBodySm fontWeight="700">&quot;Proses Pembayaran&quot;</TextBodySm>{" "}
+        untuk konfirmasi.
       </TextBodySm>
     </View>
   );
@@ -268,7 +270,7 @@ export default function PilihPembayaranPage() {
   );
 
   // ── Tablet: 2-column layout ────────────────────────────────────────────────
-  if (isTablet) {
+  if (useTwoPaneLayout) {
     const activeDetailPanel =
       selectedMethod === "qris"
         ? qrisPanel

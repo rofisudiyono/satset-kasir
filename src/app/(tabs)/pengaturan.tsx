@@ -35,7 +35,7 @@ export default function PengaturanPage() {
   const { logout } = useAuth();
   const router = useRouter();
   const isShiftStarted = useAtomValue(isShiftStartedAtom);
-  const { isTablet } = useDeviceLayout();
+  const { useTwoPaneLayout } = useDeviceLayout();
   const [scannerEnabled, setScannerEnabled] = React.useState(true);
   const [autoPrint, setAutoPrint] = React.useState(false);
 
@@ -337,7 +337,7 @@ export default function PengaturanPage() {
   );
 
   // ── Tablet: 2-column layout ────────────────────────────────────────────────
-  if (isTablet) {
+  if (useTwoPaneLayout) {
     return (
       <SafeAreaView
         edges={["top"]}

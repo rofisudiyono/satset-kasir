@@ -33,7 +33,7 @@ export default function TransaksiPage() {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [storedTxs, setStoredTxs] = useAtom(transactionsAtom);
-  const { isTablet } = useDeviceLayout();
+  const { useTwoPaneLayout } = useDeviceLayout();
 
   const allTransactions: Transaction[] = [...storedTxs, ...transactionListMock];
 
@@ -54,10 +54,10 @@ export default function TransaksiPage() {
     .reduce((sum, t) => sum + Number(t.amount.replace(/[^0-9]/g, "")), 0);
   const totalVoid = allTransactions.filter((t) => t.status === "Void").length;
 
-  function handleTxPress(tx: Transaction) {
+  const handleTxPress = useCallback((tx: Transaction) => {
     setSelectedTx(tx);
-    if (!isTablet) setModalVisible(true);
-  }
+    if (!useTwoPaneLayout) setModalVisible(true);
+  }, [useTwoPaneLayout]);
 
   function handleVoid(id: string) {
     setStoredTxs((prev) =>
@@ -86,10 +86,10 @@ export default function TransaksiPage() {
       <MemoTransactionCard
         tx={item}
         onPress={handleTxPress}
-        isSelected={isTablet && selectedTx?.id === item.id}
+        isSelected={useTwoPaneLayout && selectedTx?.id === item.id}
       />
     ),
-    [isTablet, selectedTx?.id],
+    [handleTxPress, useTwoPaneLayout, selectedTx?.id],
   );
 
   const keyExtractor = useCallback((item: Transaction) => item.id, []);
@@ -196,7 +196,7 @@ export default function TransaksiPage() {
   );
 
   // ── Tablet: split layout ───────────────────────────────────────────────────
-  if (isTablet) {
+  if (useTwoPaneLayout) {
     return (
       <SafeAreaView
         edges={["top"]}

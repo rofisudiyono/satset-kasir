@@ -38,6 +38,16 @@ export type {
   Transaction,
   TxStatus,
 } from "@/features/transactions/transaction.types";
+export type {
+  PosFulfillmentStatus,
+  PosOrder,
+  PosOrderItem,
+  PosOrderPayment,
+  PosOrderSource,
+  PosOrderStatus,
+  PosShift,
+  ShiftSlot,
+} from "@/features/pos/pos.types";
 export type { FilterTab } from "./filters.types";
 export type { IoniconName } from "./icons.types";
 export type { TabConfig } from "./navigation.types";

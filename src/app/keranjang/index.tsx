@@ -25,7 +25,7 @@ import {
   heldOrdersAtom,
 } from "@/features/cart/store/cart.store";
 import { promoDefinitions } from "@/features/payment/api/payment.data";
-import { AppButton, PageHeader, TextBodyLg, TextCaption } from "@/components";
+import { AppButton, PageHeader } from "@/components";
 import { useDeviceLayout } from "@/hooks/useDeviceLayout";
 import { ColorBase, ColorDanger, ColorPrimary } from "@/themes/Colors";
 import type { AppliedPromo, OrderType } from "@/types";
@@ -37,7 +37,7 @@ export default function KeranjangPage() {
   const [cart, setCart] = useAtom(cartAtom);
   const [, setHeldOrders] = useAtom(heldOrdersAtom);
   const [, setCartSnapshot] = useAtom(cartSnapshotAtom);
-  const { isTablet } = useDeviceLayout();
+  const { useTwoPaneLayout } = useDeviceLayout();
 
   const [customerName, setCustomerName] = useState("");
   const [tableNumber, setTableNumber] = useState("");
@@ -153,7 +153,7 @@ export default function KeranjangPage() {
   );
 
   // ── Tablet: 2-column layout ────────────────────────────────────────────────
-  if (isTablet) {
+  if (useTwoPaneLayout) {
     return (
       <SafeAreaView style={styles.container}>
         <PageHeader

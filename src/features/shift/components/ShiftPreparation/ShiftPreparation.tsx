@@ -78,7 +78,7 @@ export function ShiftPreparation() {
             <XStack
               paddingHorizontal="$4"
               paddingVertical="$3"
-              alignItems="center"
+              alignItems="flex-start"
               gap="$3"
             >
               <YStack
@@ -87,7 +87,7 @@ export function ShiftPreparation() {
                 borderRadius={18}
                 backgroundColor={ColorNeutral.neutral100}
               />
-              <YStack flex={1} gap={2}>
+              <YStack flex={1} minWidth={0} gap={2}>
                 <TextBodyLg fontWeight="600">{item.title}</TextBodyLg>
                 <TextBodySm color="$colorSecondary">{item.subtitle}</TextBodySm>
               </YStack>

@@ -20,7 +20,7 @@ import { ColorBase, ColorNeutral } from "@/themes/Colors";
 export default function HomePage() {
   const router = useRouter();
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
-  const { isTablet } = useDeviceLayout();
+  const { useTwoPaneLayout } = useDeviceLayout();
 
   const mainCta = isShiftStarted ? (
     <AppButton
@@ -50,7 +50,7 @@ export default function HomePage() {
     />
   );
 
-  if (isTablet) {
+  if (useTwoPaneLayout) {
     return (
       <SafeAreaView
         edges={["top"]}
@@ -58,9 +58,13 @@ export default function HomePage() {
       >
         <HomeHeader />
         <ScrollView showsVerticalScrollIndicator={false}>
-          <XStack gap="$4" paddingHorizontal="$4" paddingBottom="$6" alignItems="flex-start">
-            {/* Left column: ShiftCard + CTA */}
-            <YStack flex={1} gap="$3">
+          <XStack
+            gap="$4"
+            paddingHorizontal="$4"
+            paddingBottom="$6"
+            alignItems="flex-start"
+          >
+            <YStack flex={1.1} minWidth={0} gap="$3">
               <ShiftCard
                 isShiftStarted={isShiftStarted}
                 onClose={() => router.push("/tutup-shift")}
@@ -70,11 +74,10 @@ export default function HomePage() {
               <QuickActions isShiftStarted={isShiftStarted} />
             </YStack>
 
-            {/* Right column: Warning + Recent/Preparation */}
-            <YStack flex={1} gap="$3">
+            <YStack flex={0.9} minWidth={320} maxWidth={420} gap="$3">
               <WarningBanner
                 isShiftStarted={isShiftStarted}
-                onViewInventory={() => router.push("/(tabs)/inventory" as never)}
+                onViewInventory={() => router.push("/inventori" as never)}
               />
               {isShiftStarted ? <RecentTransactions /> : <ShiftPreparation />}
             </YStack>
@@ -105,7 +108,7 @@ export default function HomePage() {
 
           <WarningBanner
             isShiftStarted={isShiftStarted}
-            onViewInventory={() => router.push("/(tabs)/inventory" as never)}
+            onViewInventory={() => router.push("/inventori" as never)}
           />
 
           {isShiftStarted ? <RecentTransactions /> : <ShiftPreparation />}

@@ -22,7 +22,7 @@ export default function InventoriPage() {
   const [sortOption, setSortOption] = useState<SortOption>("Nama A-Z");
   const [searchQuery, setSearchQuery] = useState("");
   const userProducts = useAtomValue(userProductsAtom);
-  const { isTablet } = useDeviceLayout();
+  const { useTwoPaneLayout } = useDeviceLayout();
 
   const allProducts = [...userProducts, ...mockProducts];
 
@@ -66,7 +66,7 @@ export default function InventoriPage() {
   };
 
   // ── Tablet: sidebar + grid split ──────────────────────────────────────────
-  if (isTablet) {
+  if (useTwoPaneLayout) {
     return (
       <SafeAreaView
         edges={["top"]}

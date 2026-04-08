@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
+import { View } from "react-native";
 import { XStack, YStack } from "tamagui";
 
 import {
@@ -56,6 +57,7 @@ export function HomeHeader() {
       paddingBottom="$2"
       alignItems="center"
       gap="$3"
+      flexWrap="wrap"
     >
       <YStack
         width={48}
@@ -68,15 +70,19 @@ export function HomeHeader() {
       >
         <Ionicons name="person" size={26} color={ColorPrimary.primary600} />
       </YStack>
-      <YStack flex={1}>
+      <YStack flex={1} minWidth={160}>
         <TextH3 fontWeight="700">Budi Santoso</TextH3>
         <TextBodySm color="$colorSecondary">Toko Makmur</TextBodySm>
       </YStack>
-      <YStack alignItems="flex-end" gap={2}>
-        <TextCaption color="$colorSecondary">{formatDate(now)}</TextCaption>
-        <TextBodyLg fontWeight="700">{formatTime(now)}</TextBodyLg>
-      </YStack>
-      <IconButton iconName="notifications-outline" size={40} />
+      <View style={{ marginLeft: "auto" }}>
+        <YStack alignItems="flex-end" gap={2}>
+          <TextCaption color="$colorSecondary">{formatDate(now)}</TextCaption>
+          <TextBodyLg fontWeight="700">{formatTime(now)}</TextBodyLg>
+        </YStack>
+      </View>
+      <View>
+        <IconButton iconName="notifications-outline" size={40} />
+      </View>
     </XStack>
   );
 }
