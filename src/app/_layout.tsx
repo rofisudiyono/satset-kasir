@@ -18,8 +18,10 @@ import { TamaguiProvider } from "tamagui";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { KasirShiftSync } from "@/features/kasir/components/KasirShiftSync";
 import { KdsReadyNotifications } from "@/features/pos/components/KdsReadyNotifications";
 import { KdsRealtimeBridge } from "@/features/pos/components/KdsRealtimeBridge";
+import { QueryProvider } from "@/providers/QueryProvider";
 import { tamaguiConfig } from "../../tamagui.config";
 
 export default function RootLayout() {
@@ -35,19 +37,22 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <JotaiProvider>
-        <TamaguiProvider
-          config={tamaguiConfig}
-          defaultTheme={colorScheme === "dark" ? "dark" : "light"}
-        >
-          <ThemeProvider
-            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        <QueryProvider>
+          <TamaguiProvider
+            config={tamaguiConfig}
+            defaultTheme={colorScheme === "dark" ? "dark" : "light"}
           >
-            <AnimatedSplashOverlay />
-            <KdsRealtimeBridge />
-            <KdsReadyNotifications />
-            <Slot />
-          </ThemeProvider>
-        </TamaguiProvider>
+            <ThemeProvider
+              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+            >
+              <AnimatedSplashOverlay />
+              <KdsRealtimeBridge />
+              <KdsReadyNotifications />
+              <KasirShiftSync />
+              <Slot />
+            </ThemeProvider>
+          </TamaguiProvider>
+        </QueryProvider>
       </JotaiProvider>
     </ErrorBoundary>
   );

@@ -24,7 +24,9 @@ import {
   shiftDataAtom,
 } from "@/features/shift/store/shift.store";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
+import { useCloseShiftMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
+import { getApiErrorMessage } from "@/lib/api/client";
 import {
   ColorBase,
   ColorDanger,
@@ -38,6 +40,7 @@ import { formatPrice } from "@/utils";
 
 export default function TutupShiftPage() {
   const router = useRouter();
+  const { mutateAsync: closeShiftApi, isPending: isClosingShift } = useCloseShiftMutation();
   const [, setIsShiftStarted] = useAtom(isShiftStartedAtom);
   const [, setShiftData] = useAtom(shiftDataAtom);
   const shiftData = useAtomValue(shiftDataAtom);
@@ -131,9 +134,18 @@ export default function TutupShiftPage() {
         text: hasDiscrepancy ? "Tetap Tutup" : "Tutup Shift",
         style: "destructive",
         onPress: () => {
-          setIsShiftStarted(false);
-          setShiftData(null);
-          router.replace("/(tabs)");
+          void (async () => {
+            try {
+              await closeShiftApi({
+                actualCash: Math.round(kasAkhir),
+              });
+              setIsShiftStarted(false);
+              setShiftData(null);
+              router.replace("/(tabs)");
+            } catch (e) {
+              Alert.alert("Gagal tutup shift", getApiErrorMessage(e));
+            }
+          })();
         },
       },
     ]);
@@ -347,7 +359,8 @@ export default function TutupShiftPage() {
           variant="danger"
           size="lg"
           fullWidth
-          title="Tutup Shift Sekarang"
+          disabled={isClosingShift}
+          title={isClosingShift ? "Memproses…" : "Tutup Shift Sekarang"}
           icon={
             <Ionicons name="moon-outline" size={18} color={ColorBase.white} />
           }

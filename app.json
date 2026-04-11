@@ -45,6 +45,9 @@
     ],
     "scheme": "kasirinaja",
     "slug": "kasirin-aja",
+    "extra": {
+      "apiUrl": "http://127.0.0.1:3000"
+    },
     "userInterfaceStyle": "automatic",
     "version": "1.0.0",
     "web": {

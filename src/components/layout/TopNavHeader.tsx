@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
 import { IconButton, TextBodySm, TextCaption, TextH3 } from "@/components";
+import { useAuth } from "@/lib/auth";
 import {
   ensurePosSeedDataAtom,
   posOrdersAtom,
@@ -40,6 +41,7 @@ type NavItem = {
 
 export function TopNavHeader() {
   const router = useRouter();
+  const { session, logout } = useAuth();
   const pathname = usePathname();
   const { width } = useWindowDimensions();
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
@@ -325,7 +327,7 @@ export function TopNavHeader() {
                     <XStack justifyContent="space-between">
                       <TextBodySm color="$colorSecondary">Email</TextBodySm>
                       <TextBodySm fontWeight="600">
-                        budi.santoso@tokomakmur.id
+                        {session?.email ?? "—"}
                       </TextBodySm>
                     </XStack>
                     <XStack justifyContent="space-between">
@@ -363,7 +365,8 @@ export function TopNavHeader() {
                   style={styles.logoutButton}
                   onPress={() => {
                     setStaffDetailVisible(false);
-                    router.push("/login" as never);
+                    void logout();
+                    router.replace("/login" as never);
                   }}
                 >
                   <Ionicons

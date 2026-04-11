@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -13,6 +14,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
 import { useAuth } from "@/lib/auth";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { useLoginMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import {
   AppButton,
@@ -33,8 +36,11 @@ import {
   ColorWarning,
 } from "@/themes/Colors";
 
+const KASIR_ROLES = new Set(["kasir", "admin_coffee"]);
+
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { loginWithSession } = useAuth();
+  const { mutateAsync: loginApi, isPending: isLoginPending } = useLoginMutation();
   const router = useRouter();
   const { isTablet, isLargeTablet, horizontalPadding } = useResponsiveLayout();
   const [email, setEmail] = useState("budi.santoso@tokomakmur.id");
@@ -42,9 +48,26 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = () => {
-    login();
-    router.replace("/(tabs)");
+  const handleLogin = async () => {
+    try {
+      const res = await loginApi({ email: email.trim(), password });
+      if (!KASIR_ROLES.has(res.user.role)) {
+        Alert.alert(
+          "Akses ditolak",
+          "Gunakan akun kasir atau admin outlet untuk aplikasi ini.",
+        );
+        return;
+      }
+      loginWithSession({
+        accessToken: res.accessToken,
+        refreshToken: res.refreshToken,
+        user: res.user,
+        email: email.trim(),
+      });
+      router.replace("/(tabs)");
+    } catch (e) {
+      Alert.alert("Gagal masuk", getApiErrorMessage(e, "Email atau password salah."));
+    }
   };
 
   // ── TABLET: Two-panel layout ───────────────────────────────────────────────
@@ -272,11 +295,12 @@ export default function LoginPage() {
 
               {/* CTA */}
               <AppButton
-                onPress={handleLogin}
+                onPress={() => void handleLogin()}
                 variant="primary"
                 size="lg"
                 fullWidth
-                title="Masuk Sekarang"
+                disabled={isLoginPending}
+                title={isLoginPending ? "Memproses…" : "Masuk Sekarang"}
                 icon={<Ionicons name="log-in-outline" size={18} color={ColorBase.white} />}
               />
             </YStack>
@@ -432,11 +456,12 @@ export default function LoginPage() {
               </XStack>
 
               <AppButton
-                onPress={handleLogin}
+                onPress={() => void handleLogin()}
                 variant="primary"
                 size="lg"
                 fullWidth
-                title="Masuk Sekarang"
+                disabled={isLoginPending}
+                title={isLoginPending ? "Memproses…" : "Masuk Sekarang"}
                 icon={<Ionicons name="log-in-outline" size={18} color={ColorBase.white} />}
               />
             </YStack>

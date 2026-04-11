@@ -1,3 +1,5 @@
 import { atomWithMMKV } from "@/store/storage";
 
-export const isLoggedInAtom = atomWithMMKV("isLoggedIn", false);
+import type { AuthSession } from "@/lib/api/types";
+
+export const sessionAtom = atomWithMMKV<AuthSession | null>("authSession", null);

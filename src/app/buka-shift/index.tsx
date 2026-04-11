@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAtom } from "jotai";
 import React, { useState } from "react";
-import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView, XStack, YStack } from "tamagui";
 
@@ -20,7 +20,11 @@ import {
   isShiftStartedAtom,
   shiftDataAtom,
 } from "@/features/shift/store/shift.store";
+import { kasirShiftToShiftData } from "@/features/shift/utils/mapShift";
+import { useOpenShiftMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { useAuth } from "@/lib/auth";
 import {
   ColorBase,
   ColorNeutral,
@@ -40,6 +44,8 @@ const SHIFT_SLOTS: { id: ShiftSlot; label: string; icon: keyof typeof Ionicons.g
 
 export default function BukaShiftPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const { mutateAsync: openShiftApi, isPending: isOpeningShift } = useOpenShiftMutation();
   const [inputValue, setInputValue] = useState("500000");
   const [note, setNote] = useState("");
   const [slot, setSlot] = useState<ShiftSlot>("PAGI");
@@ -87,24 +93,33 @@ export default function BukaShiftPage() {
     setInputValue(String(value));
   }
 
-  function handleMulaiShift() {
-    const openedAt = Date.now();
-    const startTime =
-      new Date().toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }) + " WIB";
-    setShiftData({
-      shiftId: `shift_${openedAt}`,
-      openedAt,
-      slot,
-      openingCash: amount,
-      startTime,
-      cashierName: "Budi Santoso",
-      note,
-    });
-    setIsShiftStarted(true);
-    router.replace("/(tabs)");
+  async function handleMulaiShift() {
+    if (!user?.branchId) {
+      Alert.alert(
+        "Cabang belum diatur",
+        "Akun Anda belum ditetapkan ke cabang. Hubungi admin outlet untuk mengatur cabang pada profil kasir.",
+      );
+      return;
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      Alert.alert("Modal tidak valid", "Masukkan modal awal kas yang valid.");
+      return;
+    }
+    try {
+      const shift = await openShiftApi({
+        branchId: user.branchId,
+        shiftSlot: slot,
+        openingCash: Math.round(amount),
+      });
+      setShiftData({
+        ...kasirShiftToShiftData(shift),
+        note: note.trim() || undefined,
+      });
+      setIsShiftStarted(true);
+      router.replace("/(tabs)");
+    } catch (e) {
+      Alert.alert("Gagal buka shift", getApiErrorMessage(e));
+    }
   }
 
   return (
@@ -295,7 +310,8 @@ export default function BukaShiftPage() {
                     variant="success"
                     size="lg"
                     fullWidth
-                    title="Mulai Shift Sekarang"
+                    disabled={isOpeningShift}
+                    title={isOpeningShift ? "Memproses…" : "Mulai Shift Sekarang"}
                     icon={
                       <Ionicons
                         name="sunny-outline"
@@ -303,7 +319,7 @@ export default function BukaShiftPage() {
                         color={ColorBase.white}
                       />
                     }
-                    onPress={handleMulaiShift}
+                    onPress={() => void handleMulaiShift()}
                   />
                   <TextCaption
                     color={ColorNeutral.neutral400}
@@ -337,11 +353,12 @@ export default function BukaShiftPage() {
             variant="success"
             size="lg"
             fullWidth
-            title="Mulai Shift Sekarang"
+            disabled={isOpeningShift}
+            title={isOpeningShift ? "Memproses…" : "Mulai Shift Sekarang"}
             icon={
               <Ionicons name="sunny-outline" size={18} color={ColorBase.white} />
             }
-            onPress={handleMulaiShift}
+            onPress={() => void handleMulaiShift()}
           />
           <TextCaption
             color={ColorNeutral.neutral400}
