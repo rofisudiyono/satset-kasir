@@ -80,6 +80,12 @@ export type KasirOrderPayment = {
   paidAt: string;
 };
 
+export type KasirOrderFulfillmentStatus =
+  | "QUEUED"
+  | "COOKING"
+  | "READY"
+  | "DELIVERED";
+
 export type KasirOrder = {
   id: string;
   shiftId: string;
@@ -87,6 +93,8 @@ export type KasirOrder = {
   customerName: string | null;
   tableLabel: string | null;
   status: "PAID" | "CANCELLED" | "REFUND";
+  /** Setelah lunas: apakah pesanan sudah diserahkan ke pelanggan (backend `orders.fulfillment_status`). */
+  fulfillmentStatus?: KasirOrderFulfillmentStatus;
   subtotal: number;
   discountAmount: number;
   taxAmount: number;
@@ -146,6 +154,13 @@ export type KasirShift = {
   closedAt: string | null;
 };
 
+export type KasirReadyPaymentStatus =
+  | "PENDING"
+  | "PENDING_MANUAL_APPROVAL"
+  | "PAID"
+  | "FAILED"
+  | "REFUNDED";
+
 export type KasirReadyOrder = {
   id: string;
   tenantId: string;
@@ -156,7 +171,11 @@ export type KasirReadyOrder = {
   tableLabel: string | null;
   customerId: string | null;
   customerName: string | null;
+  customerPhone?: string | null;
   orderNote: string | null;
+  webPaymentMode?: "MANUAL" | "ONLINE" | null;
+  paymentStatus?: KasirReadyPaymentStatus;
+  trackingToken?: string | null;
   items: unknown;
   subtotal: number;
   taxAmount: number;

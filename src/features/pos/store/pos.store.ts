@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 
+import { USE_POS_DEMO_SEED } from "@/config/env";
 import { atomWithMMKV } from "@/store/storage";
 
 import { posSeedOrders } from "../api/pos.data";
@@ -96,6 +97,7 @@ export const ensurePosSeedDataAtom = atom(null, (get, set) => {
   const orders = get(posOrdersAtom);
 
   if (seeded || orders.length > 0) return false;
+  if (!USE_POS_DEMO_SEED) return false;
 
   set(posOrdersAtom, posSeedOrders);
   set(posSeededAtom, true);

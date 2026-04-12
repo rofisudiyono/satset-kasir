@@ -9,6 +9,7 @@ import { PageHeader, TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/compo
 import {
   getApiErrorMessage,
   useCancelPaidOrderMutation,
+  useDeliverOrderMutation,
   useOrderHistoryQuery,
   useRefundPaidOrderMutation,
 } from "@/hooks/api/use-kasir-api";
@@ -32,6 +33,7 @@ export default function RiwayatOrderTabPage() {
   const { data: orders = [], isLoading } = useOrderHistoryQuery(isLoggedIn && isShiftStarted);
   const cancelMutation = useCancelPaidOrderMutation();
   const refundMutation = useRefundPaidOrderMutation();
+  const deliverMutation = useDeliverOrderMutation();
   const [filter, setFilter] = useState<HistoryFilter>("SEMUA");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
@@ -80,6 +82,23 @@ export default function RiwayatOrderTabPage() {
         getApiErrorMessage(error, "Refund tidak berhasil diproses."),
       );
     }
+  }
+
+  async function handleDeliver(orderId: string) {
+    try {
+      await deliverMutation.mutateAsync(orderId);
+    } catch (error) {
+      Alert.alert(
+        "Gagal menandai diantar",
+        getApiErrorMessage(error, "Status pengantaran tidak berhasil diperbarui."),
+      );
+    }
+  }
+
+  function canMarkDelivered(order: KasirOrder) {
+    if (order.status !== "PAID") return false;
+    const fs = order.fulfillmentStatus ?? "READY";
+    return fs !== "DELIVERED";
   }
 
   return (
@@ -194,6 +213,18 @@ export default function RiwayatOrderTabPage() {
                   <TextBodySm color="$colorSecondary">Status</TextBodySm>
                   <TextBodySm fontWeight="700">{selectedOrder.status}</TextBodySm>
                 </XStack>
+                <XStack justifyContent="space-between" marginTop={8}>
+                  <TextBodySm color="$colorSecondary">Sumber</TextBodySm>
+                  <TextBodySm fontWeight="700">{selectedOrder.source}</TextBodySm>
+                </XStack>
+                <XStack justifyContent="space-between" marginTop={8}>
+                  <TextBodySm color="$colorSecondary">Pengantaran</TextBodySm>
+                  <TextBodySm fontWeight="700">
+                    {selectedOrder.fulfillmentStatus === "DELIVERED"
+                      ? "Sudah diantar"
+                      : selectedOrder.fulfillmentStatus ?? "Siap / belum diantar"}
+                  </TextBodySm>
+                </XStack>
                 <XStack justifyContent="space-between">
                   <TextBodySm color="$colorSecondary">Subtotal</TextBodySm>
                   <TextBodySm fontWeight="700">{formatPrice(selectedOrder.subtotal)}</TextBodySm>
@@ -248,6 +279,29 @@ export default function RiwayatOrderTabPage() {
               <YStack gap="$2">
                 {selectedOrder.status === "PAID" ? (
                   <>
+                    {canMarkDelivered(selectedOrder) ? (
+                      <TouchableOpacity
+                        onPress={() =>
+                          Alert.alert(
+                            "Tandai diantar",
+                            "Konfirmasi pesanan sudah diserahkan ke pelanggan?",
+                            [
+                              { text: "Batal", style: "cancel" },
+                              {
+                                text: "Sudah diantar",
+                                onPress: () => void handleDeliver(selectedOrder.id),
+                              },
+                            ],
+                          )
+                        }
+                        disabled={deliverMutation.isPending}
+                        style={[styles.actionButton, styles.deliverButton]}
+                      >
+                        <TextBodySm fontWeight="700" color={ColorPrimary.primary700}>
+                          {deliverMutation.isPending ? "Memproses…" : "Tandai sudah diantar"}
+                        </TextBodySm>
+                      </TouchableOpacity>
+                    ) : null}
                     <TouchableOpacity
                       onPress={() =>
                         Alert.alert(
@@ -369,6 +423,9 @@ const styles = StyleSheet.create({
   },
   voidButton: {
     backgroundColor: ColorDanger.danger25,
+  },
+  deliverButton: {
+    backgroundColor: ColorPrimary.primary50,
   },
   refundButton: {
     backgroundColor: ColorWarning.warning50,

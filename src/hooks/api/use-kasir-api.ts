@@ -69,12 +69,29 @@ export function usePayReadyOrderMutation() {
     mutationFn: ({
       readyOrderId,
       payments,
+      manualApproval,
     }: {
       readyOrderId: string;
       payments: PaymentEntry[];
-    }) => kasirApi.payReadyOrder(readyOrderId, payments),
+      /** Order WEB bayar manual: pakai `POST .../manual-approve` */
+      manualApproval?: boolean;
+    }) =>
+      manualApproval
+        ? kasirApi.manualApproveReadyOrder(readyOrderId, payments)
+        : kasirApi.payReadyOrder(readyOrderId, payments),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: kasirKeys.readyOrders() });
+      void qc.invalidateQueries({ queryKey: kasirKeys.orderHistory() });
+    },
+  });
+}
+
+export function useDeliverOrderMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: string) => kasirApi.deliverPaidOrder(orderId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: kasirKeys.orderHistory() });
     },
   });
 }

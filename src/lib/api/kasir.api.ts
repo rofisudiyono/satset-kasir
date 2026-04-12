@@ -99,6 +99,27 @@ export async function payReadyOrder(
   return data.data;
 }
 
+/** Order WEB mode manual: dapur selesai → menunggu kasir mencatat pembayaran (sama payload dengan `/pay`). */
+export async function manualApproveReadyOrder(
+  readyOrderId: string,
+  payments: PaymentEntry[],
+): Promise<unknown> {
+  const { data } = await api.post<{ data: unknown }>(
+    `/kasir/orders/${readyOrderId}/manual-approve`,
+    { payments },
+  );
+  return data.data;
+}
+
+/** Tandai order final sudah diserahkan ke pelanggan (`orders.id`, bukan id temp siap bayar). */
+export async function deliverPaidOrder(orderId: string): Promise<unknown> {
+  const { data } = await api.post<{ data: unknown }>(
+    `/kasir/orders/${orderId}/deliver`,
+    {},
+  );
+  return data.data;
+}
+
 export async function cancelPaidOrder(orderId: string, reason: string): Promise<void> {
   await api.post(`/kasir/orders/${orderId}/cancel`, { reason });
 }

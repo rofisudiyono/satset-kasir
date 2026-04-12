@@ -9,3 +9,10 @@ export const API_BASE_URL = (
   (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl ??
   "http://127.0.0.1:3000"
 ).replace(/\/$/, "");
+
+/**
+ * Jika `true`, mengisi `posOrders` dengan data demo saat storage kosong (untuk UI dev/demo).
+ * Produksi: biarkan `false` agar tidak ada order palsu di MMKV.
+ */
+export const USE_POS_DEMO_SEED =
+  process.env.EXPO_PUBLIC_POS_DEMO_SEED === "true";

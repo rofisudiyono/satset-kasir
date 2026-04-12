@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: ColorSuccess.success100,
+    backgroundColor: ColorSuccess.success200,
     alignItems: "center",
     justifyContent: "center",
   },

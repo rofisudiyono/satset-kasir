@@ -15,6 +15,7 @@ import { XStack, YStack } from "tamagui";
 
 import { IconButton, TextBodySm, TextCaption, TextH3 } from "@/components";
 import { useAuth } from "@/lib/auth";
+import { useReadyOrdersQuery } from "@/hooks/api/use-kasir-api";
 import {
   ensurePosSeedDataAtom,
   posOrdersAtom,
@@ -41,7 +42,7 @@ type NavItem = {
 
 export function TopNavHeader() {
   const router = useRouter();
-  const { session, logout } = useAuth();
+  const { session, logout, isLoggedIn } = useAuth();
   const pathname = usePathname();
   const { width } = useWindowDimensions();
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
@@ -67,6 +68,25 @@ export function TopNavHeader() {
       return order.createdAt >= shiftData.openedAt;
     });
   }, [posOrders, shiftData?.openedAt, shiftData?.shiftId]);
+
+  const readyOrdersQuery = useReadyOrdersQuery(
+    Boolean(isLoggedIn && isShiftStarted),
+  );
+
+  const displayReadyCount = useMemo(() => {
+    const localCount = readyOrders.length;
+    if (!isLoggedIn || !isShiftStarted) return localCount;
+    if (readyOrdersQuery.isSuccess && Array.isArray(readyOrdersQuery.data)) {
+      return readyOrdersQuery.data.length;
+    }
+    return localCount;
+  }, [
+    isLoggedIn,
+    isShiftStarted,
+    readyOrders.length,
+    readyOrdersQuery.isSuccess,
+    readyOrdersQuery.data,
+  ]);
 
   const navItems: NavItem[] = [
     {
@@ -222,17 +242,19 @@ export function TopNavHeader() {
             );
           })}
 
-          <View
+          <TouchableOpacity
+            activeOpacity={0.85}
             style={[
               styles.readyChip,
-              readyOrders.length > 0 && styles.readyChipActive,
+              displayReadyCount > 0 && styles.readyChipActive,
             ]}
+            onPress={() => router.push("/siap-antar" as never)}
           >
             <Ionicons
-              name={readyOrders.length > 0 ? "bag-check" : "bag-check-outline"}
+              name={displayReadyCount > 0 ? "bag-check" : "bag-check-outline"}
               size={16}
               color={
-                readyOrders.length > 0
+                displayReadyCount > 0
                   ? ColorSuccess.success600
                   : ColorNeutral.neutral500
               }
@@ -240,7 +262,7 @@ export function TopNavHeader() {
             <TextBodySm
               fontWeight="700"
               color={
-                readyOrders.length > 0
+                displayReadyCount > 0
                   ? ColorSuccess.success600
                   : ColorNeutral.neutral700
               }
@@ -249,17 +271,17 @@ export function TopNavHeader() {
             </TextBodySm>
             <TextCaption
               color={
-                readyOrders.length > 0
+                displayReadyCount > 0
                   ? ColorSuccess.success600
                   : ColorNeutral.neutral500
               }
-              fontWeight={readyOrders.length > 0 ? "700" : "500"}
+              fontWeight={displayReadyCount > 0 ? "700" : "500"}
             >
-              {readyOrders.length > 0
-                ? `${readyOrders.length} READY dari KDA`
+              {displayReadyCount > 0
+                ? `${displayReadyCount} READY dari KDA`
                 : "Belum ada READY"}
             </TextCaption>
-          </View>
+          </TouchableOpacity>
 
           <View style={styles.comingSoonChip}>
             <Ionicons

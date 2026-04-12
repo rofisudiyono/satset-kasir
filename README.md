@@ -1,85 +1,33 @@
-# Kasirin Aja - POS Cashier Application 🚀
+# satset-kasir
 
-A tablet-oriented POS (Point of Sale) cashier application for daily retail/restaurant operations.
+Aplikasi **Expo (React Native)** untuk peran **kasir**: shift, antrian order, pembayaran, riwayat, dan alur **siap antar / bayar** untuk pesanan web (manual approve vs bayar).
 
-## Features
+## Flow resmi (ringkas)
 
-- 🔐 **Cashier Authentication** - Login with session persistence
-- ⏰ **Shift Management** - Open/close shift with cash reconciliation
-- 🛒 **Manual Order Entry** - Product catalog with variants and categories
-- 📋 **Shopping Cart** - Hold orders, customer info, promo codes
-- 💳 **Multi-Payment Processing** - Cash, QRIS, Transfer, EDC, E-Wallet with split bill support
-- 🧾 **Receipt Printing** - PDF generation, Bluetooth thermal printer, and sharing
-- 🌐 **Web Orders** - Manage online orders from QR/web
-- 🍳 **Kitchen Display Integration** - Real-time order status from KDS
-- 📜 **Order History** - Filter, void, refund, and payment tracking
-- 📷 **Barcode Scanner** - Camera-based product scanning
-- ⚙️ **Store Configuration** - Store info, payment methods, operating hours
-- 🔵 **Bluetooth Printing** - Direct printing to thermal printers
+1. Login → konteks `tenantId` / `branchId` dari `satset-api`.
+2. Buka shift → operasional order mengikat cabang + shift aktif.
+3. Order masuk dari kasir atau dari **customer WEB** (sumber `WEB`) ke pipeline backend yang sama.
+4. Setelah masak selesai → kasir memproses pembayaran atau **manual approve** sesuai status, lalu dapat menandai **`delivered`** saat pesanan di antar.
 
-## Get started
+Detail pipeline: [sync-flow-satset-ecosystem.md](../satset-dashboard/docs/sync-flow-satset-ecosystem.md) (atau salin dari repo `satset-dashboard` jika tidak dalam satu folder monorepo).
 
-1. Install dependencies
+## Environment
 
-   ```bash
-   pnpm install
-   ```
+Salin `.env.example` ke `.env` dan sesuaikan:
 
-2. Start the app
+| Variabel | Keterangan |
+|----------|------------|
+| `EXPO_PUBLIC_API_URL` | Base URL `satset-api` tanpa path tambahan, mis. `http://127.0.0.1:3000` |
+| `EXPO_PUBLIC_POS_DEMO_SEED` | `true` hanya untuk demo data lokal; default produksi `false` |
 
-   ```bash
-   pnpm start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Tech Stack
-
-- **Framework**: Expo 55 with Expo Router
-- **UI**: Tamagui 2.0 + Poppins Font
-- **State Management**: Jotai with MMKV persistence
-- **Platform**: React Native (iOS, Android, Web)
-- **Language**: TypeScript
-
-## Documentation
-
-Comprehensive feature documentation is available in the [`docs/`](./docs/) directory:
-
-- [App Summary](./docs/app-summary.md) - Overview and feature list
-- [Features](./docs/features/) - Detailed documentation per feature
-
-## Get a fresh project
-
-When you're ready, run:
+## Perintah
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Peran dalam ekosistem
 
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- Learn more about the TypeScript setup in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Titik utama **checkout** dan **pembayaran** untuk walk-in dan pelengkap alur web.
+- Integrasi KDS/ready mengikuti backend; lihat dokumen sync untuk status bridge vs state lokal.
