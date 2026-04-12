@@ -21,13 +21,16 @@ import {
 } from "@/features/cart";
 import {
   cartAtom,
+  cartOrderDraftAtom,
   cartSnapshotAtom,
   heldOrdersAtom,
 } from "@/features/cart/store/cart.store";
+import { useTablesQuery } from "@/hooks/api/use-kasir-api";
 import { promoDefinitions } from "@/features/payment/api/payment.data";
 import { buildPosOrderFromCart } from "@/features/pos/pos.utils";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { shiftDataAtom } from "@/features/shift/store/shift.store";
+import type { KasirTable } from "@/lib/api/types";
 import { ColorBase, ColorDanger, ColorNeutral } from "@/themes/Colors";
 import type { AppliedPromo, OrderType } from "@/types";
 
@@ -36,23 +39,46 @@ const PPN_RATE = 0.11;
 export function CartPanel() {
   const router = useRouter();
   const [cart, setCart] = useAtom(cartAtom);
+  const [orderDraft, setOrderDraft] = useAtom(cartOrderDraftAtom);
   const [, setHeldOrders] = useAtom(heldOrdersAtom);
   const [, setCartSnapshot] = useAtom(cartSnapshotAtom);
   const [posOrders, setPosOrders] = useAtom(posOrdersAtom);
   const [shiftData] = useAtom(shiftDataAtom);
 
-  const [customerName, setCustomerName] = useState("");
-  const [tableNumber, setTableNumber] = useState("");
-  const [orderType, setOrderType] = useState<OrderType>("Dine In");
+  const [customerName, setCustomerName] = useState(orderDraft.customerName);
+  const [selectedTable, setSelectedTable] = useState<KasirTable | null>(null);
+  const [orderType, setOrderType] = useState<OrderType>(orderDraft.orderType);
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const [promoEnabled, setPromoEnabled] = useState(false);
+  const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(true);
 
   const subtotal = cart.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
   const discount = appliedPromo && promoEnabled ? appliedPromo.discount : 0;
   const afterDiscount = subtotal - discount;
   const ppn = Math.round(afterDiscount * PPN_RATE);
   const total = afterDiscount + ppn;
+
+  React.useEffect(() => {
+    if (!orderDraft.tableId) return;
+    const restored = tables.find((table) => table.id === orderDraft.tableId);
+    if (restored) setSelectedTable(restored);
+  }, [orderDraft.tableId, tables]);
+
+  React.useEffect(() => {
+    if (orderType !== "Dine In") {
+      setSelectedTable(null);
+    }
+  }, [orderType]);
+
+  React.useEffect(() => {
+    setOrderDraft({
+      customerName,
+      orderType,
+      tableId: selectedTable?.id,
+      tableLabel: selectedTable?.label,
+    });
+  }, [customerName, orderType, selectedTable, setOrderDraft]);
 
   function handleUpdateQty(cartId: string, qty: number) {
     setCart((prev) =>
@@ -94,7 +120,12 @@ export function CartPanel() {
 
   function handleHoldOrder() {
     if (cart.length === 0) return;
-    const label = customerName || tableNumber || orderType;
+    if (orderType === "Dine In" && !selectedTable) {
+      Alert.alert("Pilih meja dulu", "Order dine-in wajib memilih meja aktif sebelum ditahan.");
+      return;
+    }
+
+    const label = customerName || selectedTable?.label || orderType;
     const now = new Date();
     const timeStr = now.toLocaleTimeString("id-ID", {
       hour: "2-digit",
@@ -104,23 +135,35 @@ export function CartPanel() {
       id: `hold-${Date.now()}`,
       items: [...cart],
       customerName,
-      tableNumber,
+      tableId: selectedTable?.id,
+      tableLabel: selectedTable?.label,
+      tableNumber: selectedTable?.label ?? "",
       orderType,
       createdAt: timeStr,
       label,
     };
     setHeldOrders((prev) => [held, ...prev]);
     setCart([]);
+    setOrderDraft({
+      customerName: "",
+      orderType: "Dine In",
+      tableId: undefined,
+      tableLabel: undefined,
+    });
     Alert.alert("Pesanan Ditahan", `Pesanan "${label}" telah ditahan.`);
   }
 
   function handlePay() {
     if (cart.length === 0) return;
+    if (orderType === "Dine In" && !selectedTable) {
+      Alert.alert("Pilih meja dulu", "Order dine-in wajib memilih meja aktif sebelum pembayaran.");
+      return;
+    }
 
     setCartSnapshot([...cart]);
     const orderId = `#ORD-${String(posOrders.length + 1).padStart(4, "0")}`;
     const tableLabel =
-      tableNumber.trim() ||
+      selectedTable?.label ||
       (orderType === "Dine In"
         ? "Dine In"
         : orderType === "Take Away"
@@ -131,6 +174,7 @@ export function CartPanel() {
       orderId,
       shiftId: shiftData?.shiftId,
       cart,
+      tableId: selectedTable?.id,
       customerName,
       tableLabel,
       orderType,
@@ -141,6 +185,12 @@ export function CartPanel() {
     });
 
     setPosOrders((prev) => [order, ...prev]);
+    setOrderDraft({
+      customerName,
+      orderType,
+      tableId: selectedTable?.id,
+      tableLabel: selectedTable?.label,
+    });
 
     router.push({
       pathname: "/pilih-pembayaran",
@@ -181,10 +231,13 @@ export function CartPanel() {
           <CustomerInfoCard
             customerName={customerName}
             onCustomerNameChange={setCustomerName}
-            tableNumber={tableNumber}
-            onTableNumberChange={setTableNumber}
             orderType={orderType}
             onOrderTypeChange={setOrderType}
+            selectedTableId={selectedTable?.id}
+            selectedTableLabel={selectedTable?.label}
+            tables={tables}
+            isTablesLoading={isTablesLoading}
+            onSelectTable={setSelectedTable}
           />
           <PromoCard
             promoCode={promoCode}

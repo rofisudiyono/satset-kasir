@@ -95,6 +95,15 @@ export function useMenusQuery(enabled: boolean) {
   });
 }
 
+export function useTablesQuery(enabled: boolean, branchId?: string) {
+  return useQuery({
+    queryKey: kasirKeys.tables(branchId),
+    queryFn: () => kasirApi.getTables(branchId),
+    enabled,
+    staleTime: 5 * 60_000,
+  });
+}
+
 export function useOrderHistoryQuery(enabled: boolean) {
   return useQuery({
     queryKey: kasirKeys.orderHistory(),

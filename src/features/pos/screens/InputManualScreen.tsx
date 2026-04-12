@@ -1,17 +1,16 @@
 import { useRouter } from "expo-router";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, StyleSheet, View, useWindowDimensions } from "react-native";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { IconButton, PageHeader, TextBodySm } from "@/components";
+import { IconButton, PageHeader } from "@/components";
 import {
   cartAtom,
   heldOrdersAtom,
   scannedBarcodeAtom,
   type CartItem,
 } from "@/features/cart/store/cart.store";
-import { catalogStockAtom } from "@/features/catalog/store/catalog.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import {
   CartPanel,
@@ -51,7 +50,14 @@ function mapMenuToCatalogProduct(menu: KasirMenu): CatalogProduct {
     name: menu.name,
     category: normalizeCategoryName(menu.categoryName),
     basePrice: menu.price,
-    stockStatus: "normal",
+    stockStatus:
+      menu.isAvailable
+        ? "normal"
+        : menu.availabilityReason === "OUT_OF_STOCK"
+          ? "empty"
+          : "inactive",
+    isAvailable: menu.isAvailable,
+    availabilityReason: menu.availabilityReason,
     variants,
   };
 }
@@ -64,7 +70,6 @@ export function InputManualScreen() {
   const [cart, setCart] = useAtom(cartAtom);
   const [scannedBarcode, setScannedBarcode] = useAtom(scannedBarcodeAtom);
   const [heldOrders] = useAtom(heldOrdersAtom);
-  const catalogStock = useAtomValue(catalogStockAtom);
   const [variantProduct, setVariantProduct] = useState<CatalogProduct | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
 
@@ -130,20 +135,10 @@ export function InputManualScreen() {
     setScannedBarcode(null);
   }, [scannedBarcode, setScannedBarcode, handleAddProduct, catalogProducts]);
 
-  const productsWithLiveStock = catalogProducts
-    .map((p) => {
-      const liveStock = catalogStock[p.id];
-      if (liveStock === undefined) return p;
-      const stockStatus: typeof p.stockStatus =
-        liveStock === 0 ? "empty" : liveStock <= 5 ? "low" : "normal";
-      return { ...p, stockStatus };
-    })
-    .filter((p) => p.stockStatus !== "empty");
-
   const filtered =
     categoryFilter === "Semua"
-      ? productsWithLiveStock
-      : productsWithLiveStock.filter((p) => p.category === categoryFilter);
+      ? catalogProducts
+      : catalogProducts.filter((p) => p.category === categoryFilter);
 
   const catalogPanelWidth = screenWidth * 0.65;
 

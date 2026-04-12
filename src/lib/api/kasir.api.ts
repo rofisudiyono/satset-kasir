@@ -6,6 +6,7 @@ import type {
   KasirOrder,
   KasirReadyOrder,
   KasirShift,
+  KasirTable,
   ShiftSlotApi,
 } from "./types";
 
@@ -61,6 +62,7 @@ export type OrderQueueItem = {
 
 export type QueueOrderBody = {
   source?: "WALK_IN" | "WEB";
+  orderType: "DINE_IN" | "TAKEAWAY" | "DELIVERY";
   tableId?: string;
   tableLabel?: string;
   customerId?: string;
@@ -107,6 +109,15 @@ export async function refundPaidOrder(orderId: string, reason: string): Promise<
 
 export async function getMenus(): Promise<KasirMenu[]> {
   const { data } = await api.get<{ data: KasirMenu[] }>("/kasir/menus");
+  return data.data ?? [];
+}
+
+export async function getTables(branchId?: string): Promise<KasirTable[]> {
+  const { data } = await api.get<{ data: KasirTable[] }>("/kasir/tables", {
+    params: {
+      branchId: branchId || undefined,
+    },
+  });
   return data.data ?? [];
 }
 

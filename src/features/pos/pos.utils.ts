@@ -20,6 +20,7 @@ export function buildPosOrderFromCart(params: {
   orderId: string;
   shiftId?: string;
   cart: CartItem[];
+  tableId?: string;
   customerName?: string;
   tableLabel?: string;
   orderType: string;
@@ -41,6 +42,7 @@ export function buildPosOrderFromCart(params: {
     source: params.source ?? "WALK_IN",
     status: "PENDING",
     fulfillment: "QUEUED" as PosFulfillmentStatus,
+    tableId: params.tableId,
     customerName: params.customerName?.trim() || undefined,
     tableLabel: params.tableLabel?.trim() || undefined,
     serviceMode: mapOrderTypeToServiceMode(params.orderType),
@@ -183,6 +185,8 @@ export function mapPaymentMethodToCheckoutMethod(
 
 export function buildCheckoutOrderBody(params: {
   cart: CartItem[];
+  orderType: "DINE_IN" | "TAKEAWAY" | "DELIVERY";
+  tableId?: string;
   customerName?: string;
   tableLabel?: string;
   promoCode?: string;
@@ -199,6 +203,8 @@ export function buildCheckoutOrderBody(params: {
 
   return {
     source: "WALK_IN",
+    orderType: params.orderType,
+    tableId: params.tableId,
     customerName: customerName || undefined,
     tableLabel: tableLabel || undefined,
     promoCode: promoCode || undefined,

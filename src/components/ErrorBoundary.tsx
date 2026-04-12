@@ -1,8 +1,6 @@
 import React from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { YStack } from "tamagui";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import { TextBodyLg, TextBodySm } from "@/components/atoms/Typography";
 import { ColorBase, ColorDanger, ColorNeutral } from "@/themes/Colors";
 
 interface State {
@@ -23,12 +21,33 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 24,
   },
+  content: {
+    alignItems: "center",
+    gap: 8,
+    maxWidth: 320,
+  },
+  title: {
+    color: ColorDanger.danger600,
+    fontSize: 20,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  message: {
+    color: ColorNeutral.neutral500,
+    fontSize: 14,
+    textAlign: "center",
+  },
   retryBtn: {
     marginTop: 20,
     backgroundColor: ColorDanger.danger600,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 10,
+  },
+  retryBtnText: {
+    color: ColorBase.white,
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
 
@@ -49,22 +68,18 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
       return (
         <View style={styles.container}>
-          <YStack alignItems="center" gap={8} maxWidth={320}>
-            <TextBodyLg fontWeight="700" color={ColorDanger.danger600}>
-              Terjadi Kesalahan
-            </TextBodyLg>
-            <TextBodySm color={ColorNeutral.neutral500} textAlign="center">
+          <View style={styles.content}>
+            <Text style={styles.title}>Terjadi Kesalahan</Text>
+            <Text style={styles.message}>
               {this.state.error?.message ?? "Silakan coba lagi."}
-            </TextBodySm>
+            </Text>
             <TouchableOpacity
               onPress={this.handleReset}
               style={styles.retryBtn}
             >
-              <TextBodySm fontWeight="600" color={ColorBase.white}>
-                Coba Lagi
-              </TextBodySm>
+              <Text style={styles.retryBtnText}>Coba Lagi</Text>
             </TouchableOpacity>
-          </YStack>
+          </View>
         </View>
       );
     }

@@ -191,6 +191,8 @@ export default function PilihPembayaranPage() {
       await checkoutMutation.mutateAsync(
         buildCheckoutOrderBody({
           cart: cartSnapshot,
+          orderType: currentOrder.serviceMode ?? "DINE_IN",
+          tableId: currentOrder.tableId,
           customerName: currentOrder.customerName,
           tableLabel: currentOrder.tableLabel,
           promoCode: currentOrder.promoCode,

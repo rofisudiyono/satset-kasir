@@ -14,6 +14,7 @@ import { XStack, YStack } from "tamagui";
 
 import {
   cartAtom,
+  cartOrderDraftAtom,
   heldOrdersAtom,
   type HeldOrder,
 } from "@/features/cart/store/cart.store";
@@ -39,6 +40,7 @@ export default function PesananDitahanPage() {
   const router = useRouter();
   const [heldOrders, setHeldOrders] = useAtom(heldOrdersAtom);
   const [, setCart] = useAtom(cartAtom);
+  const [, setOrderDraft] = useAtom(cartOrderDraftAtom);
 
   function handleResume(order: HeldOrder) {
     Alert.alert("Lanjutkan Pesanan", `Lanjutkan pesanan "${order.label}"?`, [
@@ -47,6 +49,12 @@ export default function PesananDitahanPage() {
         text: "Lanjutkan",
         onPress: () => {
           setCart(order.items);
+          setOrderDraft({
+            customerName: order.customerName,
+            orderType: order.orderType,
+            tableId: order.tableId,
+            tableLabel: order.tableLabel ?? order.tableNumber,
+          });
           setHeldOrders((prev) => prev.filter((o) => o.id !== order.id));
           router.back();
           router.push("/keranjang" as never);
@@ -153,6 +161,11 @@ function HeldOrderCard({ order, onResume, onDelete }: HeldOrderCardProps) {
           <TextCaption color={ColorNeutral.neutral500}>
             {order.orderType} · Ditahan {order.createdAt}
           </TextCaption>
+          {order.tableLabel ? (
+            <TextCaption color={ColorNeutral.neutral500}>
+              {order.tableLabel}
+            </TextCaption>
+          ) : null}
         </YStack>
         <TouchableOpacity
           style={styles.deleteBtn}

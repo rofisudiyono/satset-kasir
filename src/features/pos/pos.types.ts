@@ -55,6 +55,7 @@ export interface PosOrder {
   status: PosOrderStatus;
   fulfillment: PosFulfillmentStatus;
 
+  tableId?: string;
   tableLabel?: string;
   customerName?: string;
   serviceMode?: "DINE_IN" | "TAKEAWAY" | "DELIVERY";

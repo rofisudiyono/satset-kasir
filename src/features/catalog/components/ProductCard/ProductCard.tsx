@@ -32,6 +32,9 @@ const styles = StyleSheet.create({
   cardEmpty: {
     opacity: 0.85,
   },
+  cardInactive: {
+    opacity: 0.72,
+  },
   cardImageArea: {
     height: 110,
     alignItems: "center",
@@ -53,6 +56,9 @@ const styles = StyleSheet.create({
   },
   stockBadgeEmpty: {
     backgroundColor: ColorNeutral.neutral400,
+  },
+  stockBadgeInactive: {
+    backgroundColor: ColorNeutral.neutral700,
   },
   addButton: {
     width: 34,
@@ -76,33 +82,36 @@ export const ProductCard = React.memo(function ProductCard({
   categoryIconBg,
   categoryIconColor,
   stockStatus,
+  availabilityReason,
   onAdd,
   width,
   style,
 }: ProductCardProps) {
   const isEmpty = stockStatus === "empty";
+  const isInactive = stockStatus === "inactive";
   const isLow = stockStatus === "low";
+  const isDisabled = isEmpty || isInactive;
 
   const cardStyle = useMemo(
-    () => [styles.card, { width }, isEmpty && styles.cardEmpty, style],
-    [width, isEmpty, style],
+    () => [styles.card, { width }, isEmpty && styles.cardEmpty, isInactive && styles.cardInactive, style],
+    [width, isEmpty, isInactive, style],
   );
 
   const imageAreaStyle = useMemo(
     () => [
       styles.cardImageArea,
       { backgroundColor: categoryIconBg },
-      isEmpty && styles.cardImageAreaEmpty,
+      isDisabled && styles.cardImageAreaEmpty,
     ],
-    [categoryIconBg, isEmpty],
+    [categoryIconBg, isDisabled],
   );
 
   const addButtonStyle = useMemo(
     () => [
       styles.addButton,
-      isEmpty ? styles.addButtonDisabled : styles.addButtonEnabled,
+      isDisabled ? styles.addButtonDisabled : styles.addButtonEnabled,
     ],
-    [isEmpty],
+    [isDisabled],
   );
 
   return (
@@ -121,7 +130,15 @@ export const ProductCard = React.memo(function ProductCard({
         {isEmpty && (
           <View style={[styles.stockBadge, styles.stockBadgeEmpty]}>
             <TextCaption fontWeight="700" color={ColorBase.white} fontSize={11}>
-              Habis
+              {availabilityReason === "NO_RECIPE" ? "Belum Ada Resep" : "Habis"}
+            </TextCaption>
+          </View>
+        )}
+
+        {isInactive && (
+          <View style={[styles.stockBadge, styles.stockBadgeInactive]}>
+            <TextCaption fontWeight="700" color={ColorBase.white} fontSize={11}>
+              {availabilityReason === "NO_RECIPE" ? "Belum Ada Resep" : "Tidak Aktif"}
             </TextCaption>
           </View>
         )}
@@ -132,7 +149,7 @@ export const ProductCard = React.memo(function ProductCard({
           fontWeight="700"
           numberOfLines={2}
           lineHeight={20}
-          color={isEmpty ? "$colorTertiary" : "$color"}
+          color={isDisabled ? "$colorTertiary" : "$color"}
         >
           {name}
         </TextBodyLg>
@@ -140,23 +157,23 @@ export const ProductCard = React.memo(function ProductCard({
         <XStack alignItems="center" justifyContent="space-between">
           <TextBodySm
             fontWeight="700"
-            color={isEmpty ? "$colorTertiary" : "$primary"}
+            color={isDisabled ? "$colorTertiary" : "$primary"}
           >
             {formatPrice(basePrice)}
           </TextBodySm>
 
           <Pressable
-            onPress={() => !isEmpty && onAdd()}
-            disabled={isEmpty}
+            onPress={() => !isDisabled && onAdd()}
+            disabled={isDisabled}
             style={({ pressed }) => [
               addButtonStyle,
-              !isEmpty && pressed && { opacity: 0.72 },
+              !isDisabled && pressed && { opacity: 0.72 },
             ]}
           >
             <Ionicons
               name="add"
               size={20}
-              color={isEmpty ? ColorNeutral.neutral400 : ColorBase.white}
+              color={isDisabled ? ColorNeutral.neutral400 : ColorBase.white}
             />
           </Pressable>
         </XStack>

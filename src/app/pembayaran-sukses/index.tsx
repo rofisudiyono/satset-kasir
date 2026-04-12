@@ -3,7 +3,7 @@ import * as Print from "expo-print";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { useAtom } from "jotai";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -43,6 +43,11 @@ import {
   ColorPrimary,
 } from "@/themes/Colors";
 import { formatPrice, getCurrentDateTime } from "@/utils";
+import {
+  bluetoothPrinterManager,
+  PrinterState,
+} from "@/utils/bluetooth-printer";
+import { ESCPOSReceipt } from "@/utils/esc-pos-formatter";
 
 type ReceiptView = "summary" | "receipt";
 

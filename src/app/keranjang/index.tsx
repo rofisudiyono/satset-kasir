@@ -19,6 +19,7 @@ import {
   PriceSummaryCard,
   PromoCard,
   cartAtom,
+  cartOrderDraftAtom,
 } from "@/features/cart";
 import {
   cartSnapshotAtom,
@@ -31,7 +32,9 @@ import {
   isShiftStartedAtom,
   shiftDataAtom,
 } from "@/features/shift/store/shift.store";
+import { useTablesQuery } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
+import type { KasirTable } from "@/lib/api/types";
 import { ColorBase, ColorDanger, ColorPrimary } from "@/themes/Colors";
 import type { AppliedPromo, OrderType } from "@/types";
 
@@ -40,6 +43,7 @@ const PPN_RATE = 0.11;
 export default function KeranjangPage() {
   const router = useRouter();
   const [cart, setCart] = useAtom(cartAtom);
+  const [orderDraft, setOrderDraft] = useAtom(cartOrderDraftAtom);
   const [, setHeldOrders] = useAtom(heldOrdersAtom);
   const [, setCartSnapshot] = useAtom(cartSnapshotAtom);
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
@@ -47,9 +51,10 @@ export default function KeranjangPage() {
   const [posOrders, setPosOrders] = useAtom(posOrdersAtom);
   const { isTablet, contentMaxWidth, horizontalPadding } = useResponsiveLayout();
 
-  const [customerName, setCustomerName] = useState("");
-  const [tableNumber, setTableNumber] = useState("");
-  const [orderType, setOrderType] = useState<OrderType>("Dine In");
+  const [customerName, setCustomerName] = useState(orderDraft.customerName);
+  const [selectedTable, setSelectedTable] = useState<KasirTable | null>(null);
+  const [orderType, setOrderType] = useState<OrderType>(orderDraft.orderType);
+  const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(isShiftStarted);
 
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
@@ -61,6 +66,27 @@ export default function KeranjangPage() {
   const afterDiscount = subtotal - discount;
   const ppn = Math.round(afterDiscount * PPN_RATE);
   const total = afterDiscount + ppn;
+
+  useEffect(() => {
+    if (!orderDraft.tableId) return;
+    const restored = tables.find((table) => table.id === orderDraft.tableId);
+    if (restored) setSelectedTable(restored);
+  }, [orderDraft.tableId, tables]);
+
+  useEffect(() => {
+    if (orderType !== "Dine In") {
+      setSelectedTable(null);
+    }
+  }, [orderType]);
+
+  useEffect(() => {
+    setOrderDraft({
+      customerName,
+      orderType,
+      tableId: selectedTable?.id,
+      tableLabel: selectedTable?.label,
+    });
+  }, [customerName, orderType, selectedTable, setOrderDraft]);
 
   // Enforce open shift before checkout.
   useEffect(() => {
@@ -115,7 +141,12 @@ export default function KeranjangPage() {
 
   function handleHoldOrder() {
     if (cart.length === 0) return;
-    const label = customerName || tableNumber || orderType;
+    if (orderType === "Dine In" && !selectedTable) {
+      Alert.alert("Pilih meja dulu", "Order dine-in wajib memilih meja aktif sebelum ditahan.");
+      return;
+    }
+
+    const label = customerName || selectedTable?.label || orderType;
     const now = new Date();
     const timeStr = now.toLocaleTimeString("id-ID", {
       hour: "2-digit",
@@ -125,13 +156,21 @@ export default function KeranjangPage() {
       id: `hold-${Date.now()}`,
       items: [...cart],
       customerName,
-      tableNumber,
+      tableId: selectedTable?.id,
+      tableLabel: selectedTable?.label,
+      tableNumber: selectedTable?.label ?? "",
       orderType,
       createdAt: timeStr,
       label,
     };
     setHeldOrders((prev) => [held, ...prev]);
     setCart([]);
+    setOrderDraft({
+      customerName: "",
+      orderType: "Dine In",
+      tableId: undefined,
+      tableLabel: undefined,
+    });
     Alert.alert("Pesanan Ditahan", `Pesanan "${label}" telah ditahan.`, [
       { text: "OK", onPress: () => router.back() },
     ]);
@@ -139,11 +178,15 @@ export default function KeranjangPage() {
 
   function handlePay() {
     if (cart.length === 0) return;
+    if (orderType === "Dine In" && !selectedTable) {
+      Alert.alert("Pilih meja dulu", "Order dine-in wajib memilih meja aktif sebelum pembayaran.");
+      return;
+    }
 
     setCartSnapshot([...cart]);
     const orderId = `#ORD-${String(posOrders.length + 1).padStart(4, "0")}`;
     const tableLabel =
-      tableNumber.trim() ||
+      selectedTable?.label ||
       (orderType === "Dine In"
         ? "Dine In"
         : orderType === "Take Away"
@@ -154,6 +197,7 @@ export default function KeranjangPage() {
       orderId,
       shiftId: shiftData?.shiftId,
       cart,
+      tableId: selectedTable?.id,
       customerName,
       tableLabel,
       orderType,
@@ -164,6 +208,12 @@ export default function KeranjangPage() {
     });
 
     setPosOrders((prev) => [order, ...prev]);
+    setOrderDraft({
+      customerName,
+      orderType,
+      tableId: selectedTable?.id,
+      tableLabel: selectedTable?.label,
+    });
 
     router.push({
       pathname: "/pilih-pembayaran",
@@ -232,10 +282,13 @@ export default function KeranjangPage() {
             <CustomerInfoCard
               customerName={customerName}
               onCustomerNameChange={setCustomerName}
-              tableNumber={tableNumber}
-              onTableNumberChange={setTableNumber}
               orderType={orderType}
               onOrderTypeChange={setOrderType}
+              selectedTableId={selectedTable?.id}
+              selectedTableLabel={selectedTable?.label}
+              tables={tables}
+              isTablesLoading={isTablesLoading}
+              onSelectTable={setSelectedTable}
             />
 
             <PromoCard

@@ -28,6 +28,8 @@ export interface HeldOrder {
   id: string;
   items: CartItem[];
   customerName: string;
+  tableId?: string;
+  tableLabel?: string;
   tableNumber: string;
   orderType: OrderType;
   createdAt: string;
@@ -35,3 +37,17 @@ export interface HeldOrder {
 }
 
 export const heldOrdersAtom = atomWithMMKV<HeldOrder[]>("heldOrders", []);
+
+export interface CartOrderDraft {
+  customerName: string;
+  orderType: OrderType;
+  tableId?: string;
+  tableLabel?: string;
+}
+
+export const cartOrderDraftAtom = atomWithMMKV<CartOrderDraft>("cartOrderDraft", {
+  customerName: "",
+  orderType: "Dine In",
+  tableId: undefined,
+  tableLabel: undefined,
+});

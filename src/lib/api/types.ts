@@ -29,6 +29,7 @@ export type KasirMenuVariant = {
   name: string;
   price: number;
   sortOrder: number;
+  isActive: boolean;
 };
 
 export type KasirMenu = {
@@ -37,8 +38,24 @@ export type KasirMenu = {
   price: number;
   categoryId: string;
   categoryName: string;
+  hasRecipe: boolean;
+  isActive: boolean;
+  isAvailable: boolean;
+  availabilityReason: "ACTIVE" | "INACTIVE" | "OUT_OF_STOCK" | "NO_RECIPE" | "HIDDEN";
   hasVariants: boolean;
   variants: KasirMenuVariant[];
+};
+
+export type KasirTable = {
+  id: string;
+  branchId: string;
+  label: string;
+  capacity: number | null;
+  isActive: boolean;
+  branch: {
+    id: string;
+    name: string;
+  } | null;
 };
 
 // ─── Order History ────────────────────────────────────────────────────────────
@@ -99,6 +116,8 @@ export type CheckoutPayment = {
 
 export type CheckoutOrderBody = {
   source?: "WALK_IN" | "WEB";
+  orderType: "DINE_IN" | "TAKEAWAY" | "DELIVERY";
+  tableId?: string;
   tableLabel?: string;
   customerName?: string;
   orderNote?: string;

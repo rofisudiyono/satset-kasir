@@ -52,6 +52,7 @@ export function ProductGrid({
         categoryIconBg={CATEGORY_COLORS[item.category].bg}
         categoryIconColor={CATEGORY_COLORS[item.category].color}
         stockStatus={item.stockStatus}
+        availabilityReason={item.availabilityReason}
         width={cardWidth}
         onAdd={() => onAddProduct(item)}
       />

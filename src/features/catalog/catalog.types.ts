@@ -23,7 +23,9 @@ export interface CatalogProduct {
   name: string;
   category: ProductCategory;
   basePrice: number;
-  stockStatus: CatalogStockStatus;
+  stockStatus: StockStatus;
+  isAvailable?: boolean;
+  availabilityReason?: "ACTIVE" | "INACTIVE" | "OUT_OF_STOCK" | "NO_RECIPE" | "HIDDEN";
   variants?: VariantGroup[];
   barcode?: string;
 }
