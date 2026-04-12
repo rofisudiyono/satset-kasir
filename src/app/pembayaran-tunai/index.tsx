@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAtom } from "jotai";
 import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
@@ -20,10 +20,12 @@ import { cartAtom, cartSnapshotAtom } from "@/features/cart/store/cart.store";
 import { catalogStockAtom } from "@/features/catalog/store/catalog.store";
 import {
   appendPaymentToOrder,
+  buildCheckoutOrderBody,
   calculateOrderRemainingAmount,
 } from "@/features/pos/pos.utils";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
+import { getApiErrorMessage, useCheckoutMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import {
   ColorBase,
@@ -41,6 +43,7 @@ export default function PembayaranTunaiPage() {
   const [cartSnapshot, setCartSnapshot] = useAtom(cartSnapshotAtom);
   const [, setCatalogStock] = useAtom(catalogStockAtom);
   const { isTablet, contentMaxWidth, horizontalPadding } = useResponsiveLayout();
+  const checkoutMutation = useCheckoutMutation();
   const params = useLocalSearchParams<{
     orderId: string;
     amountToPay: string;
@@ -72,10 +75,12 @@ export default function PembayaranTunaiPage() {
     );
   }
 
+  const currentOrder = order;
+
   const receivedAmount = Number(inputValue);
   const change = receivedAmount - amountToPay;
   const isEnough = receivedAmount >= amountToPay;
-  const remainingBeforePayment = calculateOrderRemainingAmount(order);
+  const remainingBeforePayment = calculateOrderRemainingAmount(currentOrder);
   const suggestions = getCashSuggestions(amountToPay);
 
   function handleNumpad(key: string) {
@@ -99,9 +104,39 @@ export default function PembayaranTunaiPage() {
     setInputValue(String(amount));
   }
 
-  function handleConfirm() {
+  async function handleConfirm() {
+    if (cartSnapshot.length === 0) {
+      applyLocalPayment();
+      return;
+    }
+
+    try {
+      await checkoutMutation.mutateAsync(
+        buildCheckoutOrderBody({
+          cart: cartSnapshot,
+          customerName: currentOrder.customerName,
+          tableLabel: currentOrder.tableLabel,
+          promoCode: currentOrder.promoCode,
+          payment: {
+            method: "tunai",
+            amountPaid: amountToPay,
+            amountReceived: receivedAmount,
+            label: params.paymentLabel || "Tunai",
+          },
+        }),
+      );
+      applyLocalPayment();
+    } catch (error) {
+      Alert.alert(
+        "Checkout gagal",
+        getApiErrorMessage(error, "Pembayaran tunai gagal dikirim ke server."),
+      );
+    }
+  }
+
+  function applyLocalPayment() {
     const paymentId = `pay-${Date.now()}`;
-    const updatedOrder = appendPaymentToOrder(order, {
+    const updatedOrder = appendPaymentToOrder(currentOrder, {
       id: paymentId,
       method: "tunai",
       amountPaid: amountToPay,
@@ -111,7 +146,7 @@ export default function PembayaranTunaiPage() {
     });
 
     setOrders((prev) =>
-      prev.map((item) => (item.id === order.id ? updatedOrder : item)),
+      prev.map((item) => (item.id === currentOrder.id ? updatedOrder : item)),
     );
 
     if (cartSnapshot.length > 0) {
@@ -130,7 +165,7 @@ export default function PembayaranTunaiPage() {
     router.push({
       pathname: "/pembayaran-sukses",
       params: {
-        orderId: order.id,
+        orderId: currentOrder.id,
         paymentId,
       },
     });
@@ -228,7 +263,7 @@ export default function PembayaranTunaiPage() {
         title="Konfirmasi Pembayaran Tunai"
         variant="success"
         onPress={handleConfirm}
-        disabled={!isEnough}
+        disabled={!isEnough || checkoutMutation.isPending}
       />
       <TextCaption
         color={ColorNeutral.neutral500}

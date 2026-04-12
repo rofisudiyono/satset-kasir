@@ -71,13 +71,19 @@ export function VariantSheet({
     : undefined;
 
   function handleAdd() {
+    // opt.id for the first variant group = the backend menuVariantId UUID
+    const firstGroup = product!.variants?.[0];
+    const variantId = firstGroup ? selectedVariants[firstGroup.name] : undefined;
+
     onAddToCart({
       productId: product!.id,
       productName: product!.name,
       category: product!.category,
+      variantId,
       variantLabel,
       quantity: qty,
       unitPrice,
+      note: note.trim() || undefined,
     });
     onClose();
   }

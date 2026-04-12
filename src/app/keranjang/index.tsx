@@ -160,6 +160,7 @@ export default function KeranjangPage() {
       discountAmount: discount,
       taxAmount: ppn,
       grandTotal: total,
+      promoCode: promoEnabled ? appliedPromo?.code : undefined,
     });
 
     setPosOrders((prev) => [order, ...prev]);

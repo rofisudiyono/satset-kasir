@@ -22,6 +22,91 @@ export type ApiErrorBody = {
 
 export type ShiftSlotApi = "PAGI" | "SIANG" | "MALAM";
 
+// ─── Menu (Kasir) ─────────────────────────────────────────────────────────────
+
+export type KasirMenuVariant = {
+  id: string;
+  name: string;
+  price: number;
+  sortOrder: number;
+};
+
+export type KasirMenu = {
+  id: string;
+  name: string;
+  price: number;
+  categoryId: string;
+  categoryName: string;
+  hasVariants: boolean;
+  variants: KasirMenuVariant[];
+};
+
+// ─── Order History ────────────────────────────────────────────────────────────
+
+export type KasirOrderItem = {
+  id: string;
+  menuId: string;
+  menuVariantId: string | null;
+  nameSnapshot: string;
+  variantNameSnapshot: string | null;
+  unitPriceSnapshot: number;
+  qty: number;
+  note: string | null;
+};
+
+export type KasirOrderPayment = {
+  id: string;
+  method: string;
+  amountPaid: number;
+  amountReceived: number | null;
+  label: string | null;
+  paidAt: string;
+};
+
+export type KasirOrder = {
+  id: string;
+  shiftId: string;
+  source: "WALK_IN" | "WEB";
+  customerName: string | null;
+  tableLabel: string | null;
+  status: "PAID" | "CANCELLED" | "REFUND";
+  subtotal: number;
+  discountAmount: number;
+  taxAmount: number;
+  grandTotal: number;
+  items: KasirOrderItem[];
+  payments: KasirOrderPayment[];
+  paidAt: string | null;
+  createdAt: string;
+};
+
+// ─── Checkout ─────────────────────────────────────────────────────────────────
+
+export type CheckoutOrderItem = {
+  menuId: string;
+  menuVariantId?: string;
+  qty: number;
+  note?: string;
+  modifiers?: { modifierOptionId: string }[];
+};
+
+export type CheckoutPayment = {
+  method: "CASH" | "QRIS" | "TRANSFER" | "DEBIT" | "CREDIT" | "EWALLET";
+  amountPaid: number;
+  amountReceived?: number;
+  label?: string;
+};
+
+export type CheckoutOrderBody = {
+  source?: "WALK_IN" | "WEB";
+  tableLabel?: string;
+  customerName?: string;
+  orderNote?: string;
+  promoCode?: string;
+  items: CheckoutOrderItem[];
+  payments: CheckoutPayment[];
+};
+
 export type KasirShift = {
   id: string;
   tenantId: string;

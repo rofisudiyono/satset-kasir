@@ -18,6 +18,7 @@ import { TamaguiProvider } from "tamagui";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { appStore } from "@/store/storage";
 import { KasirShiftSync } from "@/features/kasir/components/KasirShiftSync";
 import { KdsReadyNotifications } from "@/features/pos/components/KdsReadyNotifications";
 import { KdsRealtimeBridge } from "@/features/pos/components/KdsRealtimeBridge";
@@ -36,7 +37,7 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
-      <JotaiProvider>
+      <JotaiProvider store={appStore}>
         <QueryProvider>
           <TamaguiProvider
             config={tamaguiConfig}

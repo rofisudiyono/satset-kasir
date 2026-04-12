@@ -4,9 +4,10 @@ import { atom } from "jotai";
 
 export interface CartItem {
   cartId: string;
-  productId: string;
+  productId: string;   // maps to menuId on backend
   productName: string;
   category: ProductCategory;
+  variantId?: string;  // maps to menuVariantId on backend (UUID)
   variantLabel?: string;
   note?: string;
   quantity: number;

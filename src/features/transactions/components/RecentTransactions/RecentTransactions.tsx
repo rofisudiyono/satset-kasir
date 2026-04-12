@@ -1,10 +1,10 @@
-import { useAtomValue } from "jotai";
 import React from "react";
 import { View } from "react-native";
 import { XStack, YStack } from "tamagui";
 
-import { recentTransactions } from "@/features/transactions/api/transactions.data";
-import { transactionsAtom } from "@/features/transactions/store/transaction.store";
+import { useOrderHistoryQuery } from "@/hooks/api/use-kasir-api";
+import { useAuth } from "@/lib/auth";
+import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import {
   ShadowCard,
   TextBodyLg,
@@ -12,43 +12,33 @@ import {
   TextCaption,
   TextH3,
 } from "@/components";
-import {
-  ColorDanger,
-  ColorGreen,
-  ColorNeutral,
-  ColorSuccess,
-} from "@/themes/Colors";
-
-function StatusBadge({ status }: { status: string }) {
-  const isVoid = status === "Void";
-  const bg = isVoid ? ColorDanger.danger100 : ColorGreen.green100;
-  const color = isVoid ? ColorDanger.danger600 : ColorSuccess.success600;
-  return (
-    <View
-      style={{
-        backgroundColor: bg,
-        borderRadius: 20,
-        paddingHorizontal: 14,
-        paddingVertical: 5,
-      }}
-    >
-      <TextBodySm fontWeight="600" color={color}>
-        {status}
-      </TextBodySm>
-    </View>
-  );
-}
+import { ColorNeutral } from "@/themes/Colors";
+import { StatusBadge } from "@/features/transactions/components/StatusBadge";
+import { mapKasirOrderToTransaction } from "@/features/pos/pos.utils";
+import { useAtomValue } from "jotai";
 
 export function RecentTransactions() {
-  const storedTxs = useAtomValue(transactionsAtom);
-  // Show stored transactions first, fallback to mock if none
-  const displayList =
-    storedTxs.length > 0 ? storedTxs.slice(0, 5) : recentTransactions;
+  const { isLoggedIn } = useAuth();
+  const isShiftStarted = useAtomValue(isShiftStartedAtom);
+  const { data, isLoading } = useOrderHistoryQuery(isLoggedIn && isShiftStarted);
+  const displayList = (data ?? []).slice(0, 5).map(mapKasirOrderToTransaction);
 
   return (
     <YStack gap="$2">
       <TextH3 fontWeight="700">Transaksi Terakhir</TextH3>
       <ShadowCard overflow="hidden">
+        {isLoading ? (
+          <View style={{ paddingHorizontal: 16, paddingVertical: 20 }}>
+            <TextBodySm color="$colorSecondary">Memuat transaksi...</TextBodySm>
+          </View>
+        ) : null}
+        {!isLoading && displayList.length === 0 ? (
+          <View style={{ paddingHorizontal: 16, paddingVertical: 20 }}>
+            <TextBodySm color="$colorSecondary">
+              Belum ada transaksi di shift aktif.
+            </TextBodySm>
+          </View>
+        ) : null}
         {displayList.map((trx, idx) => (
           <React.Fragment key={trx.id}>
             {idx > 0 && (

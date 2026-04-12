@@ -9,6 +9,7 @@ import type {
   QueueOrderBody,
   PaymentEntry,
 } from "@/lib/api/kasir.api";
+import type { CheckoutOrderBody } from "@/lib/api/types";
 
 import { kasirKeys } from "./query-keys";
 
@@ -82,6 +83,60 @@ export function useLoginMutation() {
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       authApi.loginRequest(email, password),
+  });
+}
+
+export function useMenusQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: kasirKeys.menus(),
+    queryFn: kasirApi.getMenus,
+    enabled,
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function useOrderHistoryQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: kasirKeys.orderHistory(),
+    queryFn: kasirApi.getOrderHistory,
+    enabled,
+    staleTime: 30_000,
+    refetchInterval: enabled ? 60_000 : false,
+  });
+}
+
+export function useCheckoutMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CheckoutOrderBody) => kasirApi.checkoutOrder(body),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: kasirKeys.orderHistory() });
+      void qc.invalidateQueries({ queryKey: kasirKeys.activeShift() });
+    },
+  });
+}
+
+export function useCancelPaidOrderMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
+      kasirApi.cancelPaidOrder(orderId, reason),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: kasirKeys.orderHistory() });
+      void qc.invalidateQueries({ queryKey: kasirKeys.activeShift() });
+    },
+  });
+}
+
+export function useRefundPaidOrderMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
+      kasirApi.refundPaidOrder(orderId, reason),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: kasirKeys.orderHistory() });
+      void qc.invalidateQueries({ queryKey: kasirKeys.activeShift() });
+    },
   });
 }
 

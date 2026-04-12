@@ -1,7 +1,11 @@
+import { createStore } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { createMMKV } from "react-native-mmkv";
 
 export const storage = createMMKV();
+
+/** Shared Jotai store — used by both JotaiProvider and the axios client. */
+export const appStore = createStore();
 
 export const appStorage = {
   setItem: (key: string, value: string) => storage.set(key, value),

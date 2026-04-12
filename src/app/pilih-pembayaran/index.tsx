@@ -29,6 +29,7 @@ import { PaymentMethodCard } from "@/features/payment/components/PaymentMethodCa
 import {
   appendPaymentToOrder,
   buildOrderItemsSummary,
+  buildCheckoutOrderBody,
   calculateOrderPaidAmount,
   calculateOrderRemainingAmount,
   getPaymentMethodLabel,
@@ -36,6 +37,7 @@ import {
 } from "@/features/pos/pos.utils";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
+import { getApiErrorMessage, useCheckoutMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
 import type { PaymentMethod } from "@/types";
@@ -52,6 +54,7 @@ export default function PilihPembayaranPage() {
   const [, setCatalogStock] = useAtom(catalogStockAtom);
   const { isTablet, contentMaxWidth, horizontalPadding } = useResponsiveLayout();
   const params = useLocalSearchParams<{ orderId: string }>();
+  const checkoutMutation = useCheckoutMutation();
 
   const order = useMemo(
     () => orders.find((item) => item.id === params.orderId),
@@ -73,6 +76,14 @@ export default function PilihPembayaranPage() {
     setAmountInput(String(calculateOrderRemainingAmount(order)));
     setSelectedItemIds(order.items.map((item) => item.id));
   }, [order]);
+
+  const isDirectCheckoutFlow = cartSnapshot.length > 0 && (order?.payments.length ?? 0) === 0;
+
+  useEffect(() => {
+    if (isDirectCheckoutFlow && mode !== "full") {
+      setMode("full");
+    }
+  }, [isDirectCheckoutFlow, mode]);
 
   if (!order) {
     return (
@@ -102,9 +113,11 @@ export default function PilihPembayaranPage() {
     );
   }
 
-  const paidAmount = calculateOrderPaidAmount(order);
-  const remaining = calculateOrderRemainingAmount(order);
-  const selectedItemsAmount = getSelectedItemsAmount(order, selectedItemIds);
+  const currentOrder = order;
+
+  const paidAmount = calculateOrderPaidAmount(currentOrder);
+  const remaining = calculateOrderRemainingAmount(currentOrder);
+  const selectedItemsAmount = getSelectedItemsAmount(currentOrder, selectedItemIds);
   const typedAmount = Number(amountInput || 0);
 
   const paymentAmount =
@@ -117,7 +130,8 @@ export default function PilihPembayaranPage() {
   const canProcess =
     remaining > 0 &&
     paymentAmount > 0 &&
-    (mode !== "split_item" || selectedItemIds.length > 0);
+    (mode !== "split_item" || selectedItemIds.length > 0) &&
+    (!isDirectCheckoutFlow || paymentAmount >= remaining);
 
   function toggleItem(itemId: string) {
     setSelectedItemIds((prev) =>
@@ -131,12 +145,12 @@ export default function PilihPembayaranPage() {
     if (mode === "partial") return "Bayar Sebagian";
     if (mode === "split_nominal") return "Split Nominal";
     if (mode === "split_item") return "Split per Item";
-    return remaining === order.grandTotal ? "Bayar Penuh" : "Pelunasan";
+    return remaining === currentOrder.grandTotal ? "Bayar Penuh" : "Pelunasan";
   }
 
   function applyNonCashPayment() {
     const paymentId = `pay-${Date.now()}`;
-    const updatedOrder = appendPaymentToOrder(order, {
+    const updatedOrder = appendPaymentToOrder(currentOrder, {
       id: paymentId,
       method: selectedMethod,
       amountPaid: paymentAmount,
@@ -145,7 +159,7 @@ export default function PilihPembayaranPage() {
     });
 
     setOrders((prev) =>
-      prev.map((item) => (item.id === order.id ? updatedOrder : item)),
+      prev.map((item) => (item.id === currentOrder.id ? updatedOrder : item)),
     );
 
     if (cartSnapshot.length > 0) {
@@ -164,10 +178,36 @@ export default function PilihPembayaranPage() {
     router.push({
       pathname: "/pembayaran-sukses",
       params: {
-        orderId: order.id,
+        orderId: currentOrder.id,
         paymentId,
       },
     });
+  }
+
+  async function handleDirectCheckout() {
+    if (!canProcess || cartSnapshot.length === 0) return;
+
+    try {
+      await checkoutMutation.mutateAsync(
+        buildCheckoutOrderBody({
+          cart: cartSnapshot,
+          customerName: currentOrder.customerName,
+          tableLabel: currentOrder.tableLabel,
+          promoCode: currentOrder.promoCode,
+          payment: {
+            method: selectedMethod,
+            amountPaid: paymentAmount,
+            label: getPaymentLabel(),
+          },
+        }),
+      );
+      applyNonCashPayment();
+    } catch (error) {
+      Alert.alert(
+        "Checkout gagal",
+        getApiErrorMessage(error, "Transaksi tidak berhasil dikirim ke server."),
+      );
+    }
   }
 
   function handleProcess() {
@@ -177,7 +217,7 @@ export default function PilihPembayaranPage() {
       router.push({
         pathname: "/pembayaran-tunai",
         params: {
-          orderId: order.id,
+          orderId: currentOrder.id,
           amountToPay: String(paymentAmount),
           paymentLabel: getPaymentLabel(),
         },
@@ -189,12 +229,12 @@ export default function PilihPembayaranPage() {
 
     Alert.alert(
       "Konfirmasi Pembayaran",
-      `${methodLabel} sebesar ${formatPrice(paymentAmount)} akan dicatat ke order ${order.id}.`,
+      `${methodLabel} sebesar ${formatPrice(paymentAmount)} akan dicatat ke order ${currentOrder.id}.`,
       [
         { text: "Batal", style: "cancel" },
         {
           text: "Konfirmasi",
-          onPress: applyNonCashPayment,
+          onPress: isDirectCheckoutFlow ? handleDirectCheckout : applyNonCashPayment,
         },
       ],
     );
@@ -204,7 +244,7 @@ export default function PilihPembayaranPage() {
     <View style={styles.totalCard}>
       <TextCaption color="rgba(255,255,255,0.85)">Total Order</TextCaption>
       <TextH2 fontWeight="700" color={ColorBase.white}>
-        {formatPrice(order.grandTotal)}
+        {formatPrice(currentOrder.grandTotal)}
       </TextH2>
       <XStack gap={8} marginTop={8}>
         <TextBodySm color="rgba(255,255,255,0.85)">
@@ -224,12 +264,14 @@ export default function PilihPembayaranPage() {
         MODE PEMBAYARAN
       </TextCaption>
       <XStack flexWrap="wrap" gap="$2">
-        {[
+        {(isDirectCheckoutFlow
+          ? [{ id: "full", label: "Bayar Penuh" }]
+          : [
           { id: "full", label: "Bayar Penuh" },
           { id: "partial", label: "Bayar Sebagian" },
           { id: "split_nominal", label: "Split Nominal" },
           { id: "split_item", label: "Split per Item" },
-        ].map((item) => {
+        ]).map((item) => {
           const active = mode === item.id;
           return (
             <TouchableOpacity
@@ -254,7 +296,7 @@ export default function PilihPembayaranPage() {
     mode === "split_item" ? (
       <YStack gap="$2">
         <TextH3 fontWeight="700">Pilih item yang dibayar</TextH3>
-        {order.items.map((item) => {
+          {currentOrder.items.map((item) => {
           const active = selectedItemIds.includes(item.id);
           return (
             <TouchableOpacity
@@ -336,12 +378,12 @@ export default function PilihPembayaranPage() {
   const paymentHistory = (
     <YStack gap="$2">
       <TextH3 fontWeight="700">Riwayat pembayaran</TextH3>
-      {order.payments.length === 0 ? (
+      {currentOrder.payments.length === 0 ? (
         <TextBodySm color="$colorSecondary">
           Belum ada pembayaran tercatat.
         </TextBodySm>
       ) : (
-        order.payments.map((payment) => (
+        currentOrder.payments.map((payment) => (
           <View key={payment.id} style={styles.historyRow}>
             <YStack flex={1}>
               <TextBodySm fontWeight="700">
@@ -365,12 +407,12 @@ export default function PilihPembayaranPage() {
       {totalCard}
       <View style={styles.infoPanel}>
         <TextCaption color="$colorSecondary">ORDER</TextCaption>
-        <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
+        <TextBodyLg fontWeight="700">{currentOrder.id}</TextBodyLg>
         <TextBodySm color="$colorSecondary" marginTop={6}>
-          {order.customerName || order.tableLabel || "Tanpa label pelanggan"}
+          {currentOrder.customerName || currentOrder.tableLabel || "Tanpa label pelanggan"}
         </TextBodySm>
         <TextBodySm color="$colorSecondary" marginTop={8}>
-          {buildOrderItemsSummary(order)}
+          {buildOrderItemsSummary(currentOrder)}
         </TextBodySm>
       </View>
       {modeSelector}
@@ -387,11 +429,14 @@ export default function PilihPembayaranPage() {
         fullWidth
         title={`Catat ${getPaymentLabel()} ${formatPrice(paymentAmount)}`}
         onPress={handleProcess}
-        disabled={!canProcess}
+        disabled={!canProcess || checkoutMutation.isPending}
       />
       <TextCaption color="$colorSecondary" textAlign="center" marginTop={8}>
-        Status order akan otomatis menjadi{" "}
-        {paymentAmount >= remaining ? "PAID" : "PARTIALLY_PAID"}.
+        {isDirectCheckoutFlow
+          ? "Checkout kasir via API hanya mendukung pembayaran penuh."
+          : `Status order akan otomatis menjadi ${
+              paymentAmount >= remaining ? "PAID" : "PARTIALLY_PAID"
+            }.`}
       </TextCaption>
     </View>
   );

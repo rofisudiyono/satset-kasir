@@ -1,17 +1,16 @@
 import { useRouter } from "expo-router";
-import { useAtom } from "jotai";
-import React, { useCallback, useEffect, useState } from "react";
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { useAtom, useAtomValue } from "jotai";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, StyleSheet, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { IconButton, PageHeader } from "@/components";
+import { IconButton, PageHeader, TextBodySm } from "@/components";
 import {
   cartAtom,
   heldOrdersAtom,
   scannedBarcodeAtom,
   type CartItem,
 } from "@/features/cart/store/cart.store";
-import { catalogProducts } from "@/features/catalog/api/catalog.data";
 import { catalogStockAtom } from "@/features/catalog/store/catalog.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import {
@@ -19,8 +18,43 @@ import {
   ProductGrid,
   VariantSheet,
 } from "@/features/transactions/components/transaksi-baru";
+import { useMenusQuery } from "@/hooks/api/use-kasir-api";
+import type { KasirMenu } from "@/lib/api/types";
 import { ColorBase, ColorNeutral } from "@/themes/Colors";
-import type { CatalogProduct, CategoryFilter } from "@/types";
+import type { CatalogProduct, CategoryFilter, ProductCategory } from "@/types";
+
+function normalizeCategoryName(name: string): ProductCategory {
+  const lower = name.toLowerCase();
+  if (lower.includes("makanan") || lower.includes("food") || lower.includes("makan")) return "Makanan";
+  if (lower.includes("minuman") || lower.includes("drink") || lower.includes("minum")) return "Minuman";
+  if (lower.includes("snack") || lower.includes("cemilan") || lower.includes("camilan")) return "Snack";
+  return "Makanan";
+}
+
+function mapMenuToCatalogProduct(menu: KasirMenu): CatalogProduct {
+  const variants =
+    menu.hasVariants && menu.variants.length > 0
+      ? [
+          {
+            name: "Pilihan",
+            options: menu.variants.map((v) => ({
+              id: v.id,
+              label: v.name,
+              priceAdd: v.price - menu.price,
+            })),
+          },
+        ]
+      : undefined;
+
+  return {
+    id: menu.id,
+    name: menu.name,
+    category: normalizeCategoryName(menu.categoryName),
+    basePrice: menu.price,
+    stockStatus: "normal",
+    variants,
+  };
+}
 
 export function InputManualScreen() {
   const router = useRouter();
@@ -30,11 +64,16 @@ export function InputManualScreen() {
   const [cart, setCart] = useAtom(cartAtom);
   const [scannedBarcode, setScannedBarcode] = useAtom(scannedBarcodeAtom);
   const [heldOrders] = useAtom(heldOrdersAtom);
-  const [catalogStock] = useAtom(catalogStockAtom);
-  const [variantProduct, setVariantProduct] = useState<CatalogProduct | null>(
-    null,
-  );
+  const catalogStock = useAtomValue(catalogStockAtom);
+  const [variantProduct, setVariantProduct] = useState<CatalogProduct | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
+
+  const { data: apiMenus, isLoading: menusLoading } = useMenusQuery(isShiftStarted);
+
+  const catalogProducts = useMemo<CatalogProduct[]>(
+    () => (apiMenus ?? []).map(mapMenuToCatalogProduct),
+    [apiMenus],
+  );
 
   useEffect(() => {
     if (isShiftStarted) return;
@@ -86,12 +125,10 @@ export function InputManualScreen() {
 
   useEffect(() => {
     if (!scannedBarcode) return;
-    const found = catalogProducts.find((p) => p.barcode === scannedBarcode);
-    if (found) {
-      handleAddProduct(found);
-    }
+    const found = catalogProducts.find((p) => (p as any).barcode === scannedBarcode);
+    if (found) handleAddProduct(found);
     setScannedBarcode(null);
-  }, [scannedBarcode, setScannedBarcode, handleAddProduct]);
+  }, [scannedBarcode, setScannedBarcode, handleAddProduct, catalogProducts]);
 
   const productsWithLiveStock = catalogProducts
     .map((p) => {

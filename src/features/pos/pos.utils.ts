@@ -1,5 +1,10 @@
 import type { CartItem } from "@/features/cart/store/cart.store";
 import type { PaymentMethod, Transaction } from "@/types";
+import type {
+  CheckoutOrderBody,
+  CheckoutPayment,
+  KasirOrder,
+} from "@/lib/api/types";
 
 import type { PosFulfillmentStatus, PosOrder, PosOrderPayment } from "./pos.types";
 
@@ -22,6 +27,7 @@ export function buildPosOrderFromCart(params: {
   taxAmount: number;
   grandTotal: number;
   source?: PosOrder["source"];
+  promoCode?: string;
 }) {
   const subtotal = params.cart.reduce(
     (sum, item) => sum + item.unitPrice * item.quantity,
@@ -52,6 +58,7 @@ export function buildPosOrderFromCart(params: {
     discountAmount: params.discountAmount,
     taxAmount: params.taxAmount,
     grandTotal: params.grandTotal,
+    promoCode: params.promoCode,
   } satisfies PosOrder;
 }
 
@@ -155,4 +162,108 @@ export function getSelectedItemsAmount(order: PosOrder, selectedIds: string[]) {
     (sum, item) => sum + item.unitPrice * item.qty,
     0,
   );
+}
+
+export function mapPaymentMethodToCheckoutMethod(
+  method: PaymentMethod,
+): CheckoutPayment["method"] {
+  switch (method) {
+    case "tunai":
+      return "CASH";
+    case "qris":
+      return "QRIS";
+    case "transfer":
+      return "TRANSFER";
+    case "edc":
+      return "DEBIT";
+    case "ewallet":
+      return "EWALLET";
+  }
+}
+
+export function buildCheckoutOrderBody(params: {
+  cart: CartItem[];
+  customerName?: string;
+  tableLabel?: string;
+  promoCode?: string;
+  payment: {
+    method: PaymentMethod;
+    amountPaid: number;
+    amountReceived?: number;
+    label?: string;
+  };
+}): CheckoutOrderBody {
+  const customerName = params.customerName?.trim();
+  const tableLabel = params.tableLabel?.trim();
+  const promoCode = params.promoCode?.trim();
+
+  return {
+    source: "WALK_IN",
+    customerName: customerName || undefined,
+    tableLabel: tableLabel || undefined,
+    promoCode: promoCode || undefined,
+    items: params.cart.map((item) => ({
+      menuId: item.productId,
+      menuVariantId: item.variantId,
+      qty: item.quantity,
+      note: item.note?.trim() || undefined,
+    })),
+    payments: [
+      {
+        method: mapPaymentMethodToCheckoutMethod(params.payment.method),
+        amountPaid: params.payment.amountPaid,
+        amountReceived: params.payment.amountReceived,
+        label: params.payment.label?.trim() || undefined,
+      },
+    ],
+  };
+}
+
+function formatKasirOrderTime(value: string) {
+  return (
+    new Date(value).toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }) + " WIB"
+  );
+}
+
+export function mapKasirOrderToTransaction(order: KasirOrder): Transaction {
+  const status: Transaction["status"] =
+    order.status === "CANCELLED"
+      ? "Void"
+      : order.status === "REFUND"
+        ? "Refund"
+        : "Lunas";
+
+  const firstPayment = order.payments[0];
+
+  return {
+    id: order.id,
+    time: formatKasirOrderTime(order.paidAt ?? order.createdAt),
+    createdAt: new Date(order.createdAt).getTime(),
+    shiftId: order.shiftId,
+    table: order.customerName || order.tableLabel || "Tanpa nama",
+    items: order.items
+      .map((item) =>
+        `${item.nameSnapshot}${item.variantNameSnapshot ? ` (${item.variantNameSnapshot})` : ""} x${item.qty}`,
+      )
+      .join(", "),
+    amount: `Rp ${order.grandTotal.toLocaleString("id-ID")}`,
+    amountValue: order.grandTotal,
+    status,
+    paymentMethod: firstPayment?.label || firstPayment?.method || "Belum dibayar",
+    paymentMethodId:
+      firstPayment?.method === "CASH"
+        ? "tunai"
+        : firstPayment?.method === "QRIS"
+          ? "qris"
+          : firstPayment?.method === "TRANSFER"
+            ? "transfer"
+            : firstPayment?.method === "DEBIT" || firstPayment?.method === "CREDIT"
+              ? "edc"
+              : firstPayment?.method === "EWALLET"
+                ? "ewallet"
+                : undefined,
+  };
 }

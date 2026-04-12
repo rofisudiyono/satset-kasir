@@ -2,4 +2,6 @@ export const kasirKeys = {
   all: ["kasir"] as const,
   activeShift: () => [...kasirKeys.all, "shifts", "active"] as const,
   readyOrders: () => [...kasirKeys.all, "orders", "ready"] as const,
+  menus: () => [...kasirKeys.all, "menus"] as const,
+  orderHistory: () => [...kasirKeys.all, "orders", "history"] as const,
 };

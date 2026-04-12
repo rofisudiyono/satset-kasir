@@ -13,10 +13,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import { useAuth } from "@/lib/auth";
-import { getApiErrorMessage } from "@/lib/api/client";
-import { useLoginMutation } from "@/hooks/api/use-kasir-api";
-import { useResponsiveLayout } from "@/hooks/use-responsive";
 import {
   AppButton,
   AppInput,
@@ -27,6 +23,10 @@ import {
   TextH2,
   TextH3,
 } from "@/components";
+import { useLoginMutation } from "@/hooks/api/use-kasir-api";
+import { useResponsiveLayout } from "@/hooks/use-responsive";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { useAuth } from "@/lib/auth";
 import {
   ColorBase,
   ColorGreen,
@@ -40,11 +40,12 @@ const KASIR_ROLES = new Set(["kasir", "admin_coffee"]);
 
 export default function LoginPage() {
   const { loginWithSession } = useAuth();
-  const { mutateAsync: loginApi, isPending: isLoginPending } = useLoginMutation();
+  const { mutateAsync: loginApi, isPending: isLoginPending } =
+    useLoginMutation();
   const router = useRouter();
   const { isTablet, isLargeTablet, horizontalPadding } = useResponsiveLayout();
-  const [email, setEmail] = useState("budi.santoso@tokomakmur.id");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("bilqis@gmail.com");
+  const [password, setPassword] = useState("12345678");
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -66,7 +67,10 @@ export default function LoginPage() {
       });
       router.replace("/(tabs)");
     } catch (e) {
-      Alert.alert("Gagal masuk", getApiErrorMessage(e, "Email atau password salah."));
+      Alert.alert(
+        "Gagal masuk",
+        getApiErrorMessage(e, "Email atau password salah."),
+      );
     }
   };
 
@@ -81,7 +85,12 @@ export default function LoginPage() {
           <View style={styles.decorCircle2} />
           <View style={styles.decorCircle3} />
 
-          <YStack flex={1} justifyContent="center" padding={isLargeTablet ? 48 : 36} gap="$6">
+          <YStack
+            flex={1}
+            justifyContent="center"
+            padding={isLargeTablet ? 48 : 36}
+            gap="$6"
+          >
             {/* App icon */}
             <YStack
               width={68}
@@ -93,7 +102,11 @@ export default function LoginPage() {
               borderWidth={1.5}
               borderColor="rgba(255,255,255,0.25)"
             >
-              <Ionicons name="storefront-outline" size={34} color={ColorBase.white} />
+              <Ionicons
+                name="storefront-outline"
+                size={34}
+                color={ColorBase.white}
+              />
             </YStack>
 
             {/* Branding text */}
@@ -102,7 +115,8 @@ export default function LoginPage() {
                 Kasir Toko{"\n"}Makmur
               </TextH1>
               <TextBodyLg color="rgba(255,255,255,0.65)" lineHeight={22}>
-                Sistem kasir pintar untuk operasional toko yang efisien dan akurat.
+                Sistem kasir pintar untuk operasional toko yang efisien dan
+                akurat.
               </TextBodyLg>
             </YStack>
 
@@ -125,7 +139,11 @@ export default function LoginPage() {
                   alignItems="center"
                   justifyContent="center"
                 >
-                  <Ionicons name="sunny-outline" size={18} color={ColorWarning.warning400} />
+                  <Ionicons
+                    name="sunny-outline"
+                    size={18}
+                    color={ColorWarning.warning400}
+                  />
                 </YStack>
                 <YStack flex={1} gap={2}>
                   <TextBodySm fontWeight="700" color={ColorBase.white}>
@@ -154,7 +172,11 @@ export default function LoginPage() {
                   alignItems="center"
                   justifyContent="center"
                 >
-                  <Ionicons name="help-circle-outline" size={18} color="rgba(255,255,255,0.85)" />
+                  <Ionicons
+                    name="help-circle-outline"
+                    size={18}
+                    color="rgba(255,255,255,0.85)"
+                  />
                 </YStack>
                 <YStack flex={1} gap={2}>
                   <TextBodySm fontWeight="700" color={ColorBase.white}>
@@ -170,7 +192,9 @@ export default function LoginPage() {
 
           {/* Footer version */}
           <YStack padding={isLargeTablet ? 48 : 36} paddingTop={0}>
-            <TextCaption color="rgba(255,255,255,0.3)">© 2025 Kasirin Aja</TextCaption>
+            <TextCaption color="rgba(255,255,255,0.3)">
+              © 2025 Kasirin Aja
+            </TextCaption>
           </YStack>
         </View>
 
@@ -211,11 +235,17 @@ export default function LoginPage() {
                   alignItems="center"
                   justifyContent="center"
                 >
-                  <Ionicons name="person-outline" size={18} color={ColorGreen.green600} />
+                  <Ionicons
+                    name="person-outline"
+                    size={18}
+                    color={ColorGreen.green600}
+                  />
                 </YStack>
                 <YStack flex={1}>
                   <TextBodyLg fontWeight="600">Mode Kasir</TextBodyLg>
-                  <TextBodySm color="$colorSecondary">Akun staf operasional toko</TextBodySm>
+                  <TextBodySm color="$colorSecondary">
+                    Akun staf operasional toko
+                  </TextBodySm>
                 </YStack>
                 <AppButton variant="ghost" size="sm">
                   Ganti
@@ -226,8 +256,8 @@ export default function LoginPage() {
               <YStack gap="$1.5">
                 <TextH2 fontWeight="700">Masuk ke akun kasir</TextH2>
                 <TextBodySm color="$colorSecondary" lineHeight={20}>
-                  Gunakan akun yang sudah terdaftar untuk membuka shift dan memproses transaksi
-                  pelanggan.
+                  Gunakan akun yang sudah terdaftar untuk membuka shift dan
+                  memproses transaksi pelanggan.
                 </TextBodySm>
               </YStack>
 
@@ -240,7 +270,11 @@ export default function LoginPage() {
                   placeholder="Email kasir aktif"
                   hint="Email kasir aktif"
                   leftIcon={
-                    <Ionicons name="mail-outline" size={16} color={ColorNeutral.neutral400} />
+                    <Ionicons
+                      name="mail-outline"
+                      size={16}
+                      color={ColorNeutral.neutral400}
+                    />
                   }
                   keyboardType="email-address"
                 />
@@ -251,10 +285,16 @@ export default function LoginPage() {
                   placeholder="Minimal 8 karakter"
                   hint="Minimal 8 karakter"
                   leftIcon={
-                    <Ionicons name="lock-closed-outline" size={16} color={ColorNeutral.neutral400} />
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={16}
+                      color={ColorNeutral.neutral400}
+                    />
                   }
                   rightIcon={
-                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    <TouchableOpacity
+                      onPress={() => setShowPassword(!showPassword)}
+                    >
                       <Ionicons
                         name={showPassword ? "eye-off-outline" : "eye-outline"}
                         size={18}
@@ -276,15 +316,21 @@ export default function LoginPage() {
                     width={20}
                     height={20}
                     borderRadius={4}
-                    backgroundColor={rememberMe ? "$primary" : ColorBase.transparent}
+                    backgroundColor={
+                      rememberMe ? "$primary" : ColorBase.transparent
+                    }
                     borderWidth={2}
                     borderColor={rememberMe ? "$primary" : "$borderColor"}
                     alignItems="center"
                     justifyContent="center"
                   >
-                    {rememberMe && <TextBodySm color={ColorBase.white}>✓</TextBodySm>}
+                    {rememberMe && (
+                      <TextBodySm color={ColorBase.white}>✓</TextBodySm>
+                    )}
                   </YStack>
-                  <TextBodySm color="$colorSecondary">Ingat sesi perangkat ini</TextBodySm>
+                  <TextBodySm color="$colorSecondary">
+                    Ingat sesi perangkat ini
+                  </TextBodySm>
                 </TouchableOpacity>
                 <TouchableOpacity>
                   <TextBodySm fontWeight="600" color="$primary">
@@ -301,7 +347,13 @@ export default function LoginPage() {
                 fullWidth
                 disabled={isLoginPending}
                 title={isLoginPending ? "Memproses…" : "Masuk Sekarang"}
-                icon={<Ionicons name="log-in-outline" size={18} color={ColorBase.white} />}
+                icon={
+                  <Ionicons
+                    name="log-in-outline"
+                    size={18}
+                    color={ColorBase.white}
+                  />
+                }
               />
             </YStack>
           </ScrollView>
@@ -338,15 +390,25 @@ export default function LoginPage() {
               alignItems="center"
               justifyContent="center"
             >
-              <Ionicons name="storefront-outline" size={28} color={ColorBase.white} />
+              <Ionicons
+                name="storefront-outline"
+                size={28}
+                color={ColorBase.white}
+              />
             </YStack>
             <TextH3 fontWeight="700" marginTop="$2">
               Kasir Toko Makmur
             </TextH3>
-            <TextBodySm color="$colorSecondary">Masuk untuk mulai transaksi hari ini</TextBodySm>
+            <TextBodySm color="$colorSecondary">
+              Masuk untuk mulai transaksi hari ini
+            </TextBodySm>
           </YStack>
 
-          <YStack width="100%" alignSelf="center" paddingHorizontal={horizontalPadding}>
+          <YStack
+            width="100%"
+            alignSelf="center"
+            paddingHorizontal={horizontalPadding}
+          >
             <YStack
               backgroundColor="$background"
               borderRadius="$6"
@@ -376,11 +438,17 @@ export default function LoginPage() {
                   alignItems="center"
                   justifyContent="center"
                 >
-                  <Ionicons name="person-outline" size={18} color={ColorGreen.green600} />
+                  <Ionicons
+                    name="person-outline"
+                    size={18}
+                    color={ColorGreen.green600}
+                  />
                 </YStack>
                 <YStack flex={1}>
                   <TextBodyLg fontWeight="600">Mode Kasir</TextBodyLg>
-                  <TextBodySm color="$colorSecondary">Akun staf operasional toko</TextBodySm>
+                  <TextBodySm color="$colorSecondary">
+                    Akun staf operasional toko
+                  </TextBodySm>
                 </YStack>
                 <AppButton variant="ghost" size="sm">
                   Ganti
@@ -390,8 +458,8 @@ export default function LoginPage() {
               <YStack gap="$1">
                 <TextH3 fontWeight="700">Masuk ke akun kasir</TextH3>
                 <TextBodySm color="$colorSecondary" lineHeight={18}>
-                  Gunakan akun yang sudah terdaftar untuk membuka shift dan memproses transaksi
-                  pelanggan.
+                  Gunakan akun yang sudah terdaftar untuk membuka shift dan
+                  memproses transaksi pelanggan.
                 </TextBodySm>
               </YStack>
 
@@ -403,7 +471,11 @@ export default function LoginPage() {
                   placeholder="Email kasir aktif"
                   hint="Email kasir aktif"
                   leftIcon={
-                    <Ionicons name="mail-outline" size={16} color={ColorNeutral.neutral400} />
+                    <Ionicons
+                      name="mail-outline"
+                      size={16}
+                      color={ColorNeutral.neutral400}
+                    />
                   }
                   keyboardType="email-address"
                 />
@@ -414,10 +486,16 @@ export default function LoginPage() {
                   placeholder="Minimal 8 karakter"
                   hint="Minimal 8 karakter"
                   leftIcon={
-                    <Ionicons name="lock-closed-outline" size={16} color={ColorNeutral.neutral400} />
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={16}
+                      color={ColorNeutral.neutral400}
+                    />
                   }
                   rightIcon={
-                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    <TouchableOpacity
+                      onPress={() => setShowPassword(!showPassword)}
+                    >
                       <Ionicons
                         name={showPassword ? "eye-off-outline" : "eye-outline"}
                         size={18}
@@ -438,15 +516,21 @@ export default function LoginPage() {
                     width={20}
                     height={20}
                     borderRadius={4}
-                    backgroundColor={rememberMe ? "$primary" : ColorBase.transparent}
+                    backgroundColor={
+                      rememberMe ? "$primary" : ColorBase.transparent
+                    }
                     borderWidth={2}
                     borderColor={rememberMe ? "$primary" : "$borderColor"}
                     alignItems="center"
                     justifyContent="center"
                   >
-                    {rememberMe && <TextBodySm color={ColorBase.white}>✓</TextBodySm>}
+                    {rememberMe && (
+                      <TextBodySm color={ColorBase.white}>✓</TextBodySm>
+                    )}
                   </YStack>
-                  <TextBodySm color="$colorSecondary">Ingat sesi perangkat ini</TextBodySm>
+                  <TextBodySm color="$colorSecondary">
+                    Ingat sesi perangkat ini
+                  </TextBodySm>
                 </TouchableOpacity>
                 <TouchableOpacity>
                   <TextBodySm fontWeight="600" color="$primary">
@@ -462,7 +546,13 @@ export default function LoginPage() {
                 fullWidth
                 disabled={isLoginPending}
                 title={isLoginPending ? "Memproses…" : "Masuk Sekarang"}
-                icon={<Ionicons name="log-in-outline" size={18} color={ColorBase.white} />}
+                icon={
+                  <Ionicons
+                    name="log-in-outline"
+                    size={18}
+                    color={ColorBase.white}
+                  />
+                }
               />
             </YStack>
 
@@ -474,11 +564,19 @@ export default function LoginPage() {
                 padding="$3"
                 gap={4}
               >
-                <Ionicons name="help-circle-outline" size={20} color={ColorNeutral.neutral500} />
+                <Ionicons
+                  name="help-circle-outline"
+                  size={20}
+                  color={ColorNeutral.neutral500}
+                />
                 <TextBodySm fontWeight="600" textAlign="center">
                   Butuh bantuan?
                 </TextBodySm>
-                <TextCaption color="$colorSecondary" textAlign="center" lineHeight={16}>
+                <TextCaption
+                  color="$colorSecondary"
+                  textAlign="center"
+                  lineHeight={16}
+                >
                   Hubungi supervisor jika akun tidak bisa diakses.
                 </TextCaption>
               </YStack>
@@ -489,11 +587,19 @@ export default function LoginPage() {
                 padding="$3"
                 gap={4}
               >
-                <Ionicons name="sunny-outline" size={20} color={ColorWarning.warning600} />
+                <Ionicons
+                  name="sunny-outline"
+                  size={20}
+                  color={ColorWarning.warning600}
+                />
                 <TextBodySm fontWeight="600" textAlign="center">
                   Buka shift
                 </TextBodySm>
-                <TextCaption color="$colorSecondary" textAlign="center" lineHeight={16}>
+                <TextCaption
+                  color="$colorSecondary"
+                  textAlign="center"
+                  lineHeight={16}
+                >
                   Masuk untuk mulai shift dan catat modal awal kas.
                 </TextCaption>
               </YStack>

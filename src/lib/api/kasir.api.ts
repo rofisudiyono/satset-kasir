@@ -1,6 +1,13 @@
 import { api } from "./client";
 
-import type { KasirReadyOrder, KasirShift, ShiftSlotApi } from "./types";
+import type {
+  CheckoutOrderBody,
+  KasirMenu,
+  KasirOrder,
+  KasirReadyOrder,
+  KasirShift,
+  ShiftSlotApi,
+} from "./types";
 
 export async function getActiveShift(): Promise<KasirShift | null> {
   const { data } = await api.get<{ data: KasirShift | null }>("/kasir/shifts/active");
@@ -96,4 +103,19 @@ export async function cancelPaidOrder(orderId: string, reason: string): Promise<
 
 export async function refundPaidOrder(orderId: string, reason: string): Promise<void> {
   await api.post(`/kasir/orders/${orderId}/refund`, { reason });
+}
+
+export async function getMenus(): Promise<KasirMenu[]> {
+  const { data } = await api.get<{ data: KasirMenu[] }>("/kasir/menus");
+  return data.data ?? [];
+}
+
+export async function getOrderHistory(): Promise<KasirOrder[]> {
+  const { data } = await api.get<{ data: KasirOrder[] }>("/kasir/orders");
+  return data.data ?? [];
+}
+
+export async function checkoutOrder(body: CheckoutOrderBody): Promise<KasirOrder> {
+  const { data } = await api.post<{ data: KasirOrder }>("/kasir/orders/checkout", body);
+  return data.data;
 }

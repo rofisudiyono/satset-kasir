@@ -1,61 +1,92 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
 import { PageHeader, TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components";
-import { ensurePosSeedDataAtom, posOrdersAtom } from "@/features/pos/store/pos.store";
-import { buildOrderItemsSummary, calculateOrderPaidAmount } from "@/features/pos/pos.utils";
-import { shiftDataAtom } from "@/features/shift/store/shift.store";
+import {
+  getApiErrorMessage,
+  useCancelPaidOrderMutation,
+  useOrderHistoryQuery,
+  useRefundPaidOrderMutation,
+} from "@/hooks/api/use-kasir-api";
+import { useAuth } from "@/lib/auth";
+import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
+import type { KasirOrder } from "@/lib/api/types";
 import { ColorBase, ColorDanger, ColorNeutral, ColorPrimary, ColorWarning } from "@/themes/Colors";
 import { formatPrice } from "@/utils";
 
-type HistoryFilter = "SEMUA" | "PENDING" | "PARTIALLY_PAID" | "PAID" | "CANCELLED";
+type HistoryFilter = "SEMUA" | KasirOrder["status"];
+
+function getStatusTone(status: KasirOrder["status"]) {
+  if (status === "CANCELLED") return ColorDanger.danger600;
+  if (status === "REFUND") return ColorWarning.warning700;
+  return ColorPrimary.primary600;
+}
 
 export default function RiwayatOrderTabPage() {
-  const router = useRouter();
-  const [orders, setOrders] = useAtom(posOrdersAtom);
-  const [shiftData] = useAtom(shiftDataAtom);
-  const ensureSeedData = useSetAtom(ensurePosSeedDataAtom);
+  const { isLoggedIn } = useAuth();
+  const isShiftStarted = useAtomValue(isShiftStartedAtom);
+  const { data: orders = [], isLoading } = useOrderHistoryQuery(isLoggedIn && isShiftStarted);
+  const cancelMutation = useCancelPaidOrderMutation();
+  const refundMutation = useRefundPaidOrderMutation();
   const [filter, setFilter] = useState<HistoryFilter>("SEMUA");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
-  useEffect(() => {
-    ensureSeedData();
-  }, [ensureSeedData]);
-
-  const shiftScopedOrders = useMemo(() => {
-    return orders.filter((order) => {
-      if (!shiftData?.shiftId) return true;
-      if (order.shiftId && order.shiftId === shiftData.shiftId) return true;
-      return order.createdAt >= shiftData.openedAt;
-    });
-  }, [orders, shiftData?.openedAt, shiftData?.shiftId]);
-
-  const filteredOrders = shiftScopedOrders.filter((order) =>
-    filter === "SEMUA" ? true : order.status === filter,
+  const filteredOrders = useMemo(
+    () => orders.filter((order) => (filter === "SEMUA" ? true : order.status === filter)),
+    [orders, filter],
   );
-  const selectedOrder =
-    filteredOrders.find((order) => order.id === selectedOrderId) ||
-    filteredOrders[0] ||
-    null;
 
-  function updateOrderStatus(orderId: string, nextStatus: "CANCELLED") {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId ? { ...order, status: nextStatus } : order,
-      ),
-    );
+  useEffect(() => {
+    if (filteredOrders.length === 0) {
+      setSelectedOrderId(null);
+      return;
+    }
+
+    if (!selectedOrderId || !filteredOrders.some((order) => order.id === selectedOrderId)) {
+      setSelectedOrderId(filteredOrders[0]?.id ?? null);
+    }
+  }, [filteredOrders, selectedOrderId]);
+
+  const selectedOrder =
+    filteredOrders.find((order) => order.id === selectedOrderId) ?? filteredOrders[0] ?? null;
+
+  async function handleCancel(orderId: string) {
+    try {
+      await cancelMutation.mutateAsync({
+        orderId,
+        reason: "Order dibatalkan dari aplikasi kasir.",
+      });
+    } catch (error) {
+      Alert.alert(
+        "Gagal membatalkan order",
+        getApiErrorMessage(error, "Order tidak berhasil dibatalkan."),
+      );
+    }
+  }
+
+  async function handleRefund(orderId: string) {
+    try {
+      await refundMutation.mutateAsync({
+        orderId,
+        reason: "Refund diproses dari aplikasi kasir.",
+      });
+    } catch (error) {
+      Alert.alert(
+        "Gagal refund order",
+        getApiErrorMessage(error, "Refund tidak berhasil diproses."),
+      );
+    }
   }
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
       <PageHeader
         title="Riwayat Order"
-        subtitle="Filter default shift aktif atau order hari ini"
+        subtitle="Data transaksi shift aktif langsung dari API kasir"
       />
 
       <XStack flex={1}>
@@ -65,7 +96,7 @@ export default function RiwayatOrderTabPage() {
           contentContainerStyle={styles.listContent}
         >
           <XStack gap="$2" flexWrap="wrap">
-            {(["SEMUA", "PENDING", "PARTIALLY_PAID", "PAID", "CANCELLED"] as HistoryFilter[]).map((item) => {
+            {(["SEMUA", "PAID", "CANCELLED", "REFUND"] as HistoryFilter[]).map((item) => {
               const active = filter === item;
               return (
                 <TouchableOpacity
@@ -84,6 +115,20 @@ export default function RiwayatOrderTabPage() {
             })}
           </XStack>
 
+          {isLoading ? (
+            <View style={styles.emptyCard}>
+              <TextBodySm color="$colorSecondary">Memuat riwayat transaksi...</TextBodySm>
+            </View>
+          ) : null}
+
+          {!isLoading && filteredOrders.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <TextBodySm color="$colorSecondary">
+                Belum ada transaksi untuk filter ini.
+              </TextBodySm>
+            </View>
+          ) : null}
+
           {filteredOrders.map((order) => {
             const active = selectedOrder?.id === order.id;
             return (
@@ -94,20 +139,27 @@ export default function RiwayatOrderTabPage() {
               >
                 <XStack justifyContent="space-between" alignItems="center">
                   <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
-                  <TextCaption color={ColorPrimary.primary600} fontWeight="700">
+                  <TextCaption color={getStatusTone(order.status)} fontWeight="700">
                     {order.status}
                   </TextCaption>
                 </XStack>
                 <TextBodySm color="$colorSecondary">
                   {order.customerName || order.tableLabel || "Tanpa label"}
                 </TextBodySm>
-                <TextCaption color="$colorSecondary">
-                  {buildOrderItemsSummary(order)}
+                <TextCaption color="$colorSecondary" numberOfLines={2}>
+                  {order.items
+                    .map((item) => `${item.nameSnapshot} x${item.qty}`)
+                    .join(", ")}
                 </TextCaption>
                 <XStack justifyContent="space-between">
                   <TextBodySm fontWeight="700">{formatPrice(order.grandTotal)}</TextBodySm>
                   <TextCaption color="$colorSecondary">
-                    Dibayar {formatPrice(calculateOrderPaidAmount(order))}
+                    {order.paidAt
+                      ? new Date(order.paidAt).toLocaleTimeString("id-ID", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "Belum dibayar"}
                   </TextCaption>
                 </XStack>
               </TouchableOpacity>
@@ -126,6 +178,7 @@ export default function RiwayatOrderTabPage() {
           ) : (
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.detailContent}>
               <TextH3 fontWeight="700">Detail Order</TextH3>
+
               <View style={styles.detailCard}>
                 <XStack justifyContent="space-between">
                   <TextBodySm color="$colorSecondary">Order</TextBodySm>
@@ -142,8 +195,16 @@ export default function RiwayatOrderTabPage() {
                   <TextBodySm fontWeight="700">{selectedOrder.status}</TextBodySm>
                 </XStack>
                 <XStack justifyContent="space-between">
-                  <TextBodySm color="$colorSecondary">Fulfillment</TextBodySm>
-                  <TextBodySm fontWeight="700">{selectedOrder.fulfillment}</TextBodySm>
+                  <TextBodySm color="$colorSecondary">Subtotal</TextBodySm>
+                  <TextBodySm fontWeight="700">{formatPrice(selectedOrder.subtotal)}</TextBodySm>
+                </XStack>
+                <XStack justifyContent="space-between">
+                  <TextBodySm color="$colorSecondary">Diskon</TextBodySm>
+                  <TextBodySm fontWeight="700">{formatPrice(selectedOrder.discountAmount)}</TextBodySm>
+                </XStack>
+                <XStack justifyContent="space-between">
+                  <TextBodySm color="$colorSecondary">Grand Total</TextBodySm>
+                  <TextBodySm fontWeight="700">{formatPrice(selectedOrder.grandTotal)}</TextBodySm>
                 </XStack>
               </View>
 
@@ -153,14 +214,15 @@ export default function RiwayatOrderTabPage() {
                   <XStack key={item.id} justifyContent="space-between" marginTop={10}>
                     <YStack flex={1}>
                       <TextBodySm fontWeight="700">
-                        {item.name} x{item.qty}
+                        {item.nameSnapshot}
+                        {item.variantNameSnapshot ? ` (${item.variantNameSnapshot})` : ""} x{item.qty}
                       </TextBodySm>
                       <TextCaption color="$colorSecondary">
-                        {item.note || item.modifierLabels?.join(", ") || "Tanpa catatan"}
+                        {item.note || "Tanpa catatan"}
                       </TextCaption>
                     </YStack>
                     <TextBodySm fontWeight="700">
-                      {formatPrice(item.qty * item.unitPrice)}
+                      {formatPrice(item.qty * item.unitPriceSnapshot)}
                     </TextBodySm>
                   </XStack>
                 ))}
@@ -168,33 +230,39 @@ export default function RiwayatOrderTabPage() {
 
               <View style={styles.detailCard}>
                 <TextH3 fontWeight="700">Pembayaran</TextH3>
-                {selectedOrder.payments.length === 0 ? (
-                  <TextBodySm color="$colorSecondary" marginTop={10}>
-                    Belum ada pembayaran.
-                  </TextBodySm>
-                ) : (
-                  selectedOrder.payments.map((payment) => (
-                    <XStack key={payment.id} justifyContent="space-between" marginTop={10}>
-                      <YStack flex={1}>
-                        <TextBodySm fontWeight="700">{payment.method.toUpperCase()}</TextBodySm>
-                        <TextCaption color="$colorSecondary">
-                          {payment.label || "Pembayaran"}
-                        </TextCaption>
-                      </YStack>
-                      <TextBodySm fontWeight="700">
-                        {formatPrice(payment.amountPaid)}
-                      </TextBodySm>
-                    </XStack>
-                  ))
-                )}
+                {selectedOrder.payments.map((payment) => (
+                  <XStack key={payment.id} justifyContent="space-between" marginTop={10}>
+                    <YStack flex={1}>
+                      <TextBodySm fontWeight="700">{payment.method}</TextBodySm>
+                      <TextCaption color="$colorSecondary">
+                        {payment.label || "Pembayaran"}
+                      </TextCaption>
+                    </YStack>
+                    <TextBodySm fontWeight="700">
+                      {formatPrice(payment.amountPaid)}
+                    </TextBodySm>
+                  </XStack>
+                ))}
               </View>
 
               <YStack gap="$2">
-                {(selectedOrder.status === "PENDING" ||
-                  selectedOrder.status === "PARTIALLY_PAID") && (
+                {selectedOrder.status === "PAID" ? (
                   <>
                     <TouchableOpacity
-                      onPress={() => updateOrderStatus(selectedOrder.id, "CANCELLED")}
+                      onPress={() =>
+                        Alert.alert(
+                          "Void order",
+                          `Batalkan order ${selectedOrder.id}?`,
+                          [
+                            { text: "Batal", style: "cancel" },
+                            {
+                              text: "Void",
+                              style: "destructive",
+                              onPress: () => void handleCancel(selectedOrder.id),
+                            },
+                          ],
+                        )
+                      }
                       style={[styles.actionButton, styles.voidButton]}
                     >
                       <TextBodySm fontWeight="700" color={ColorDanger.danger600}>
@@ -203,28 +271,29 @@ export default function RiwayatOrderTabPage() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() =>
-                        router.push({
-                          pathname: "/pilih-pembayaran",
-                          params: { orderId: selectedOrder.id },
-                        })
+                        Alert.alert(
+                          "Refund order",
+                          `Proses refund untuk ${selectedOrder.id}?`,
+                          [
+                            { text: "Batal", style: "cancel" },
+                            {
+                              text: "Refund",
+                              onPress: () => void handleRefund(selectedOrder.id),
+                            },
+                          ],
+                        )
                       }
-                      style={[styles.actionButton, styles.payButton]}
+                      style={[styles.actionButton, styles.refundButton]}
                     >
-                      <TextBodySm fontWeight="700" color={ColorPrimary.primary600}>
-                        Lunasi dari Riwayat
+                      <TextBodySm fontWeight="700" color={ColorWarning.warning700}>
+                        Refund Order
                       </TextBodySm>
                     </TouchableOpacity>
                   </>
-                )}
-                {selectedOrder.status === "PAID" && (
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.refundButton]}
-                    onPress={() => updateOrderStatus(selectedOrder.id, "CANCELLED")}
-                  >
-                    <TextBodySm fontWeight="700" color={ColorWarning.warning700}>
-                      Refund / Batalkan
-                    </TextBodySm>
-                  </TouchableOpacity>
+                ) : (
+                  <TextCaption color="$colorSecondary" textAlign="center">
+                    Status order sudah final dan tidak ada aksi lanjutan.
+                  </TextCaption>
                 )}
               </YStack>
             </ScrollView>
@@ -301,10 +370,14 @@ const styles = StyleSheet.create({
   voidButton: {
     backgroundColor: ColorDanger.danger25,
   },
-  payButton: {
-    backgroundColor: ColorPrimary.primary50,
-  },
   refundButton: {
     backgroundColor: ColorWarning.warning50,
+  },
+  emptyCard: {
+    backgroundColor: ColorBase.white,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
   },
 });

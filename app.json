@@ -15,6 +15,9 @@
       "reactCompiler": true,
       "typedRoutes": true
     },
+    "extra": {
+      "apiUrl": "http://127.0.0.1:3000"
+    },
     "icon": "./assets/images/icon.png",
     "ios": {
       "bundleIdentifier": "com.rofisudiyono.kasirinaja",
@@ -22,7 +25,7 @@
       "supportsTablet": true
     },
     "name": "kasirin-aja",
-    "orientation": "portrait",
+    "orientation": "landscape",
     "plugins": [
       [
         "expo-camera",
@@ -45,9 +48,6 @@
     ],
     "scheme": "kasirinaja",
     "slug": "kasirin-aja",
-    "extra": {
-      "apiUrl": "http://127.0.0.1:3000"
-    },
     "userInterfaceStyle": "automatic",
     "version": "1.0.0",
     "web": {

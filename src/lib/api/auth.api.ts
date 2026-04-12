@@ -1,6 +1,6 @@
 import { api } from "./client";
 
-import type { AuthSession, AuthUser } from "./types";
+import type { AuthUser } from "./types";
 
 export type LoginResponse = {
   accessToken: string;

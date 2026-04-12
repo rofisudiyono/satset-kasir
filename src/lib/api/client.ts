@@ -1,8 +1,8 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
-import { getDefaultStore } from "jotai";
 
 import { API_BASE_URL } from "@/config/env";
 import { sessionAtom } from "@/features/auth/store/auth.store";
+import { appStore } from "@/store/storage";
 
 import type { ApiErrorBody, AuthSession } from "./types";
 
@@ -21,7 +21,7 @@ export const api = axios.create({
 let refreshInFlight: Promise<string | null> | null = null;
 
 async function refreshAccessToken(): Promise<string | null> {
-  const store = getDefaultStore();
+  const store = appStore;
   const session = store.get(sessionAtom);
   const refreshToken = session?.refreshToken;
   if (!refreshToken) return null;
@@ -56,7 +56,7 @@ async function refreshAccessToken(): Promise<string | null> {
 }
 
 api.interceptors.request.use((config) => {
-  const session = getDefaultStore().get(sessionAtom);
+  const session = appStore.get(sessionAtom);
   if (session?.accessToken) {
     config.headers.Authorization = `Bearer ${session.accessToken}`;
   }
@@ -90,7 +90,10 @@ api.interceptors.response.use(
   },
 );
 
-export function getApiErrorMessage(error: unknown, fallback = "Terjadi kesalahan"): string {
+export function getApiErrorMessage(
+  error: unknown,
+  fallback = "Terjadi kesalahan",
+): string {
   if (axios.isAxiosError<ApiErrorBody>(error)) {
     const msg = error.response?.data?.message;
     if (typeof msg === "string" && msg.length > 0) return msg;

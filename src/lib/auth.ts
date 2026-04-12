@@ -1,4 +1,4 @@
-import { getDefaultStore, useAtom } from "jotai";
+import { useAtom } from "jotai";
 import { useCallback } from "react";
 
 import { sessionAtom } from "@/features/auth/store/auth.store";
@@ -9,13 +9,13 @@ import {
 import { logoutRequest } from "@/lib/api/auth.api";
 import type { AuthSession } from "@/lib/api/types";
 import { queryClient } from "@/providers/query-client";
+import { appStore } from "@/store/storage";
 
 export const useAuth = () => {
   const [session, setSession] = useAtom(sessionAtom);
 
   const logout = useCallback(async () => {
-    const store = getDefaultStore();
-    const refreshToken = store.get(sessionAtom)?.refreshToken;
+    const refreshToken = appStore.get(sessionAtom)?.refreshToken;
     try {
       if (refreshToken) {
         await logoutRequest(refreshToken);
@@ -23,9 +23,9 @@ export const useAuth = () => {
     } catch {
       // Tetap bersihkan sesi lokal walau revoke gagal
     } finally {
-      store.set(sessionAtom, null);
-      store.set(isShiftStartedAtom, false);
-      store.set(shiftDataAtom, null);
+      appStore.set(sessionAtom, null);
+      appStore.set(isShiftStartedAtom, false);
+      appStore.set(shiftDataAtom, null);
       void queryClient.clear();
     }
   }, []);
