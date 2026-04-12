@@ -7,6 +7,7 @@ import type {
   KasirReadyOrder,
   KasirShift,
   KasirTable,
+  PendingWebOrder,
   ShiftSlotApi,
 } from "./types";
 
@@ -150,4 +151,26 @@ export async function getOrderHistory(): Promise<KasirOrder[]> {
 export async function checkoutOrder(body: CheckoutOrderBody): Promise<KasirOrder> {
   const { data } = await api.post<{ data: KasirOrder }>("/kasir/orders/checkout", body);
   return data.data;
+}
+
+// ─── Pending Web Orders ───────────────────────────────────────────────────────
+
+export async function getPendingWebOrders(): Promise<PendingWebOrder[]> {
+  const { data } = await api.get<{ data: PendingWebOrder[] }>("/kasir/orders/pending-web");
+  return data.data ?? [];
+}
+
+export async function confirmPendingWebOrder(
+  pendingId: string,
+  payments: PaymentEntry[],
+): Promise<KasirOrder> {
+  const { data } = await api.post<{ data: KasirOrder }>(
+    `/kasir/orders/pending-web/${pendingId}/confirm`,
+    { payments },
+  );
+  return data.data;
+}
+
+export async function cancelPendingWebOrder(pendingId: string): Promise<void> {
+  await api.delete(`/kasir/orders/pending-web/${pendingId}`);
 }

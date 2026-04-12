@@ -166,4 +166,41 @@ export function useRefundPaidOrderMutation() {
   });
 }
 
+export function usePendingWebOrdersQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: kasirKeys.pendingWebOrders(),
+    queryFn: kasirApi.getPendingWebOrders,
+    enabled,
+    staleTime: 15_000,
+    refetchInterval: enabled ? 20_000 : false,
+  });
+}
+
+export function useConfirmPendingWebOrderMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      pendingId,
+      payments,
+    }: {
+      pendingId: string;
+      payments: PaymentEntry[];
+    }) => kasirApi.confirmPendingWebOrder(pendingId, payments),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: kasirKeys.pendingWebOrders() });
+      void qc.invalidateQueries({ queryKey: kasirKeys.orderHistory() });
+    },
+  });
+}
+
+export function useCancelPendingWebOrderMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (pendingId: string) => kasirApi.cancelPendingWebOrder(pendingId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: kasirKeys.pendingWebOrders() });
+    },
+  });
+}
+
 export { getApiErrorMessage };

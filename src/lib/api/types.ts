@@ -185,3 +185,38 @@ export type KasirReadyOrder = {
   readyAt: string;
   createdAt: string;
 };
+
+// ─── Pending Web Orders ───────────────────────────────────────────────────────
+
+export type TempOrderItemSnapshot = {
+  menuId: string;
+  menuVariantId?: string;
+  name: string;
+  variantName?: string;
+  qty: number;
+  unitPrice: number;
+  note?: string;
+  modifiers: { label: string; extraPrice: number }[];
+};
+
+export type PendingWebOrder = {
+  id: string;
+  tenantId: string;
+  branchId: string;
+  shiftId: string;
+  tableId: string | null;
+  tableLabel: string | null;
+  customerId: string | null;
+  customerName: string | null;
+  customerPhone: string | null;
+  webPaymentMode: "MANUAL" | "ONLINE";
+  trackingToken: string | null;
+  orderNote: string | null;
+  items: TempOrderItemSnapshot[];
+  subtotal: number;
+  taxAmount: number;
+  discountAmount: number;
+  promoId: string | null;
+  grandTotal: number;
+  createdAt: string;
+};
