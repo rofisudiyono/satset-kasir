@@ -2,12 +2,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAtomValue } from "jotai";
 import React, { useMemo } from "react";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
 import { PageHeader, TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components";
-import { useReadyOrdersQuery } from "@/hooks/api/use-kasir-api";
+import {
+  getApiErrorMessage,
+  useDeliverOrderMutation,
+  useReadyOrdersQuery,
+} from "@/hooks/api/use-kasir-api";
 import { useAuth } from "@/lib/auth";
 import type { KasirReadyOrder } from "@/lib/api/types";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
@@ -21,13 +25,19 @@ function needsManualApproval(row: KasirReadyOrder) {
 function ReadyRow({
   row,
   onPress,
+  onDeliver,
 }: {
   row: KasirReadyOrder;
   onPress: () => void;
+  onDeliver?: () => void;
 }) {
   const manual = needsManualApproval(row);
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onDeliver ? undefined : onPress}
+      activeOpacity={onDeliver ? 1 : 0.85}
+    >
       <XStack justifyContent="space-between" alignItems="flex-start">
         <YStack flex={1} gap={4}>
           <XStack alignItems="center" gap={8} flexWrap="wrap">
@@ -48,17 +58,32 @@ function ReadyRow({
                 </TextCaption>
               </View>
             ) : null}
+            {row.canMarkDelivered ? (
+              <View style={styles.badgeReady}>
+                <TextCaption fontWeight="700" color={ColorSuccess.success700}>
+                  Siap Antar
+                </TextCaption>
+              </View>
+            ) : null}
           </XStack>
           <TextBodySm color="$colorSecondary">
             {[row.customerName, row.customerPhone].filter(Boolean).join(" · ") || "—"}
           </TextBodySm>
           <TextCaption color="$colorSecondary" numberOfLines={1}>
-            ID siap bayar: {row.id.slice(0, 13)}…
+            {row.canMarkDelivered ? "ID order" : "ID siap"}: {row.id.slice(0, 13)}…
           </TextCaption>
         </YStack>
         <YStack alignItems="flex-end" gap={4}>
           <TextBodyLg fontWeight="800">{formatPrice(row.grandTotal)}</TextBodyLg>
-          <Ionicons name="chevron-forward" size={20} color={ColorNeutral.neutral400} />
+          {onDeliver ? (
+            <TouchableOpacity style={styles.deliverBtn} onPress={onDeliver}>
+              <TextCaption fontWeight="800" color={ColorBase.white}>
+                Sudah diantar
+              </TextCaption>
+            </TouchableOpacity>
+          ) : (
+            <Ionicons name="chevron-forward" size={20} color={ColorNeutral.neutral400} />
+          )}
         </YStack>
       </XStack>
     </TouchableOpacity>
@@ -69,25 +94,37 @@ export default function SiapAntarPage() {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const isShiftStarted = useAtomValue(isShiftStartedAtom);
+  const deliverMutation = useDeliverOrderMutation();
   const { data = [], isLoading, isError, refetch } = useReadyOrdersQuery(
     Boolean(isLoggedIn && isShiftStarted),
   );
 
-  const { manualRows, normalRows } = useMemo(() => {
+  const { manualRows, deliveryRows, pendingRows } = useMemo(() => {
     const manual: KasirReadyOrder[] = [];
-    const normal: KasirReadyOrder[] = [];
+    const delivery: KasirReadyOrder[] = [];
+    const pending: KasirReadyOrder[] = [];
     for (const r of data) {
-      if (needsManualApproval(r)) manual.push(r);
-      else normal.push(r);
+      if (r.canMarkDelivered) delivery.push(r);
+      else if (needsManualApproval(r)) manual.push(r);
+      else pending.push(r);
     }
-    return { manualRows: manual, normalRows: normal };
+    return { manualRows: manual, deliveryRows: delivery, pendingRows: pending };
   }, [data]);
+
+  async function handleDeliver(row: KasirReadyOrder) {
+    if (!row.orderId) return;
+    try {
+      await deliverMutation.mutateAsync(row.orderId);
+    } catch (error) {
+      Alert.alert("Gagal", getApiErrorMessage(error, "Gagal menandai pesanan sudah diantar."));
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
       <PageHeader
-        title="Siap bayar"
-        subtitle="Dari dapur (temp siap). WEB manual perlu pencatatan kasir."
+        title="Siap antar"
+        subtitle="Kasir bisa memantau pesanan siap diantar dan membantu menyerahkan ke pelanggan."
         showBack
         onBack={() => router.back()}
       />
@@ -105,8 +142,28 @@ export default function SiapAntarPage() {
           <YStack alignItems="center" paddingVertical="$6" gap="$2">
             <Ionicons name="bag-check-outline" size={40} color={ColorNeutral.neutral300} />
             <TextBodySm color="$colorSecondary" textAlign="center">
-              Belum ada pesanan siap bayar dari shift ini.
+              Belum ada pesanan siap diantar untuk cabang ini.
             </TextBodySm>
+          </YStack>
+        ) : null}
+
+        {deliveryRows.length > 0 ? (
+          <YStack gap="$2" marginBottom="$4">
+            <XStack alignItems="center" gap="$2">
+              <Ionicons name="restaurant" size={18} color={ColorSuccess.success700} />
+              <TextH3 fontWeight="700">Siap diantar</TextH3>
+            </XStack>
+            <TextCaption color="$colorSecondary">
+              Pesanan sudah selesai dimasak dan bisa diantar oleh kasir atau tim dapur.
+            </TextCaption>
+            {deliveryRows.map((row) => (
+              <ReadyRow
+                key={row.id}
+                row={row}
+                onPress={() => {}}
+                onDeliver={() => void handleDeliver(row)}
+              />
+            ))}
           </YStack>
         ) : null}
 
@@ -134,13 +191,16 @@ export default function SiapAntarPage() {
           </YStack>
         ) : null}
 
-        {normalRows.length > 0 ? (
+        {pendingRows.length > 0 ? (
           <YStack gap="$2">
             <XStack alignItems="center" gap="$2">
               <Ionicons name="card-outline" size={18} color={ColorSuccess.success700} />
-              <TextH3 fontWeight="700">Bayar biasa</TextH3>
+              <TextH3 fontWeight="700">Perlu tindak lanjut kasir</TextH3>
             </XStack>
-            {normalRows.map((row) => (
+            <TextCaption color="$colorSecondary">
+              Pesanan ini sudah selesai dimasak, tetapi masih menunggu penyelesaian pembayaran.
+            </TextCaption>
+            {pendingRows.map((row) => (
               <ReadyRow
                 key={row.id}
                 row={row}
@@ -193,6 +253,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
+  },
+  badgeReady: {
+    backgroundColor: ColorSuccess.success200,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  deliverBtn: {
+    backgroundColor: ColorSuccess.success600,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
   refreshBtn: {
     alignSelf: "center",

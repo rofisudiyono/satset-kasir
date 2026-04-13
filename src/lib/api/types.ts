@@ -163,6 +163,7 @@ export type KasirReadyPaymentStatus =
 
 export type KasirReadyOrder = {
   id: string;
+  orderId: string | null;
   tenantId: string;
   branchId: string;
   shiftId: string;
@@ -184,6 +185,8 @@ export type KasirReadyOrder = {
   grandTotal: number;
   readyAt: string;
   createdAt: string;
+  canMarkDelivered: boolean;
+  isFinalOrder: boolean;
 };
 
 // ─── Pending Web Orders ───────────────────────────────────────────────────────

@@ -91,6 +91,7 @@ export function useDeliverOrderMutation() {
   return useMutation({
     mutationFn: (orderId: string) => kasirApi.deliverPaidOrder(orderId),
     onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: kasirKeys.readyOrders() });
       void qc.invalidateQueries({ queryKey: kasirKeys.orderHistory() });
     },
   });
