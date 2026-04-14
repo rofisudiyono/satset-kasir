@@ -62,13 +62,21 @@ export type KasirTable = {
 
 export type KasirOrderItem = {
   id: string;
-  menuId: string;
+  menuId: string | null;
   menuVariantId: string | null;
   nameSnapshot: string;
   variantNameSnapshot: string | null;
   unitPriceSnapshot: number;
   qty: number;
   note: string | null;
+  modifiers?: KasirOrderItemModifier[];
+};
+
+export type KasirOrderItemModifier = {
+  id: string;
+  modifierOptionId?: string | null;
+  labelSnapshot: string;
+  extraPriceSnapshot: number;
 };
 
 export type KasirOrderPayment = {
@@ -88,11 +96,13 @@ export type KasirOrderFulfillmentStatus =
 
 export type KasirOrder = {
   id: string;
+  branchId?: string;
   shiftId: string;
   source: "WALK_IN" | "WEB";
   customerName: string | null;
   tableLabel: string | null;
   status: "PAID" | "CANCELLED" | "REFUND";
+  paymentStatus?: "PENDING" | "PENDING_MANUAL_APPROVAL" | "PAID" | "FAILED" | "REFUNDED";
   /** Setelah lunas: apakah pesanan sudah diserahkan ke pelanggan (backend `orders.fulfillment_status`). */
   fulfillmentStatus?: KasirOrderFulfillmentStatus;
   subtotal: number;
@@ -101,9 +111,25 @@ export type KasirOrder = {
   grandTotal: number;
   items: KasirOrderItem[];
   payments: KasirOrderPayment[];
+  voidReason?: string | null;
+  refundReason?: string | null;
   paidAt: string | null;
   createdAt: string;
 };
+
+export type KasirOrderHistoryScope = "shift" | "branch";
+
+export type GetOrderHistoryParams = {
+  page?: number;
+  limit?: number;
+  from?: string;
+  to?: string;
+  q?: string;
+  status?: KasirOrder["status"];
+  scope?: KasirOrderHistoryScope;
+};
+
+export type KasirOrderDetail = KasirOrder;
 
 // ─── Checkout ─────────────────────────────────────────────────────────────────
 

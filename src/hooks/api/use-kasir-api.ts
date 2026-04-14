@@ -9,9 +9,12 @@ import type {
   QueueOrderBody,
   PaymentEntry,
 } from "@/lib/api/kasir.api";
-import type { CheckoutOrderBody } from "@/lib/api/types";
+import type { CheckoutOrderBody, GetOrderHistoryParams } from "@/lib/api/types";
 
 import { kasirKeys } from "./query-keys";
+
+const orderHistoryPrefix = [...kasirKeys.all, "orders", "history"] as const;
+const orderDetailPrefix = [...kasirKeys.all, "orders", "detail"] as const;
 
 export function useActiveShiftQuery(enabled: boolean) {
   return useQuery({
@@ -81,7 +84,8 @@ export function usePayReadyOrderMutation() {
         : kasirApi.payReadyOrder(readyOrderId, payments),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: kasirKeys.readyOrders() });
-      void qc.invalidateQueries({ queryKey: kasirKeys.orderHistory() });
+      void qc.invalidateQueries({ queryKey: orderHistoryPrefix });
+      void qc.invalidateQueries({ queryKey: orderDetailPrefix });
     },
   });
 }
@@ -92,7 +96,8 @@ export function useDeliverOrderMutation() {
     mutationFn: (orderId: string) => kasirApi.deliverPaidOrder(orderId),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: kasirKeys.readyOrders() });
-      void qc.invalidateQueries({ queryKey: kasirKeys.orderHistory() });
+      void qc.invalidateQueries({ queryKey: orderHistoryPrefix });
+      void qc.invalidateQueries({ queryKey: orderDetailPrefix });
     },
   });
 }
@@ -122,13 +127,22 @@ export function useTablesQuery(enabled: boolean, branchId?: string) {
   });
 }
 
-export function useOrderHistoryQuery(enabled: boolean) {
+export function useOrderHistoryQuery(enabled: boolean, params?: GetOrderHistoryParams) {
   return useQuery({
-    queryKey: kasirKeys.orderHistory(),
-    queryFn: kasirApi.getOrderHistory,
+    queryKey: kasirKeys.orderHistory(params),
+    queryFn: () => kasirApi.getOrderHistory(params),
     enabled,
     staleTime: 30_000,
     refetchInterval: enabled ? 60_000 : false,
+  });
+}
+
+export function useOrderDetailQuery(enabled: boolean, orderId?: string | null) {
+  return useQuery({
+    queryKey: kasirKeys.orderDetail(orderId ?? undefined),
+    queryFn: () => kasirApi.getOrderDetail(orderId!),
+    enabled: enabled && !!orderId,
+    staleTime: 30_000,
   });
 }
 
@@ -137,7 +151,8 @@ export function useCheckoutMutation() {
   return useMutation({
     mutationFn: (body: CheckoutOrderBody) => kasirApi.checkoutOrder(body),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: kasirKeys.orderHistory() });
+      void qc.invalidateQueries({ queryKey: orderHistoryPrefix });
+      void qc.invalidateQueries({ queryKey: orderDetailPrefix });
       void qc.invalidateQueries({ queryKey: kasirKeys.activeShift() });
     },
   });
@@ -149,7 +164,8 @@ export function useCancelPaidOrderMutation() {
     mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
       kasirApi.cancelPaidOrder(orderId, reason),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: kasirKeys.orderHistory() });
+      void qc.invalidateQueries({ queryKey: orderHistoryPrefix });
+      void qc.invalidateQueries({ queryKey: orderDetailPrefix });
       void qc.invalidateQueries({ queryKey: kasirKeys.activeShift() });
     },
   });
@@ -161,7 +177,8 @@ export function useRefundPaidOrderMutation() {
     mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
       kasirApi.refundPaidOrder(orderId, reason),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: kasirKeys.orderHistory() });
+      void qc.invalidateQueries({ queryKey: orderHistoryPrefix });
+      void qc.invalidateQueries({ queryKey: orderDetailPrefix });
       void qc.invalidateQueries({ queryKey: kasirKeys.activeShift() });
     },
   });
@@ -189,7 +206,8 @@ export function useConfirmPendingWebOrderMutation() {
     }) => kasirApi.confirmPendingWebOrder(pendingId, payments),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: kasirKeys.pendingWebOrders() });
-      void qc.invalidateQueries({ queryKey: kasirKeys.orderHistory() });
+      void qc.invalidateQueries({ queryKey: orderHistoryPrefix });
+      void qc.invalidateQueries({ queryKey: orderDetailPrefix });
     },
   });
 }

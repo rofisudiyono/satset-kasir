@@ -5,5 +5,6 @@ export const kasirKeys = {
   pendingWebOrders: () => [...kasirKeys.all, "orders", "pending-web"] as const,
   menus: () => [...kasirKeys.all, "menus"] as const,
   tables: (branchId?: string) => [...kasirKeys.all, "tables", branchId ?? "active-branch"] as const,
-  orderHistory: () => [...kasirKeys.all, "orders", "history"] as const,
+  orderHistory: (params?: Record<string, unknown>) => [...kasirKeys.all, "orders", "history", params ?? {}] as const,
+  orderDetail: (orderId?: string) => [...kasirKeys.all, "orders", "detail", orderId ?? "unknown"] as const,
 };

@@ -1,23 +1,51 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 import { useAtomValue } from "jotai";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import { PageHeader, TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components";
+import {
+  AppButton,
+  AppInput,
+  PageHeader,
+  TextBodyLg,
+  TextBodySm,
+  TextCaption,
+  TextH3,
+} from "@/components";
+import {
+  buildEscPosReceiptData,
+  buildPrintableReceiptOrderFromKasirOrder,
+  buildReceiptHtml,
+  getKasirPaymentMethodLabel,
+} from "@/features/payment/utils/receipt.utils";
+import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import {
   getApiErrorMessage,
   useCancelPaidOrderMutation,
   useDeliverOrderMutation,
+  useOrderDetailQuery,
   useOrderHistoryQuery,
   useRefundPaidOrderMutation,
 } from "@/hooks/api/use-kasir-api";
 import { useAuth } from "@/lib/auth";
-import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import type { KasirOrder } from "@/lib/api/types";
-import { ColorBase, ColorDanger, ColorNeutral, ColorPrimary, ColorWarning } from "@/themes/Colors";
+import {
+  ColorBase,
+  ColorDanger,
+  ColorNeutral,
+  ColorPrimary,
+  ColorWarning,
+} from "@/themes/Colors";
 import { formatPrice } from "@/utils";
+import {
+  bluetoothPrinterManager,
+  type PrinterState,
+} from "@/utils/bluetooth-printer";
+import { buildESCPOSReceipt } from "@/utils/esc-pos-formatter";
 
 type HistoryFilter = "SEMUA" | KasirOrder["status"];
 
@@ -27,34 +55,71 @@ function getStatusTone(status: KasirOrder["status"]) {
   return ColorPrimary.primary600;
 }
 
+function formatOrderTime(value?: string | null) {
+  if (!value) return "Belum dibayar";
+  return new Date(value).toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function RiwayatOrderTabPage() {
   const { isLoggedIn } = useAuth();
   const isShiftStarted = useAtomValue(isShiftStartedAtom);
-  const { data: orders = [], isLoading } = useOrderHistoryQuery(isLoggedIn && isShiftStarted);
   const cancelMutation = useCancelPaidOrderMutation();
   const refundMutation = useRefundPaidOrderMutation();
   const deliverMutation = useDeliverOrderMutation();
   const [filter, setFilter] = useState<HistoryFilter>("SEMUA");
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [printerState, setPrinterState] = useState<PrinterState>({
+    connected: false,
+    printer: null,
+    printing: false,
+  });
 
-  const filteredOrders = useMemo(
-    () => orders.filter((order) => (filter === "SEMUA" ? true : order.status === filter)),
-    [orders, filter],
+  const deferredSearchTerm = useDeferredValue(searchTerm.trim());
+  const historyParams = useMemo(
+    () => ({
+      scope: "branch" as const,
+      limit: 100,
+      q: deferredSearchTerm || undefined,
+      status: filter === "SEMUA" ? undefined : filter,
+    }),
+    [deferredSearchTerm, filter],
+  );
+
+  const { data: orders = [], isLoading } = useOrderHistoryQuery(
+    isLoggedIn && isShiftStarted,
+    historyParams,
+  );
+  const { data: selectedOrderDetail, isLoading: isDetailLoading } = useOrderDetailQuery(
+    isLoggedIn && isShiftStarted,
+    selectedOrderId,
   );
 
   useEffect(() => {
-    if (filteredOrders.length === 0) {
+    const unsubscribe = bluetoothPrinterManager.subscribe((state) => {
+      setPrinterState(state);
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (orders.length === 0) {
       setSelectedOrderId(null);
       return;
     }
 
-    if (!selectedOrderId || !filteredOrders.some((order) => order.id === selectedOrderId)) {
-      setSelectedOrderId(filteredOrders[0]?.id ?? null);
+    if (!selectedOrderId || !orders.some((order) => order.id === selectedOrderId)) {
+      setSelectedOrderId(orders[0]?.id ?? null);
     }
-  }, [filteredOrders, selectedOrderId]);
+  }, [orders, selectedOrderId]);
 
-  const selectedOrder =
-    filteredOrders.find((order) => order.id === selectedOrderId) ?? filteredOrders[0] ?? null;
+  const selectedOrder = selectedOrderDetail ?? orders.find((order) => order.id === selectedOrderId) ?? null;
+  const printableReceipt = selectedOrderDetail
+    ? buildPrintableReceiptOrderFromKasirOrder(selectedOrderDetail)
+    : null;
 
   async function handleCancel(orderId: string) {
     try {
@@ -95,17 +160,65 @@ export default function RiwayatOrderTabPage() {
     }
   }
 
+  async function handlePrintInvoice() {
+    if (!printableReceipt) {
+      Alert.alert("Mohon tunggu", "Detail order masih dimuat.");
+      return;
+    }
+
+    try {
+      const { uri } = await Print.printToFileAsync({
+        html: buildReceiptHtml(printableReceipt),
+        base64: false,
+      });
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(uri, {
+          mimeType: "application/pdf",
+          dialogTitle: "Cetak / Bagikan Invoice",
+        });
+      } else {
+        await Print.printAsync({ uri });
+      }
+    } catch {
+      Alert.alert("Gagal", "Tidak dapat membuka invoice PDF.");
+    }
+  }
+
+  async function handleBluetoothPrint() {
+    if (!printableReceipt) {
+      Alert.alert("Mohon tunggu", "Detail order masih dimuat.");
+      return;
+    }
+
+    if (!printerState.connected) {
+      Alert.alert("Printer tidak terhubung", "Hubungkan printer Bluetooth terlebih dahulu.");
+      return;
+    }
+
+    try {
+      const escPosData = buildESCPOSReceipt(buildEscPosReceiptData(printableReceipt));
+      const success = await bluetoothPrinterManager.printESCPOS(escPosData);
+      if (success) {
+        Alert.alert("Berhasil", "Invoice berhasil dicetak via Bluetooth.");
+      }
+    } catch (error) {
+      console.error("Bluetooth print error:", error);
+      Alert.alert("Cetak gagal", "Terjadi kesalahan saat mencetak invoice.");
+    }
+  }
+
   function canMarkDelivered(order: KasirOrder) {
     if (order.status !== "PAID") return false;
-    const fs = order.fulfillmentStatus ?? "READY";
-    return fs !== "DELIVERED";
+    const fulfillmentStatus = order.fulfillmentStatus ?? "READY";
+    return fulfillmentStatus !== "DELIVERED";
   }
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
       <PageHeader
         title="Riwayat Order"
-        subtitle="Data transaksi shift aktif langsung dari API kasir"
+        subtitle="Riwayat transaksi cabang untuk cari dan reprint invoice sebelumnya"
       />
 
       <XStack flex={1}>
@@ -114,6 +227,19 @@ export default function RiwayatOrderTabPage() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
         >
+          <AppInput
+            placeholder="Cari order id, pelanggan, atau meja"
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            leftIcon={
+              <Ionicons
+                name="search-outline"
+                size={18}
+                color={ColorNeutral.neutral500}
+              />
+            }
+          />
+
           <XStack gap="$2" flexWrap="wrap">
             {(["SEMUA", "PAID", "CANCELLED", "REFUND"] as HistoryFilter[]).map((item) => {
               const active = filter === item;
@@ -140,16 +266,16 @@ export default function RiwayatOrderTabPage() {
             </View>
           ) : null}
 
-          {!isLoading && filteredOrders.length === 0 ? (
+          {!isLoading && orders.length === 0 ? (
             <View style={styles.emptyCard}>
               <TextBodySm color="$colorSecondary">
-                Belum ada transaksi untuk filter ini.
+                Tidak ada transaksi yang cocok dengan pencarian saat ini.
               </TextBodySm>
             </View>
           ) : null}
 
-          {filteredOrders.map((order) => {
-            const active = selectedOrder?.id === order.id;
+          {orders.map((order) => {
+            const active = selectedOrderId === order.id;
             return (
               <TouchableOpacity
                 key={order.id}
@@ -166,19 +292,12 @@ export default function RiwayatOrderTabPage() {
                   {order.customerName || order.tableLabel || "Tanpa label"}
                 </TextBodySm>
                 <TextCaption color="$colorSecondary" numberOfLines={2}>
-                  {order.items
-                    .map((item) => `${item.nameSnapshot} x${item.qty}`)
-                    .join(", ")}
+                  {order.items.map((item) => `${item.nameSnapshot} x${item.qty}`).join(", ")}
                 </TextCaption>
                 <XStack justifyContent="space-between">
                   <TextBodySm fontWeight="700">{formatPrice(order.grandTotal)}</TextBodySm>
                   <TextCaption color="$colorSecondary">
-                    {order.paidAt
-                      ? new Date(order.paidAt).toLocaleTimeString("id-ID", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "Belum dibayar"}
+                    {formatOrderTime(order.paidAt ?? order.createdAt)}
                   </TextCaption>
                 </XStack>
               </TouchableOpacity>
@@ -192,7 +311,7 @@ export default function RiwayatOrderTabPage() {
           {!selectedOrder ? (
             <YStack flex={1} alignItems="center" justifyContent="center" gap="$3">
               <Ionicons name="receipt-outline" size={28} color={ColorNeutral.neutral400} />
-              <TextBodySm color="$colorSecondary">Belum ada order di filter ini.</TextBodySm>
+              <TextBodySm color="$colorSecondary">Belum ada order yang dipilih.</TextBodySm>
             </YStack>
           ) : (
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.detailContent}>
@@ -213,6 +332,12 @@ export default function RiwayatOrderTabPage() {
                   <TextBodySm color="$colorSecondary">Status</TextBodySm>
                   <TextBodySm fontWeight="700">{selectedOrder.status}</TextBodySm>
                 </XStack>
+                <XStack justifyContent="space-between">
+                  <TextBodySm color="$colorSecondary">Pembayaran</TextBodySm>
+                  <TextBodySm fontWeight="700">
+                    {selectedOrder.paymentStatus ?? "PAID"}
+                  </TextBodySm>
+                </XStack>
                 <XStack justifyContent="space-between" marginTop={8}>
                   <TextBodySm color="$colorSecondary">Sumber</TextBodySm>
                   <TextBodySm fontWeight="700">{selectedOrder.source}</TextBodySm>
@@ -231,23 +356,50 @@ export default function RiwayatOrderTabPage() {
                 </XStack>
                 <XStack justifyContent="space-between">
                   <TextBodySm color="$colorSecondary">Diskon</TextBodySm>
-                  <TextBodySm fontWeight="700">{formatPrice(selectedOrder.discountAmount)}</TextBodySm>
+                  <TextBodySm fontWeight="700">
+                    {formatPrice(selectedOrder.discountAmount)}
+                  </TextBodySm>
+                </XStack>
+                <XStack justifyContent="space-between">
+                  <TextBodySm color="$colorSecondary">Pajak</TextBodySm>
+                  <TextBodySm fontWeight="700">{formatPrice(selectedOrder.taxAmount)}</TextBodySm>
                 </XStack>
                 <XStack justifyContent="space-between">
                   <TextBodySm color="$colorSecondary">Grand Total</TextBodySm>
                   <TextBodySm fontWeight="700">{formatPrice(selectedOrder.grandTotal)}</TextBodySm>
                 </XStack>
+                <XStack justifyContent="space-between">
+                  <TextBodySm color="$colorSecondary">Waktu bayar</TextBodySm>
+                  <TextBodySm fontWeight="700">
+                    {formatOrderTime(selectedOrder.paidAt ?? selectedOrder.createdAt)}
+                  </TextBodySm>
+                </XStack>
+                {selectedOrder.voidReason ? (
+                  <TextCaption color="$colorSecondary">
+                    Void reason: {selectedOrder.voidReason}
+                  </TextCaption>
+                ) : null}
+                {selectedOrder.refundReason ? (
+                  <TextCaption color="$colorSecondary">
+                    Refund reason: {selectedOrder.refundReason}
+                  </TextCaption>
+                ) : null}
               </View>
 
               <View style={styles.detailCard}>
                 <TextH3 fontWeight="700">Item</TextH3>
                 {selectedOrder.items.map((item) => (
-                  <XStack key={item.id} justifyContent="space-between" marginTop={10}>
+                  <XStack key={item.id} justifyContent="space-between" marginTop={10} gap="$3">
                     <YStack flex={1}>
                       <TextBodySm fontWeight="700">
                         {item.nameSnapshot}
                         {item.variantNameSnapshot ? ` (${item.variantNameSnapshot})` : ""} x{item.qty}
                       </TextBodySm>
+                      {item.modifiers?.length ? (
+                        <TextCaption color="$colorSecondary">
+                          Modifier: {item.modifiers.map((modifier) => modifier.labelSnapshot).join(", ")}
+                        </TextCaption>
+                      ) : null}
                       <TextCaption color="$colorSecondary">
                         {item.note || "Tanpa catatan"}
                       </TextCaption>
@@ -262,9 +414,11 @@ export default function RiwayatOrderTabPage() {
               <View style={styles.detailCard}>
                 <TextH3 fontWeight="700">Pembayaran</TextH3>
                 {selectedOrder.payments.map((payment) => (
-                  <XStack key={payment.id} justifyContent="space-between" marginTop={10}>
+                  <XStack key={payment.id} justifyContent="space-between" marginTop={10} gap="$3">
                     <YStack flex={1}>
-                      <TextBodySm fontWeight="700">{payment.method}</TextBodySm>
+                      <TextBodySm fontWeight="700">
+                        {getKasirPaymentMethodLabel(payment.method)}
+                      </TextBodySm>
                       <TextCaption color="$colorSecondary">
                         {payment.label || "Pembayaran"}
                       </TextCaption>
@@ -275,6 +429,39 @@ export default function RiwayatOrderTabPage() {
                   </XStack>
                 ))}
               </View>
+
+              <YStack gap="$2">
+                <AppButton
+                  title={isDetailLoading ? "Memuat detail invoice..." : "Print Invoice PDF"}
+                  variant="primary"
+                  disabled={!printableReceipt || isDetailLoading}
+                  onPress={() => void handlePrintInvoice()}
+                  icon={
+                    <Ionicons
+                      name="print-outline"
+                      size={18}
+                      color={ColorBase.white}
+                    />
+                  }
+                />
+                <AppButton
+                  title={
+                    printerState.connected
+                      ? "Print Invoice Bluetooth"
+                      : "Hubungkan printer untuk Bluetooth"
+                  }
+                  variant="outline"
+                  disabled={!printableReceipt || isDetailLoading}
+                  onPress={() => void handleBluetoothPrint()}
+                  icon={
+                    <Ionicons
+                      name="print-outline"
+                      size={18}
+                      color={ColorPrimary.primary600}
+                    />
+                  }
+                />
+              </YStack>
 
               <YStack gap="$2">
                 {selectedOrder.status === "PAID" ? (
@@ -304,18 +491,14 @@ export default function RiwayatOrderTabPage() {
                     ) : null}
                     <TouchableOpacity
                       onPress={() =>
-                        Alert.alert(
-                          "Void order",
-                          `Batalkan order ${selectedOrder.id}?`,
-                          [
-                            { text: "Batal", style: "cancel" },
-                            {
-                              text: "Void",
-                              style: "destructive",
-                              onPress: () => void handleCancel(selectedOrder.id),
-                            },
-                          ],
-                        )
+                        Alert.alert("Void order", `Batalkan order ${selectedOrder.id}?`, [
+                          { text: "Batal", style: "cancel" },
+                          {
+                            text: "Void",
+                            style: "destructive",
+                            onPress: () => void handleCancel(selectedOrder.id),
+                          },
+                        ])
                       }
                       style={[styles.actionButton, styles.voidButton]}
                     >
@@ -325,17 +508,13 @@ export default function RiwayatOrderTabPage() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() =>
-                        Alert.alert(
-                          "Refund order",
-                          `Proses refund untuk ${selectedOrder.id}?`,
-                          [
-                            { text: "Batal", style: "cancel" },
-                            {
-                              text: "Refund",
-                              onPress: () => void handleRefund(selectedOrder.id),
-                            },
-                          ],
-                        )
+                        Alert.alert("Refund order", `Proses refund untuk ${selectedOrder.id}?`, [
+                          { text: "Batal", style: "cancel" },
+                          {
+                            text: "Refund",
+                            onPress: () => void handleRefund(selectedOrder.id),
+                          },
+                        ])
                       }
                       style={[styles.actionButton, styles.refundButton]}
                     >

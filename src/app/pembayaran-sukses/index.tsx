@@ -5,6 +5,7 @@ import * as Sharing from "expo-sharing";
 import { useAtom } from "jotai";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   ScrollView,
   Share,
@@ -29,6 +30,10 @@ import {
 import { cartAtom } from "@/features/cart/store/cart.store";
 import { storeInfo } from "@/features/payment/api/receipt.data";
 import {
+  buildEscPosReceiptData,
+  buildReceiptHtml,
+} from "@/features/payment/utils/receipt.utils";
+import {
   buildOrderItemsSummary,
   calculateOrderPaidAmount,
   getPaymentMethodLabel,
@@ -42,12 +47,12 @@ import {
   ColorNeutral,
   ColorPrimary,
 } from "@/themes/Colors";
-import { formatPrice, getCurrentDateTime } from "@/utils";
+import { formatPrice } from "@/utils";
 import {
   bluetoothPrinterManager,
   PrinterState,
 } from "@/utils/bluetooth-printer";
-import { ESCPOSReceipt } from "@/utils/esc-pos-formatter";
+import { buildESCPOSReceipt } from "@/utils/esc-pos-formatter";
 
 type ReceiptView = "summary" | "receipt";
 
@@ -78,7 +83,6 @@ export default function PembayaranSuksesPage() {
 
   const order = orders.find((item) => item.id === params.orderId);
   const payment = order?.payments.find((item) => item.id === params.paymentId);
-  const dateTime = React.useMemo(() => getCurrentDateTime(), []);
 
   if (!order) {
     return (
@@ -94,6 +98,7 @@ export default function PembayaranSuksesPage() {
     );
   }
 
+  const currentOrder = order;
   const receiptItems = order.items.map((item) => ({
     name: item.modifierLabels?.[0]
       ? `${item.name} (${item.modifierLabels[0]})`
@@ -115,6 +120,49 @@ export default function PembayaranSuksesPage() {
   const methodLabel = payment
     ? getPaymentMethodLabel(payment.method)
     : "Pembayaran";
+  const receiptPayload = React.useMemo(
+    () => ({
+      orderNumber: currentOrder.id,
+      dateTime: new Intl.DateTimeFormat("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Asia/Jakarta",
+      }).format(new Date(payment?.paidAt ?? currentOrder.createdAt)),
+      items: receiptItems,
+      subtotal,
+      discount,
+      tax: ppn,
+      grandTotal: currentOrder.grandTotal,
+      paymentMethod: methodLabel,
+      amountPaid: paymentAmount,
+      totalPaid,
+      remaining,
+      cashReceived: payment?.method === "tunai" ? received : undefined,
+      change: payment?.method === "tunai" ? change : undefined,
+    }),
+    [
+      discount,
+      methodLabel,
+      currentOrder.createdAt,
+      currentOrder.grandTotal,
+      currentOrder.id,
+      payment?.method,
+      payment?.paidAt,
+      paymentAmount,
+      ppn,
+      receiptItems,
+      received,
+      remaining,
+      subtotal,
+      totalPaid,
+      change,
+    ],
+  );
+  const dateTime = `${receiptPayload.dateTime} WIB`;
 
   function handleNewTransaction() {
     setCart([]);
@@ -126,55 +174,10 @@ export default function PembayaranSuksesPage() {
     router.replace("/(tabs)/pengaturan" as never);
   }
 
-  function buildReceiptHtml() {
-    const itemsHtml = receiptItems
-      .map(
-        (item) =>
-          `<tr><td>${item.name} x${item.qty}</td><td style="text-align:right">${formatPrice(item.price)}</td></tr>`,
-      )
-      .join("");
-    return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8"/>
-          <style>
-            body { font-family: monospace; width: 280px; margin: 0 auto; font-size: 12px; }
-            h2 { text-align: center; margin: 4px 0; font-size: 14px; }
-            p { text-align: center; margin: 2px 0; font-size: 11px; }
-            hr { border: none; border-top: 1px dashed #000; margin: 8px 0; }
-            table { width: 100%; border-collapse: collapse; }
-            td { padding: 2px 0; }
-            .total { font-weight: bold; font-size: 13px; }
-          </style>
-        </head>
-        <body>
-          <h2>${storeInfo.name}</h2>
-          <p>${storeInfo.address}</p>
-          <p>${storeInfo.phone}</p>
-          <hr/>
-          <p>No. Order: ${order.id}</p>
-          <p>${dateTime}</p>
-          <hr/>
-          <table>${itemsHtml}</table>
-          <hr/>
-          <table>
-            <tr><td>Subtotal</td><td style="text-align:right">${formatPrice(subtotal)}</td></tr>
-            ${discount > 0 ? `<tr><td>Diskon</td><td style="text-align:right">-${formatPrice(discount)}</td></tr>` : ""}
-            <tr><td>PPN 11%</td><td style="text-align:right">${formatPrice(ppn)}</td></tr>
-            <tr class="total"><td>TOTAL</td><td style="text-align:right">${formatPrice(order.grandTotal)}</td></tr>
-            <tr><td>Dibayar</td><td style="text-align:right">${formatPrice(paymentAmount)}</td></tr>
-            <tr><td>Sisa</td><td style="text-align:right">${formatPrice(remaining)}</td></tr>
-          </table>
-        </body>
-      </html>
-    `;
-  }
-
   async function handlePrint() {
     try {
       const { uri } = await Print.printToFileAsync({
-        html: buildReceiptHtml(),
+        html: buildReceiptHtml(receiptPayload),
         base64: false,
       });
       const canShare = await Sharing.isAvailableAsync();
@@ -192,7 +195,7 @@ export default function PembayaranSuksesPage() {
   }
 
   async function handleShare() {
-    const text = `Order ${order.id}\n${buildOrderItemsSummary(order)}\nDibayar: ${formatPrice(paymentAmount)}\nSisa: ${formatPrice(remaining)}`;
+    const text = `Order ${currentOrder.id}\n${buildOrderItemsSummary(currentOrder)}\nDibayar: ${formatPrice(paymentAmount)}\nSisa: ${formatPrice(remaining)}`;
     await Share.share({ message: text, title: "Ringkasan Pembayaran" });
   }
 
@@ -213,27 +216,7 @@ export default function PembayaranSuksesPage() {
     }
 
     try {
-      // Build ESC/POS receipt
-      const escposReceipt: ESCPOSReceipt = {
-        storeName: storeInfo.name,
-        storeAddress: storeInfo.address,
-        storePhone: storeInfo.phone,
-        orderNumber: order.id,
-        dateTime,
-        items: receiptItems,
-        subtotal,
-        discount,
-        ppn,
-        grandTotal: order.grandTotal,
-        paymentMethod: methodLabel,
-        amountPaid: paymentAmount,
-        totalPaid,
-        remaining,
-        cashReceived: payment?.method === "tunai" ? received : undefined,
-        change: payment?.method === "tunai" ? change : undefined,
-      };
-
-      const escposData = buildESCPOSReceipt(escposReceipt);
+      const escposData = buildESCPOSReceipt(buildEscPosReceiptData(receiptPayload));
       const success = await bluetoothPrinterManager.printESCPOS(escposData);
 
       if (success) {

@@ -2,7 +2,9 @@ import { api } from "./client";
 
 import type {
   CheckoutOrderBody,
+  GetOrderHistoryParams,
   KasirMenu,
+  KasirOrderDetail,
   KasirOrder,
   KasirReadyOrder,
   KasirShift,
@@ -143,9 +145,24 @@ export async function getTables(branchId?: string): Promise<KasirTable[]> {
   return data.data ?? [];
 }
 
-export async function getOrderHistory(): Promise<KasirOrder[]> {
-  const { data } = await api.get<{ data: KasirOrder[] }>("/kasir/orders");
+export async function getOrderHistory(params?: GetOrderHistoryParams): Promise<KasirOrder[]> {
+  const { data } = await api.get<{ data: KasirOrder[] }>("/kasir/orders", {
+    params: {
+      page: params?.page,
+      limit: params?.limit,
+      from: params?.from,
+      to: params?.to,
+      q: params?.q,
+      status: params?.status,
+      scope: params?.scope,
+    },
+  });
   return data.data ?? [];
+}
+
+export async function getOrderDetail(orderId: string): Promise<KasirOrderDetail> {
+  const { data } = await api.get<{ data: KasirOrderDetail }>(`/kasir/orders/${orderId}`);
+  return data.data;
 }
 
 export async function checkoutOrder(body: CheckoutOrderBody): Promise<KasirOrder> {
