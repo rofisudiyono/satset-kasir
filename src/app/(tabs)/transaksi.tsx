@@ -1,7 +1,7 @@
 import React from "react";
 
-import { InputManualScreen } from "@/features/pos/screens/InputManualScreen";
+import { TransactionEntryScreen } from "@/features/transactions/screens/transaction-entry";
 
 export default function InputManualTabPage() {
-  return <InputManualScreen />;
+  return <TransactionEntryScreen />;
 }

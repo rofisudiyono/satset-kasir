@@ -18,11 +18,13 @@ import { TamaguiProvider } from "tamagui";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { OrientationController } from "@/components/responsive/OrientationController";
 import { appStore } from "@/store/storage";
 import { KasirShiftSync } from "@/features/kasir/components/KasirShiftSync";
 import { KdsReadyNotifications } from "@/features/pos/components/KdsReadyNotifications";
 import { KdsRealtimeBridge } from "@/features/pos/components/KdsRealtimeBridge";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { DeviceProfileProvider } from "@/providers/DeviceProfileProvider";
 import { tamaguiConfig } from "../../tamagui.config";
 
 export default function RootLayout() {
@@ -39,20 +41,23 @@ export default function RootLayout() {
     <ErrorBoundary>
       <JotaiProvider store={appStore}>
         <QueryProvider>
-          <TamaguiProvider
-            config={tamaguiConfig}
-            defaultTheme={colorScheme === "dark" ? "dark" : "light"}
-          >
-            <ThemeProvider
-              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          <DeviceProfileProvider>
+            <TamaguiProvider
+              config={tamaguiConfig}
+              defaultTheme={colorScheme === "dark" ? "dark" : "light"}
             >
-              <AnimatedSplashOverlay />
-              <KdsRealtimeBridge />
-              <KdsReadyNotifications />
-              <KasirShiftSync />
-              <Slot />
-            </ThemeProvider>
-          </TamaguiProvider>
+              <ThemeProvider
+                value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+              >
+                <OrientationController />
+                <AnimatedSplashOverlay />
+                <KdsRealtimeBridge />
+                <KdsReadyNotifications />
+                <KasirShiftSync />
+                <Slot />
+              </ThemeProvider>
+            </TamaguiProvider>
+          </DeviceProfileProvider>
         </QueryProvider>
       </JotaiProvider>
     </ErrorBoundary>

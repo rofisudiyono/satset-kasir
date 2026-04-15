@@ -7,7 +7,6 @@
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "orientation": "landscape",
       "package": "com.rofisudiyono.kasirinaja",
       "predictiveBackGestureEnabled": false
     },
@@ -25,7 +24,7 @@
       "supportsTablet": true
     },
     "name": "kasirin-aja",
-    "orientation": "landscape",
+    "orientation": "default",
     "plugins": [
       [
         "expo-camera",

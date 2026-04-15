@@ -13,15 +13,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
 import {
-  AppButton,
-  AppInput,
   PageHeader,
   SectionCard,
   TextBody,
   TextBodyLg,
   TextBodySm,
   TextCaption,
-  TextH3,
 } from "@/components";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import {
@@ -38,9 +35,8 @@ import {
 
 export default function BluetoothPrinterSettingsPage() {
   const router = useRouter();
-  const { isTablet, contentMaxWidth, horizontalPadding } =
-    useResponsiveLayout();
-  
+  const { contentMaxWidth, horizontalPadding } = useResponsiveLayout();
+
   const [printerState, setPrinterState] = useState<PrinterState>({
     connected: false,
     printer: null,
@@ -147,6 +143,7 @@ export default function BluetoothPrinterSettingsPage() {
 
       <ScrollView
         style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
           {
@@ -157,7 +154,7 @@ export default function BluetoothPrinterSettingsPage() {
       >
         {/* Connection Status Card */}
         <SectionCard title="Status Koneksi">
-          <YStack gap="$3">
+          <YStack gap="$3" padding="$4">
             <XStack justifyContent="space-between" alignItems="center">
               <YStack gap={4}>
                 <TextBodyLg fontWeight="600">
@@ -212,7 +209,7 @@ export default function BluetoothPrinterSettingsPage() {
 
         {/* Scan Printers Section */}
         <SectionCard title="Printer Tersedia" style={styles.sectionSpacing}>
-          <YStack gap="$3">
+          <YStack gap="$3" padding="$4">
             <TextBodySm color="$colorSecondary">
               Tekan tombol di bawah untuk memindai printer Bluetooth di sekitar
             </TextBodySm>
@@ -245,7 +242,7 @@ export default function BluetoothPrinterSettingsPage() {
         {/* Discovered Printers List */}
         {discoveredPrinters.length > 0 && (
           <SectionCard title={`Ditemukan ${discoveredPrinters.length} Printer`} style={styles.sectionSpacing}>
-            <YStack gap="$3">
+            <YStack gap="$3" padding="$4">
               {discoveredPrinters.map((printer) => (
                 <TouchableOpacity
                   key={printer.id}
@@ -286,7 +283,7 @@ export default function BluetoothPrinterSettingsPage() {
 
         {/* Help Section */}
         <SectionCard title="Panduan" style={styles.sectionSpacing}>
-          <YStack gap="$3">
+          <YStack gap="$3" padding="$4">
             <TextBodySm color="$colorSecondary">
               Untuk menggunakan printer Bluetooth:
             </TextBodySm>
@@ -300,7 +297,7 @@ export default function BluetoothPrinterSettingsPage() {
               <XStack gap="$2">
                 <TextBodySm fontWeight="700" color={ColorPrimary.primary600}>2.</TextBodySm>
                 <TextBodySm color="$colorSecondary">
-                  Tekan "Pindai Printer Bluetooth"
+                  Tekan {`"Pindai Printer Bluetooth"`}
                 </TextBodySm>
               </XStack>
               <XStack gap="$2">
@@ -341,6 +338,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    width: "100%",
+    alignSelf: "center",
     paddingTop: 16,
     paddingBottom: 40,
   },

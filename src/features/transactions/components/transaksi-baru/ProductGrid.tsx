@@ -28,6 +28,12 @@ type Props = {
   onCategoryChange: (category: CategoryFilter) => void;
   onAddProduct: (product: CatalogProduct) => void;
   availableWidth?: number;
+  numColumns?: number;
+  searchValue?: string;
+  onSearchChangeText?: (value: string) => void;
+  onBarcodePress?: () => void;
+  contentBottomInset?: number;
+  compact?: boolean;
 };
 
 export function ProductGrid({
@@ -36,12 +42,18 @@ export function ProductGrid({
   onCategoryChange,
   onAddProduct,
   availableWidth,
+  numColumns = TABLET_COLS,
+  searchValue,
+  onSearchChangeText,
+  onBarcodePress,
+  contentBottomInset = 32,
+  compact = false,
 }: Props) {
   const { width: screenWidth } = useWindowDimensions();
 
   const containerWidth = availableWidth ?? screenWidth;
   const cardWidth =
-    (containerWidth - PADDING - GAP * (TABLET_COLS - 1)) / TABLET_COLS;
+    (containerWidth - PADDING - GAP * (numColumns - 1)) / numColumns;
 
   const renderItem = useCallback<ListRenderItem<CatalogProduct>>(
     ({ item }) => (
@@ -63,19 +75,24 @@ export function ProductGrid({
   const keyExtractor = useCallback((item: CatalogProduct) => item.id, []);
 
   const columnWrapperStyle = useMemo(
-    () => (TABLET_COLS > 1 ? styles.columnRow : undefined),
-    [],
+    () => (numColumns > 1 ? styles.columnRow : undefined),
+    [numColumns],
   );
 
   const contentContainerStyle = useMemo(
-    () => [styles.listContent, { gap: GAP }],
-    [],
+    () => [styles.listContent, { gap: GAP, paddingBottom: contentBottomInset }],
+    [contentBottomInset],
   );
 
   const ListHeaderComponent = useCallback(
     () => (
       <YStack gap="$3" paddingBottom="$3">
-        <SearchBar />
+        <SearchBar
+          value={searchValue}
+          onChangeText={onSearchChangeText}
+          onBarcodePress={onBarcodePress}
+          compact={compact}
+        />
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <XStack gap="$2">
             {categoryFilters.map((c) => (
@@ -91,7 +108,14 @@ export function ProductGrid({
         </ScrollView>
       </YStack>
     ),
-    [categoryFilter, onCategoryChange],
+    [
+      categoryFilter,
+      compact,
+      onBarcodePress,
+      onCategoryChange,
+      onSearchChangeText,
+      searchValue,
+    ],
   );
 
   return (
@@ -100,8 +124,8 @@ export function ProductGrid({
       data={products}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
-      numColumns={TABLET_COLS}
-      key={String(TABLET_COLS)}
+      numColumns={numColumns}
+      key={String(numColumns)}
       columnWrapperStyle={columnWrapperStyle}
       contentContainerStyle={contentContainerStyle}
       ListHeaderComponent={ListHeaderComponent}
@@ -120,7 +144,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: H_PAD,
-    paddingBottom: 32,
   },
   columnRow: {
     gap: GAP,

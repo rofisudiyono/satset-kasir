@@ -1,35 +1,59 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
+import { TextInput, TouchableOpacity } from "react-native";
 import { XStack } from "tamagui";
 
-import { TextBodyLg } from "@/components";
 import { ColorBase, ColorNeutral } from "@/themes/Colors";
 
-export function SearchBar() {
+type SearchBarProps = {
+  value?: string;
+  onChangeText?: (value: string) => void;
+  placeholder?: string;
+  onBarcodePress?: () => void;
+  compact?: boolean;
+};
+
+export function SearchBar({
+  value,
+  onChangeText,
+  placeholder = "Cari produk atau scan barcode...",
+  onBarcodePress,
+  compact = false,
+}: SearchBarProps) {
   return (
     <XStack
       backgroundColor={ColorBase.white}
-      borderRadius={12}
-      height={48}
+      borderRadius={compact ? 16 : 12}
+      height={compact ? 52 : 48}
       alignItems="center"
       paddingHorizontal="$3"
       gap="$2"
       borderWidth={1}
-      borderColor="$borderColor"
+      borderColor={compact ? ColorNeutral.neutral200 : "$borderColor"}
     >
       <Ionicons
         name="search-outline"
         size={18}
         color={ColorNeutral.neutral400}
       />
-      <TextBodyLg color="$colorTertiary" flex={1}>
-        Cari produk atau scan barcode...
-      </TextBodyLg>
-      <Ionicons
-        name="barcode-outline"
-        size={20}
-        color={ColorNeutral.neutral500}
+      <TextInput
+        style={{ flex: 1, fontSize: 15, color: ColorNeutral.neutral900, padding: 0 }}
+        placeholder={placeholder}
+        placeholderTextColor={ColorNeutral.neutral400}
+        value={value}
+        onChangeText={onChangeText}
+        returnKeyType="search"
+        clearButtonMode="while-editing"
       />
+      {onBarcodePress ? (
+        <TouchableOpacity activeOpacity={0.75} onPress={onBarcodePress}>
+          <Ionicons
+            name="barcode-outline"
+            size={20}
+            color={ColorNeutral.neutral500}
+          />
+        </TouchableOpacity>
+      ) : null}
     </XStack>
   );
 }
