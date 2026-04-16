@@ -11,6 +11,8 @@ interface PriceSummaryCardProps {
   discount: number;
   ppn: number;
   total: number;
+  taxLabel?: string;
+  taxRate?: number;
 }
 
 export function PriceSummaryCard({
@@ -18,7 +20,13 @@ export function PriceSummaryCard({
   discount,
   ppn,
   total,
+  taxLabel = "PPN",
+  taxRate,
 }: PriceSummaryCardProps) {
+  const taxPercent = taxRate !== undefined
+    ? `${Math.round(taxRate * 100)}%`
+    : "11%";
+
   return (
     <View style={styles.card}>
       <XStack justifyContent="space-between" marginBottom={10}>
@@ -35,10 +43,12 @@ export function PriceSummaryCard({
         </XStack>
       )}
 
-      <XStack justifyContent="space-between" marginBottom={16}>
-        <TextBody color="$colorSecondary">PPN 11%</TextBody>
-        <TextBody fontWeight="600">{formatPrice(ppn)}</TextBody>
-      </XStack>
+      {ppn > 0 && (
+        <XStack justifyContent="space-between" marginBottom={16}>
+          <TextBody color="$colorSecondary">{taxLabel} {taxPercent}</TextBody>
+          <TextBody fontWeight="600">{formatPrice(ppn)}</TextBody>
+        </XStack>
+      )}
 
       <View style={styles.divider} />
 

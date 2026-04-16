@@ -68,6 +68,7 @@ export interface PosOrder {
   taxAmount: number;
   grandTotal: number;
   promoCode?: string;
+  promoId?: string;
 }
 
 export interface PosShift {

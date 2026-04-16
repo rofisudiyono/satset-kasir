@@ -29,6 +29,7 @@ export function buildPosOrderFromCart(params: {
   grandTotal: number;
   source?: PosOrder["source"];
   promoCode?: string;
+  promoId?: string;
 }) {
   const subtotal = params.cart.reduce(
     (sum, item) => sum + item.unitPrice * item.quantity,
@@ -61,6 +62,7 @@ export function buildPosOrderFromCart(params: {
     taxAmount: params.taxAmount,
     grandTotal: params.grandTotal,
     promoCode: params.promoCode,
+    promoId: params.promoId,
   } satisfies PosOrder;
 }
 
@@ -190,6 +192,7 @@ export function buildCheckoutOrderBody(params: {
   customerName?: string;
   tableLabel?: string;
   promoCode?: string;
+  promoId?: string;
   payment: {
     method: PaymentMethod;
     amountPaid: number;
@@ -208,6 +211,7 @@ export function buildCheckoutOrderBody(params: {
     customerName: customerName || undefined,
     tableLabel: tableLabel || undefined,
     promoCode: promoCode || undefined,
+    promoId: params.promoId || undefined,
     items: params.cart.map((item) => ({
       menuId: item.productId,
       menuVariantId: item.variantId,

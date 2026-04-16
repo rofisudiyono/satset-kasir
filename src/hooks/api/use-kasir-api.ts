@@ -13,6 +13,8 @@ import type { CheckoutOrderBody, GetOrderHistoryParams } from "@/lib/api/types";
 
 import { kasirKeys } from "./query-keys";
 
+export { getApiErrorMessage };
+
 const orderHistoryPrefix = [...kasirKeys.all, "orders", "history"] as const;
 const orderDetailPrefix = [...kasirKeys.all, "orders", "detail"] as const;
 
@@ -222,4 +224,33 @@ export function useCancelPendingWebOrderMutation() {
   });
 }
 
-export { getApiErrorMessage };
+// ─── Promos ───────────────────────────────────────────────────────────────────
+
+export function useActivePromosQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: kasirKeys.promos(),
+    queryFn: kasirApi.getActivePromos,
+    enabled,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
+  });
+}
+
+export function useValidatePromoMutation() {
+  return useMutation({
+    mutationFn: (payload: { code: string; subtotal: number; menuIds?: string[] }) =>
+      kasirApi.validatePromoCode(payload),
+  });
+}
+
+// ─── Tax Settings ─────────────────────────────────────────────────────────────
+
+export function useTaxSettingsQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: kasirKeys.taxSettings(),
+    queryFn: kasirApi.getTaxSettings,
+    enabled,
+    staleTime: 10 * 60_000,
+    gcTime: 30 * 60_000,
+  });
+}

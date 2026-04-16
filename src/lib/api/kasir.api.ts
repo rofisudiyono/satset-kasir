@@ -6,11 +6,14 @@ import type {
   KasirMenu,
   KasirOrderDetail,
   KasirOrder,
+  KasirPromoRecord,
   KasirReadyOrder,
   KasirShift,
   KasirTable,
+  KasirTaxSettings,
   PendingWebOrder,
   ShiftSlotApi,
+  ValidatePromoResponse,
 } from "./types";
 
 export async function getActiveShift(): Promise<KasirShift | null> {
@@ -190,4 +193,30 @@ export async function confirmPendingWebOrder(
 
 export async function cancelPendingWebOrder(pendingId: string): Promise<void> {
   await api.delete(`/kasir/orders/pending-web/${pendingId}`);
+}
+
+// ─── Promos ───────────────────────────────────────────────────────────────────
+
+export async function getActivePromos(): Promise<KasirPromoRecord[]> {
+  const { data } = await api.get<{ data: KasirPromoRecord[] }>("/kasir/promos");
+  return data.data ?? [];
+}
+
+export async function validatePromoCode(payload: {
+  code: string;
+  subtotal: number;
+  menuIds?: string[];
+}): Promise<ValidatePromoResponse> {
+  const { data } = await api.post<{ data: ValidatePromoResponse }>(
+    "/kasir/promos/validate",
+    payload,
+  );
+  return data.data;
+}
+
+// ─── Tax Settings ─────────────────────────────────────────────────────────────
+
+export async function getTaxSettings(): Promise<KasirTaxSettings | null> {
+  const { data } = await api.get<{ data: KasirTaxSettings | null }>("/kasir/settings/tax");
+  return data.data ?? null;
 }

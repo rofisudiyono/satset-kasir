@@ -196,6 +196,7 @@ export default function PilihPembayaranPage() {
           customerName: currentOrder.customerName,
           tableLabel: currentOrder.tableLabel,
           promoCode: currentOrder.promoCode,
+          promoId: currentOrder.promoId,
           payment: {
             method: selectedMethod,
             amountPaid: paymentAmount,

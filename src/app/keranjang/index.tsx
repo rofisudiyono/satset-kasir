@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAtom } from "jotai";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -25,20 +25,25 @@ import {
   cartSnapshotAtom,
   heldOrdersAtom,
 } from "@/features/cart/store/cart.store";
-import { promoDefinitions } from "@/features/payment/api/payment.data";
 import { buildPosOrderFromCart } from "@/features/pos/pos.utils";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import {
   isShiftStartedAtom,
   shiftDataAtom,
 } from "@/features/shift/store/shift.store";
-import { useTablesQuery } from "@/hooks/api/use-kasir-api";
+import {
+  useActivePromosQuery,
+  useTablesQuery,
+  useTaxSettingsQuery,
+  useValidatePromoMutation,
+} from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
+import { getApiErrorMessage } from "@/lib/api/client";
 import type { KasirTable } from "@/lib/api/types";
 import { ColorBase, ColorDanger, ColorPrimary } from "@/themes/Colors";
 import type { AppliedPromo, OrderType } from "@/types";
 
-const PPN_RATE = 0.11;
+const DEFAULT_TAX_RATE = 0.11;
 
 export default function KeranjangPage() {
   const router = useRouter();
@@ -56,16 +61,60 @@ export default function KeranjangPage() {
   const [orderType, setOrderType] = useState<OrderType>(orderDraft.orderType);
   const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(isShiftStarted);
 
+  // ─── Promo & Tax ────────────────────────────────────────────────────────────
+  const { data: taxSettings } = useTaxSettingsQuery(isShiftStarted);
+  const taxRate = taxSettings?.isEnabled ? Number(taxSettings.rate) : DEFAULT_TAX_RATE;
+
+  useActivePromosQuery(isShiftStarted); // warm cache; PromoCard uses this list optionally
+
+  const validatePromoMutation = useValidatePromoMutation();
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const [promoEnabled, setPromoEnabled] = useState(false);
+  const [promoLoading, setPromoLoading] = useState(false);
 
+  // ─── Kalkulasi harga ────────────────────────────────────────────────────────
   const totalItems = cart.reduce((s, c) => s + c.quantity, 0);
   const subtotal = cart.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
   const discount = appliedPromo && promoEnabled ? appliedPromo.discount : 0;
   const afterDiscount = subtotal - discount;
-  const ppn = Math.round(afterDiscount * PPN_RATE);
+  const ppn = taxSettings?.isEnabled ? Math.round(afterDiscount * taxRate) : 0;
   const total = afterDiscount + ppn;
+
+  // ─── Re-validasi promo jika subtotal berubah setelah promo diapply ──────────
+  const prevSubtotalRef = useRef(subtotal);
+  useEffect(() => {
+    if (!appliedPromo || !promoEnabled) return;
+    if (prevSubtotalRef.current === subtotal) return;
+    prevSubtotalRef.current = subtotal;
+
+    // Jalankan re-validasi di background; jika gagal (e.g. min purchase) reset promo
+    const menuIds = cart.map((item) => item.productId);
+    validatePromoMutation.mutate(
+      { code: appliedPromo.code ?? "", subtotal, menuIds },
+      {
+        onSuccess: (result) => {
+          setAppliedPromo((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  discount: result.discount,
+                }
+              : null,
+          );
+        },
+        onError: () => {
+          setAppliedPromo(null);
+          setPromoEnabled(false);
+          Alert.alert(
+            "Promo Tidak Berlaku",
+            "Promo dihapus karena tidak memenuhi syarat untuk total belanja saat ini.",
+          );
+        },
+      },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subtotal]);
 
   useEffect(() => {
     if (!orderDraft.tableId) return;
@@ -88,7 +137,6 @@ export default function KeranjangPage() {
     });
   }, [customerName, orderType, selectedTable, setOrderDraft]);
 
-  // Enforce open shift before checkout.
   useEffect(() => {
     if (isShiftStarted) return;
     router.replace("/buka-shift" as never);
@@ -128,14 +176,40 @@ export default function KeranjangPage() {
     );
   }
 
-  function handleApplyPromo() {
+  async function handleApplyPromo() {
     const code = promoCode.trim().toUpperCase();
-    if (promoDefinitions[code]) {
-      setAppliedPromo({ code, ...promoDefinitions[code] });
+    if (!code) return;
+
+    const menuIds = cart.map((item) => item.productId);
+    setPromoLoading(true);
+    try {
+      const result = await validatePromoMutation.mutateAsync({
+        code,
+        subtotal,
+        menuIds,
+      });
+      setAppliedPromo({
+        promoId: result.promoId,
+        code: result.code ?? code,
+        name: result.name,
+        type: result.type,
+        value: result.value,
+        discount: result.discount,
+        label:
+          result.type === "percent"
+            ? `${result.code} — Diskon ${result.value}%`
+            : `${result.code} — Hemat Rp ${result.discount.toLocaleString("id-ID")}`,
+      });
       setPromoEnabled(true);
       setPromoCode("");
-    } else {
-      Alert.alert("Kode Promo Tidak Valid", "Kode promo tidak ditemukan.");
+      prevSubtotalRef.current = subtotal;
+    } catch (err) {
+      Alert.alert(
+        "Kode Promo Tidak Valid",
+        getApiErrorMessage(err) ?? "Kode promo tidak ditemukan atau tidak berlaku.",
+      );
+    } finally {
+      setPromoLoading(false);
     }
   }
 
@@ -205,6 +279,7 @@ export default function KeranjangPage() {
       taxAmount: ppn,
       grandTotal: total,
       promoCode: promoEnabled ? appliedPromo?.code : undefined,
+      promoId: promoEnabled ? appliedPromo?.promoId : undefined,
     });
 
     setPosOrders((prev) => [order, ...prev]);
@@ -294,10 +369,11 @@ export default function KeranjangPage() {
             <PromoCard
               promoCode={promoCode}
               onPromoCodeChange={setPromoCode}
-              onApplyPromo={handleApplyPromo}
+              onApplyPromo={() => { void handleApplyPromo(); }}
               appliedPromo={appliedPromo}
               promoEnabled={promoEnabled}
               onTogglePromo={() => setPromoEnabled((v) => !v)}
+              isLoading={promoLoading}
             />
 
             <PriceSummaryCard
@@ -305,9 +381,10 @@ export default function KeranjangPage() {
               discount={discount}
               ppn={ppn}
               total={total}
+              taxLabel={taxSettings?.label ?? "PPN"}
+              taxRate={taxRate}
             />
 
-            {/* Action buttons inline on tablet */}
             <YStack gap={8}>
               <AppButton
                 variant="primary"

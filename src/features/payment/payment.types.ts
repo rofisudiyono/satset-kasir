@@ -25,13 +25,14 @@ export type CashNumpadKey =
   | "000"
   | "DEL";
 
-export interface PromoConfig {
+export interface AppliedPromo {
+  promoId: string;
+  code: string;
+  name: string;
+  type: "percent" | "fixed";
+  value: string;
   discount: number;
   label: string;
-}
-
-export interface AppliedPromo extends PromoConfig {
-  code: string;
 }
 
 export interface PaymentMethodOption {

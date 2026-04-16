@@ -7,4 +7,6 @@ export const kasirKeys = {
   tables: (branchId?: string) => [...kasirKeys.all, "tables", branchId ?? "active-branch"] as const,
   orderHistory: (params?: Record<string, unknown>) => [...kasirKeys.all, "orders", "history", params ?? {}] as const,
   orderDetail: (orderId?: string) => [...kasirKeys.all, "orders", "detail", orderId ?? "unknown"] as const,
+  promos: () => [...kasirKeys.all, "promos"] as const,
+  taxSettings: () => [...kasirKeys.all, "settings", "tax"] as const,
 };

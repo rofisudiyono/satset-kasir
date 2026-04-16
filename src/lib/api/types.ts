@@ -156,8 +156,47 @@ export type CheckoutOrderBody = {
   customerName?: string;
   orderNote?: string;
   promoCode?: string;
+  promoId?: string;
   items: CheckoutOrderItem[];
   payments: CheckoutPayment[];
+};
+
+// ─── Promo ────────────────────────────────────────────────────────────────────
+
+export type KasirPromoRecord = {
+  id: string;
+  code: string | null;
+  name: string;
+  type: "percent" | "fixed";
+  value: string;
+  minPurchase: number;
+  appliesTo: "all" | "specific_menu";
+  menuIds: string[] | null;
+  startDate: string;
+  endDate: string;
+  usageCount: number;
+  maxUsage: number | null;
+};
+
+export type ValidatePromoResponse = {
+  promoId: string;
+  code: string | null;
+  name: string;
+  type: "percent" | "fixed";
+  value: string;
+  discount: number;
+  subtotalAfterDiscount: number;
+};
+
+// ─── Tax Settings ─────────────────────────────────────────────────────────────
+
+export type KasirTaxSettings = {
+  id: string;
+  tenantId: string;
+  isEnabled: boolean;
+  rate: string;
+  type: "inclusive" | "exclusive";
+  label: string;
 };
 
 export type KasirShift = {

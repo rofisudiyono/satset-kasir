@@ -25,9 +25,9 @@ import {
   cartSnapshotAtom,
   heldOrdersAtom,
 } from "@/features/cart/store/cart.store";
-import { useTablesQuery } from "@/hooks/api/use-kasir-api";
-import { promoDefinitions } from "@/features/payment/api/payment.data";
+import { useTablesQuery, useValidatePromoMutation } from "@/hooks/api/use-kasir-api";
 import { buildPosOrderFromCart } from "@/features/pos/pos.utils";
+import { getApiErrorMessage } from "@/lib/api/client";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { shiftDataAtom } from "@/features/shift/store/shift.store";
 import type { KasirTable } from "@/lib/api/types";
@@ -51,7 +51,9 @@ export function CartPanel() {
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const [promoEnabled, setPromoEnabled] = useState(false);
+  const [promoLoading, setPromoLoading] = useState(false);
   const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(true);
+  const validatePromoMutation = useValidatePromoMutation();
 
   const subtotal = cart.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
   const discount = appliedPromo && promoEnabled ? appliedPromo.discount : 0;
@@ -107,14 +109,34 @@ export function CartPanel() {
     );
   }
 
-  function handleApplyPromo() {
+  async function handleApplyPromo() {
     const code = promoCode.trim().toUpperCase();
-    if (promoDefinitions[code]) {
-      setAppliedPromo({ code, ...promoDefinitions[code] });
+    if (!code) return;
+    const menuIds = cart.map((item) => item.productId);
+    setPromoLoading(true);
+    try {
+      const result = await validatePromoMutation.mutateAsync({ code, subtotal, menuIds });
+      setAppliedPromo({
+        promoId: result.promoId,
+        code: result.code ?? code,
+        name: result.name,
+        type: result.type,
+        value: result.value,
+        discount: result.discount,
+        label:
+          result.type === "percent"
+            ? `${result.code} — Diskon ${result.value}%`
+            : `${result.code} — Hemat Rp ${result.discount.toLocaleString("id-ID")}`,
+      });
       setPromoEnabled(true);
       setPromoCode("");
-    } else {
-      Alert.alert("Kode Promo Tidak Valid", "Kode promo tidak ditemukan.");
+    } catch (err) {
+      Alert.alert(
+        "Kode Promo Tidak Valid",
+        getApiErrorMessage(err) ?? "Kode promo tidak ditemukan atau tidak berlaku.",
+      );
+    } finally {
+      setPromoLoading(false);
     }
   }
 
@@ -182,6 +204,7 @@ export function CartPanel() {
       taxAmount: ppn,
       grandTotal: total,
       promoCode: promoEnabled ? appliedPromo?.code : undefined,
+      promoId: promoEnabled ? appliedPromo?.promoId : undefined,
     });
 
     setPosOrders((prev) => [order, ...prev]);
@@ -242,10 +265,11 @@ export function CartPanel() {
           <PromoCard
             promoCode={promoCode}
             onPromoCodeChange={setPromoCode}
-            onApplyPromo={handleApplyPromo}
+            onApplyPromo={() => { void handleApplyPromo(); }}
             appliedPromo={appliedPromo}
             promoEnabled={promoEnabled}
             onTogglePromo={() => setPromoEnabled((v) => !v)}
+            isLoading={promoLoading}
           />
           <PriceSummaryCard
             subtotal={subtotal}

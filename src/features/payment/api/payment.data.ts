@@ -2,7 +2,6 @@ import type {
   CashNumpadKey,
   OrderType,
   PaymentMethodOption,
-  PromoConfig,
 } from "@/types";
 
 export const orderTypeOptions: OrderType[] = [
@@ -54,10 +53,6 @@ export const paymentMethodOptions: PaymentMethodOption[] = [
   },
 ];
 
-export const promoDefinitions: Record<string, PromoConfig> = {
-  DISKON10: { discount: 5000, label: "DISKON10 - Hemat Rp 5.000" },
-  HEMAT15: { discount: 15000, label: "HEMAT15 - Hemat Rp 15.000" },
-};
 
 export const cashNumpadRows: CashNumpadKey[][] = [
   ["1", "2", "3"],

@@ -1,6 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { XStack } from "tamagui";
 
 import { TextBodySm, TextCaption } from "@/components";
@@ -19,6 +25,7 @@ interface PromoCardProps {
   appliedPromo: AppliedPromo | null;
   promoEnabled: boolean;
   onTogglePromo: () => void;
+  isLoading?: boolean;
 }
 
 export function PromoCard({
@@ -28,6 +35,7 @@ export function PromoCard({
   appliedPromo,
   promoEnabled,
   onTogglePromo,
+  isLoading = false,
 }: PromoCardProps) {
   return (
     <View style={styles.card}>
@@ -40,13 +48,22 @@ export function PromoCard({
             placeholderTextColor={ColorNeutral.neutral400}
             style={styles.promoInput}
             autoCapitalize="characters"
+            editable={!isLoading}
           />
         </View>
-        <TouchableOpacity activeOpacity={0.85} onPress={onApplyPromo}>
-          <View style={styles.promoApplyBtn}>
-            <TextBodySm fontWeight="700" color={ColorBase.white}>
-              Pakai
-            </TextBodySm>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={onApplyPromo}
+          disabled={isLoading}
+        >
+          <View style={[styles.promoApplyBtn, isLoading && styles.promoApplyBtnDisabled]}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color={ColorBase.white} />
+            ) : (
+              <TextBodySm fontWeight="700" color={ColorBase.white}>
+                Pakai
+              </TextBodySm>
+            )}
           </View>
         </TouchableOpacity>
       </XStack>
@@ -120,6 +137,10 @@ const styles = StyleSheet.create({
     height: 48,
     alignItems: "center",
     justifyContent: "center",
+    minWidth: 72,
+  },
+  promoApplyBtnDisabled: {
+    opacity: 0.6,
   },
   promoChip: {
     backgroundColor: ColorGreen.green50,

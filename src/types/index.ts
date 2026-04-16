@@ -18,7 +18,6 @@ export type {
   OrderType,
   PaymentMethod,
   PaymentMethodOption,
-  PromoConfig,
 } from "@/features/payment/payment.types";
 export type {
   KdsFulfillmentEvent,
