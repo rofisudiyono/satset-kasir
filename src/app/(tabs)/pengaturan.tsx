@@ -17,7 +17,6 @@ import {
   TextH3,
 } from "@/components";
 import {
-  buildEscPosReceiptData,
   buildPrintableReceiptOrderFromKasirOrder,
   buildReceiptHtml,
   getKasirPaymentMethodLabel,
@@ -45,8 +44,6 @@ import {
   bluetoothPrinterManager,
   type PrinterState,
 } from "@/utils/bluetooth-printer";
-import { buildESCPOSReceipt } from "@/utils/esc-pos-formatter";
-
 type HistoryFilter = "SEMUA" | KasirOrder["status"];
 
 function getStatusTone(status: KasirOrder["status"]) {
@@ -197,8 +194,9 @@ export default function RiwayatOrderTabPage() {
     }
 
     try {
-      const escPosData = buildESCPOSReceipt(buildEscPosReceiptData(printableReceipt));
-      const success = await bluetoothPrinterManager.printESCPOS(escPosData);
+      const success = await bluetoothPrinterManager.printReceiptHtml(
+        buildReceiptHtml(printableReceipt),
+      );
       if (success) {
         Alert.alert("Berhasil", "Invoice berhasil dicetak via Bluetooth.");
       }

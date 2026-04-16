@@ -301,7 +301,7 @@ export default function TutupShiftPage() {
                 selisih === 0
                   ? ColorGreen.green75
                   : selisih > 0
-                    ? ColorWarning.warning75
+                    ? ColorWarning.warning100
                     : ColorDanger.danger25
               }
               borderRadius={10}

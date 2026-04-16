@@ -29,10 +29,7 @@ import {
 } from "@/components";
 import { cartAtom } from "@/features/cart/store/cart.store";
 import { storeInfo } from "@/features/payment/api/receipt.data";
-import {
-  buildEscPosReceiptData,
-  buildReceiptHtml,
-} from "@/features/payment/utils/receipt.utils";
+import { buildReceiptHtml } from "@/features/payment/utils/receipt.utils";
 import {
   buildOrderItemsSummary,
   calculateOrderPaidAmount,
@@ -52,8 +49,6 @@ import {
   bluetoothPrinterManager,
   PrinterState,
 } from "@/utils/bluetooth-printer";
-import { buildESCPOSReceipt } from "@/utils/esc-pos-formatter";
-
 type ReceiptView = "summary" | "receipt";
 
 export default function PembayaranSuksesPage() {
@@ -216,8 +211,9 @@ export default function PembayaranSuksesPage() {
     }
 
     try {
-      const escposData = buildESCPOSReceipt(buildEscPosReceiptData(receiptPayload));
-      const success = await bluetoothPrinterManager.printESCPOS(escposData);
+      const success = await bluetoothPrinterManager.printReceiptHtml(
+        buildReceiptHtml(receiptPayload),
+      );
 
       if (success) {
         Alert.alert("Berhasil", "Struk berhasil dicetak via Bluetooth");

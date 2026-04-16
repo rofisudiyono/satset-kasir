@@ -23,6 +23,7 @@ import {
   TextH2,
   TextH3,
 } from "@/components";
+import { PrinterTestModal } from "@/components/molecules/PrinterTestModal";
 import { useLoginMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { getApiErrorMessage } from "@/lib/api/client";
@@ -48,6 +49,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("12345678");
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showPrinterTest, setShowPrinterTest] = useState(false);
 
   const handleLogin = async () => {
     try {
@@ -77,6 +79,7 @@ export default function LoginPage() {
   // ── TABLET: Two-panel layout ───────────────────────────────────────────────
   if (isTablet) {
     return (
+      <View style={{ flex: 1 }}>
       <SafeAreaView style={styles.tabletScreen} edges={["top", "bottom"]}>
         {/* ── Left: Brand panel ── */}
         <View style={styles.brandPanel}>
@@ -355,10 +358,35 @@ export default function LoginPage() {
                   />
                 }
               />
+
+              {/* Printer Test Button */}
+              <TouchableOpacity
+                style={styles.printerTestButton}
+                activeOpacity={0.7}
+                onPress={() => setShowPrinterTest(true)}
+              >
+                <Ionicons
+                  name="print-outline"
+                  size={16}
+                  color={ColorNeutral.neutral500}
+                />
+                <TextBodySm
+                  color="$colorSecondary"
+                  style={{ marginLeft: 6 }}
+                >
+                  Test Printer
+                </TextBodySm>
+              </TouchableOpacity>
             </YStack>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      <PrinterTestModal
+        visible={showPrinterTest}
+        onClose={() => setShowPrinterTest(false)}
+      />
+      </View>
     );
   }
 
@@ -554,6 +582,25 @@ export default function LoginPage() {
                   />
                 }
               />
+
+              {/* Printer Test Button */}
+              <TouchableOpacity
+                style={styles.printerTestButton}
+                activeOpacity={0.7}
+                onPress={() => setShowPrinterTest(true)}
+              >
+                <Ionicons
+                  name="print-outline"
+                  size={16}
+                  color={ColorNeutral.neutral500}
+                />
+                <TextBodySm
+                  color="$colorSecondary"
+                  style={{ marginLeft: 6 }}
+                >
+                  Test Printer
+                </TextBodySm>
+              </TouchableOpacity>
             </YStack>
 
             <XStack gap="$3" marginTop="$3">
@@ -607,6 +654,11 @@ export default function LoginPage() {
           </YStack>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <PrinterTestModal
+        visible={showPrinterTest}
+        onClose={() => setShowPrinterTest(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -637,6 +689,17 @@ const styles = StyleSheet.create({
   formPanelScroll: {
     flexGrow: 1,
     justifyContent: "center",
+  },
+
+  printerTestButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+    backgroundColor: ColorNeutral.neutral50,
   },
 
   // Decorative shapes for brand panel

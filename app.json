@@ -8,6 +8,12 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "package": "com.rofisudiyono.kasirinaja",
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "experiments": {

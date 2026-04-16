@@ -1,9 +1,13 @@
 /**
- * Bluetooth Printer Manager
- * Handles Bluetooth printer discovery, connection, and printing
+ * Bluetooth printer: transport via react-native-bluetooth-classic (SPP),
+ * ESC/POS payload via expo-escpos (HTML → raster ESC/POS).
  */
 
-import { Alert } from 'react-native';
+import { renderHtmlToImages } from 'expo-escpos';
+import type { PrinterModel } from 'expo-escpos';
+import { Alert, PermissionsAndroid, Platform } from 'react-native';
+import RNBluetoothClassic from 'react-native-bluetooth-classic';
+import type { BluetoothDevice } from 'react-native-bluetooth-classic';
 
 export interface BluetoothPrinter {
   id: string;
@@ -21,6 +25,34 @@ export interface PrinterState {
 
 type ConnectionStateChangeCallback = (state: PrinterState) => void;
 
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]!);
+  }
+  return btoa(binary);
+}
+
+function looksLikePrinter(name: string): boolean {
+  const n = name.toLowerCase();
+  return (
+    n.includes('printer') ||
+    n.includes('print') ||
+    n.includes('xprinter') ||
+    n.includes('gainscha') ||
+    n.includes('iware') ||
+    n.includes('epson') ||
+    n.includes('rpp') ||
+    n.includes('pos') ||
+    n.includes('thermal') ||
+    n.includes('esc')
+  );
+}
+
+function printerModelFromType(type: BluetoothPrinter['type']): PrinterModel {
+  return type === 'thermal_80mm' ? '80' : '58';
+}
+
 class BluetoothPrinterManager {
   private static instance: BluetoothPrinterManager;
   private state: PrinterState = {
@@ -29,17 +61,9 @@ class BluetoothPrinterManager {
     printing: false,
   };
   private listeners: ConnectionStateChangeCallback[] = [];
-  private nativeModule: any = null;
+  private connectedDevice: BluetoothDevice | null = null;
 
-  private constructor() {
-    // Try to load native Bluetooth module (if available)
-    try {
-      // This will be set when the native module is linked
-      // this.nativeModule = require('react-native-bluetooth-escpos-printer');
-    } catch {
-      console.warn('Bluetooth ESC/POS printer module not available');
-    }
-  }
+  private constructor() {}
 
   static getInstance(): BluetoothPrinterManager {
     if (!BluetoothPrinterManager.instance) {
@@ -48,143 +72,130 @@ class BluetoothPrinterManager {
     return BluetoothPrinterManager.instance;
   }
 
-  /**
-   * Subscribe to printer state changes
-   */
   subscribe(callback: ConnectionStateChangeCallback): () => void {
     this.listeners.push(callback);
-    // Immediately notify of current state
     callback(this.state);
-    
     return () => {
-      this.listeners = this.listeners.filter(l => l !== callback);
+      this.listeners = this.listeners.filter((l) => l !== callback);
     };
   }
 
-  /**
-   * Get current printer state
-   */
   getState(): PrinterState {
     return { ...this.state };
   }
 
-  /**
-   * Scan for available Bluetooth printers
-   */
-  async scanPrinters(timeout: number = 10000): Promise<BluetoothPrinter[]> {
-    if (!this.nativeModule) {
-      Alert.alert(
-        'Bluetooth Tidak Tersedia',
-        'Modul Bluetooth printer belum diinstal. Silakan instal react-native-bluetooth-escpos-printer.',
-        [{ text: 'OK' }]
-      );
-      return [];
-    }
+  private async requestBluetoothPermissions(): Promise<boolean> {
+    if (Platform.OS !== 'android') return true;
+    if (Platform.Version < 31) return true;
 
+    const granted = await PermissionsAndroid.requestMultiple([
+      PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+      PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+    ]);
+
+    return (
+      granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] === PermissionsAndroid.RESULTS.GRANTED &&
+      granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] === PermissionsAndroid.RESULTS.GRANTED
+    );
+  }
+
+  async scanPrinters(): Promise<BluetoothPrinter[]> {
     try {
-      // Request Bluetooth permission
-      await this.nativeModule.BluetoothManager.enableBluetooth();
-      
-      // Scan for devices
-      const devices = await this.nativeModule.BluetoothManager.getBondedDevices();
-      
-      // Filter to only printer-like devices
-      const printers: BluetoothPrinter[] = (devices || [])
-        .filter((device: any) => {
-          // Filter by common printer name patterns or known brands
-          const name = device.name?.toLowerCase() || '';
-          return (
-            name.includes('printer') ||
-            name.includes('print') ||
-            name.includes('xprinter') ||
-            name.includes('gainscha') ||
-            name.includes('epson') ||
-            name.includes('rpp') ||
-            name.includes('pos')
-          );
-        })
-        .map((device: any) => ({
-          id: device.address,
-          name: device.name || 'Unknown Printer',
-          address: device.address,
-          type: 'thermal_58mm', // Default to 58mm
-          connected: false,
-        }));
+      const hasPermission = await this.requestBluetoothPermissions();
+      if (!hasPermission) {
+        Alert.alert(
+          'Izin Bluetooth Diperlukan',
+          'Berikan izin Bluetooth untuk memindai printer.',
+          [{ text: 'OK' }],
+        );
+        return [];
+      }
 
-      return printers;
-    } catch (error: any) {
+      const available = await RNBluetoothClassic.isBluetoothAvailable();
+      if (!available) {
+        Alert.alert('Bluetooth Tidak Tersedia', 'Perangkat tidak mendukung Bluetooth Classic.', [{ text: 'OK' }]);
+        return [];
+      }
+
+      const enabled = await RNBluetoothClassic.isBluetoothEnabled();
+      if (!enabled) {
+        const requested = await RNBluetoothClassic.requestBluetoothEnabled();
+        if (!requested) {
+          Alert.alert('Bluetooth Dinonaktifkan', 'Aktifkan Bluetooth untuk memindai printer.', [{ text: 'OK' }]);
+          return [];
+        }
+      }
+
+      const bonded = await RNBluetoothClassic.getBondedDevices();
+
+      const mapped = bonded.map((d) => ({
+        id: d.address,
+        name: d.name || 'Unknown',
+        address: d.address,
+        type: 'thermal_58mm' as const,
+        connected: false,
+      }));
+
+      const filtered = mapped.filter((p) => looksLikePrinter(p.name));
+      return filtered.length > 0 ? filtered : mapped;
+    } catch (error: unknown) {
       console.error('Error scanning printers:', error);
-      Alert.alert(
-        'Scan Gagal',
-        error.message || 'Tidak dapat memindai printer Bluetooth',
-        [{ text: 'OK' }]
-      );
+      const message = error instanceof Error ? error.message : 'Tidak dapat memindai printer Bluetooth';
+      Alert.alert('Scan Gagal', message, [{ text: 'OK' }]);
       return [];
     }
   }
 
-  /**
-   * Connect to a Bluetooth printer
-   */
   async connectPrinter(printer: BluetoothPrinter): Promise<boolean> {
-    if (!this.nativeModule) {
-      Alert.alert(
-        'Bluetooth Tidak Tersedia',
-        'Modul Bluetooth printer belum diinstal.',
-        [{ text: 'OK' }]
-      );
-      return false;
-    }
-
     try {
       this.setState({ printing: false, connected: false, printer });
-      
-      // Connect to printer
-      await this.nativeModule.BluetoothManager.connect(printer.address);
-      
+
+      const bonded = await RNBluetoothClassic.getBondedDevices();
+      const device = bonded.find((d) => d.address === printer.address);
+
+      if (!device) {
+        Alert.alert(
+          'Printer Tidak Ditemukan',
+          'Pastikan printer sudah dipasangkan (paired) di pengaturan Bluetooth.',
+          [{ text: 'OK' }],
+        );
+        this.setState({ connected: false, printer: null, printing: false });
+        return false;
+      }
+
+      await device.connect();
+      this.connectedDevice = device;
       this.setState({ connected: true, printer, printing: false });
-      
       Alert.alert('Berhasil', `Printer ${printer.name} terhubung`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error connecting to printer:', error);
+      this.connectedDevice = null;
       this.setState({ connected: false, printer: null, printing: false });
-      
-      Alert.alert(
-        'Koneksi Gagal',
-        error.message || 'Tidak dapat menghubungkan ke printer',
-        [{ text: 'OK' }]
-      );
+      const message = error instanceof Error ? error.message : 'Tidak dapat menghubungkan ke printer';
+      Alert.alert('Koneksi Gagal', message, [{ text: 'OK' }]);
       return false;
     }
   }
 
-  /**
-   * Disconnect from current printer
-   */
   async disconnect(): Promise<void> {
-    if (!this.nativeModule || !this.state.connected) {
-      return;
-    }
-
+    if (!this.connectedDevice || !this.state.connected) return;
     try {
-      await this.nativeModule.BluetoothManager.disconnect();
-      this.setState({ connected: false, printer: null, printing: false });
+      await this.connectedDevice.disconnect();
     } catch (error) {
       console.error('Error disconnecting:', error);
+    } finally {
+      this.connectedDevice = null;
+      this.setState({ connected: false, printer: null, printing: false });
     }
   }
 
   /**
-   * Print ESC/POS data to printer
+   * Send ESC/POS bytes from expo-escpos (or any Uint8Array) to the printer.
    */
-  async printESCPOS(data: string): Promise<boolean> {
-    if (!this.nativeModule) {
-      Alert.alert(
-        'Printer Tidak Tersedia',
-        'Modul Bluetooth printer belum diinstal.',
-        [{ text: 'OK' }]
-      );
+  async printEscPosBytes(data: Uint8Array): Promise<boolean> {
+    if (!this.connectedDevice) {
+      Alert.alert('Printer Tidak Tersedia', 'Modul Bluetooth printer tidak tersedia.', [{ text: 'OK' }]);
       return false;
     }
 
@@ -192,60 +203,75 @@ class BluetoothPrinterManager {
       Alert.alert(
         'Printer Tidak Terhubung',
         'Silakan hubungkan ke printer Bluetooth terlebih dahulu.',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       );
       return false;
     }
 
     try {
       this.setState({ printing: true });
-      
-      // Convert string to base64 for native module
-      const base64Data = btoa(data);
-      
-      // Print data
-      await this.nativeModule.BluetoothEscposPrinter.printerPrintText(base64Data, {
-        encoding: 'GBK',
-        codepage: 0,
-        widthtimes: 0,
-        heigthtimes: 0,
-      });
-
+      // Encode raw bytes as base64 so the SPP socket receives the exact binary payload
+      const b64 = uint8ArrayToBase64(data);
+      await this.connectedDevice.write(b64, 'base64');
       this.setState({ printing: false });
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error printing:', error);
       this.setState({ printing: false });
-      
-      Alert.alert(
-        'Cetak Gagal',
-        error.message || 'Tidak dapat mencetak ke printer',
-        [{ text: 'OK' }]
-      );
+      const message = error instanceof Error ? error.message : 'Tidak dapat mencetak ke printer';
+      Alert.alert('Cetak Gagal', message, [{ text: 'OK' }]);
       return false;
     }
   }
 
   /**
-   * Test print to verify connection
+   * Render HTML with expo-escpos then send to printer (thermal image pipeline).
    */
-  async testPrint(): Promise<boolean> {
-    const testData = '\x1B@\x1Ba\x01\x1BE\x01Test Print\x1BE\x00\n';
-    const success = await this.printESCPOS(testData);
-    
-    if (success) {
-      Alert.alert('Berhasil', 'Test print berhasil!');
+  async printReceiptHtml(html: string, model?: PrinterModel): Promise<boolean> {
+    const m: PrinterModel = model ?? printerModelFromType(this.state.printer?.type ?? 'thermal_58mm');
+    try {
+      const escPos = await renderHtmlToImages(html, {
+        model: m,
+        maxHeightToBreak: 1600,
+      });
+      return this.printEscPosBytes(escPos);
+    } catch (error: unknown) {
+      console.error('renderHtmlToImages failed:', error);
+      const message = error instanceof Error ? error.message : 'Gagal merender struk';
+      Alert.alert('Cetak Gagal', message, [{ text: 'OK' }]);
+      return false;
     }
-    
-    return success;
   }
 
   /**
-   * Update printer state and notify listeners
+   * Legacy: ESC/POS built as a binary string (byte values in each char). Prefer printReceiptHtml.
    */
+  async printESCPOS(data: string): Promise<boolean> {
+    const bytes = new Uint8Array(data.length);
+    for (let i = 0; i < data.length; i++) {
+      bytes[i] = data.charCodeAt(i) & 0xff;
+    }
+    return this.printEscPosBytes(bytes);
+  }
+
+  async testPrint(): Promise<boolean> {
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><style>
+      body { font-family: sans-serif; text-align: center; padding: 16px; font-size: 14px; }
+    </style></head><body>
+      <h2>Test Print</h2>
+      <p>Kasir — koneksi OK</p>
+      <p>${new Date().toLocaleString('id-ID')}</p>
+    </body></html>`;
+    const ok = await this.printReceiptHtml(html);
+    if (ok) {
+      Alert.alert('Berhasil', 'Test print berhasil!');
+    }
+    return ok;
+  }
+
   private setState(newState: Partial<PrinterState>): void {
     this.state = { ...this.state, ...newState };
-    this.listeners.forEach(listener => listener(this.state));
+    this.listeners.forEach((listener) => listener(this.state));
   }
 }
 
