@@ -234,7 +234,16 @@ class BluetoothPrinterManager {
         model: m,
         maxHeightToBreak: 1600,
       });
-      return this.printEscPosBytes(escPos);
+      // ESC @ (init) + raster + LF*5 (feed paper past tear bar) + GS V 1 (partial cut)
+      const init = new Uint8Array([0x1b, 0x40]);
+      const feed = new Uint8Array([0x0a, 0x0a, 0x0a, 0x0a, 0x0a]);
+      const cut = new Uint8Array([0x1d, 0x56, 0x01]);
+      const payload = new Uint8Array(init.length + escPos.length + feed.length + cut.length);
+      payload.set(init, 0);
+      payload.set(escPos, init.length);
+      payload.set(feed, init.length + escPos.length);
+      payload.set(cut, init.length + escPos.length + feed.length);
+      return this.printEscPosBytes(payload);
     } catch (error: unknown) {
       console.error('renderHtmlToImages failed:', error);
       const message = error instanceof Error ? error.message : 'Gagal merender struk';
@@ -255,12 +264,22 @@ class BluetoothPrinterManager {
   }
 
   async testPrint(): Promise<boolean> {
+    const model = printerModelFromType(this.state.printer?.type ?? 'thermal_58mm');
+    const widthPx = model === '80' ? 576 : 384;
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><style>
-      body { font-family: sans-serif; text-align: center; padding: 16px; font-size: 14px; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body { width: ${widthPx}px; font-family: monospace; text-align: center; padding: 8px; font-size: 20px; color: #000; background: #fff; }
+      h2 { margin: 4px 0; font-size: 24px; }
+      p { margin: 4px 0; }
+      hr { border: none; border-top: 1px dashed #000; margin: 8px 0; }
     </style></head><body>
-      <h2>Test Print</h2>
-      <p>Kasir — koneksi OK</p>
+      <h2>*** TEST PRINT ***</h2>
+      <p>Kasir — Koneksi OK</p>
+      <hr/>
       <p>${new Date().toLocaleString('id-ID')}</p>
+      <hr/>
+      <p>Printer berfungsi baik!</p>
     </body></html>`;
     const ok = await this.printReceiptHtml(html);
     if (ok) {

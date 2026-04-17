@@ -29,6 +29,7 @@ import {
   ColorBase,
   ColorNeutral,
   ColorPrimary,
+  ColorSuccess,
   ColorWarning,
 } from "@/themes/Colors";
 import { formatPrice } from "@/utils";
@@ -71,6 +72,15 @@ export default function BukaShiftPage() {
     " WIB";
 
   const amount = Number(inputValue);
+  const cashierLabel =
+    user?.role === "superadmin"
+      ? "Super Admin"
+      : user?.role
+          ?.split("_")
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(" ") ?? "Kasir";
+  const branchLabel = user?.branchId ? `Outlet ${user.branchId.slice(0, 6)}` : "Cabang belum diatur";
+  const slotLabel = SHIFT_SLOTS.find((item) => item.id === slot)?.label ?? "Pagi";
 
   function handleNumpad(key: string) {
     setInputValue((prev) => {
@@ -149,57 +159,140 @@ export default function BukaShiftPage() {
         >
           <YStack flex={isTablet ? 0.58 : undefined} gap={sectionGap}>
             <YStack
-              alignItems={isTablet ? "flex-start" : "center"}
+              alignItems="flex-start"
               gap="$3"
               style={[styles.heroCard, isTablet && styles.heroCardTablet]}
             >
-              <XStack
-                width="100%"
-                alignItems="center"
-                justifyContent="space-between"
-                gap="$3"
-                flexWrap="wrap"
-              >
-                <XStack alignItems="center" gap="$3" flex={1}>
-                  <YStack
-                    width={isTablet ? 64 : 80}
-                    height={isTablet ? 64 : 80}
-                    borderRadius={999}
-                    backgroundColor={ColorWarning.warning100}
+              <XStack width="100%" alignItems="flex-start" gap="$3">
+                <YStack gap="$3" flex={1} minWidth={0}>
+                  <XStack
+                    width="100%"
                     alignItems="center"
-                    justifyContent="center"
+                    justifyContent="space-between"
+                    gap="$2"
                   >
-                    <Ionicons
-                      name="sunny-outline"
-                      size={isTablet ? 26 : 32}
-                      color={ColorWarning.warning600}
-                    />
-                  </YStack>
-                  <YStack
-                    alignItems={isTablet ? "flex-start" : "center"}
-                    gap={4}
-                    flex={1}
-                  >
-                    <TextH1 fontWeight="800">Selamat Datang!</TextH1>
-                    <TextH3 fontWeight="700" color={ColorPrimary.primary600}>
-                      Budi Santoso
-                    </TextH3>
-                    <TextBodySm color={ColorNeutral.neutral500}>
-                      Toko Makmur
-                    </TextBodySm>
-                  </YStack>
-                </XStack>
+                    <XStack alignItems="center" gap="$2" style={styles.statusChip}>
+                      <View style={styles.statusDot} />
+                      <TextCaption
+                        fontWeight="700"
+                        color={ColorSuccess.success700}
+                      >
+                        Siap mulai shift
+                      </TextCaption>
+                    </XStack>
+                    <XStack alignItems="center" gap={6} style={styles.slotBadge}>
+                      <Ionicons
+                        name={slot === "MALAM" ? "moon-outline" : "sunny-outline"}
+                        size={14}
+                        color={ColorPrimary.primary700}
+                      />
+                      <TextCaption
+                        fontWeight="700"
+                        color={ColorPrimary.primary700}
+                      >
+                        {slotLabel}
+                      </TextCaption>
+                    </XStack>
+                  </XStack>
 
-                <XStack alignItems="center" gap={6} style={styles.metaPill}>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={14}
-                    color={ColorNeutral.neutral500}
-                  />
-                  <TextCaption color={ColorNeutral.neutral500}>
-                    {currentDateTime}
-                  </TextCaption>
-                </XStack>
+                  <XStack alignItems="center" gap="$3" minWidth={0}>
+                    <YStack style={styles.heroIconWrap}>
+                      <YStack
+                        width={isTablet ? 64 : 72}
+                        height={isTablet ? 64 : 72}
+                        borderRadius={999}
+                        backgroundColor={ColorWarning.warning100}
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <Ionicons
+                          name="sunny-outline"
+                          size={isTablet ? 26 : 30}
+                          color={ColorWarning.warning600}
+                        />
+                      </YStack>
+                    </YStack>
+
+                    <YStack gap={4} flex={1} minWidth={0}>
+                      <TextH1 fontWeight="800" numberOfLines={1}>
+                        Selamat Datang!
+                      </TextH1>
+                      <TextH3
+                        fontWeight="700"
+                        color={ColorPrimary.primary700}
+                        numberOfLines={1}
+                      >
+                        {cashierLabel}
+                      </TextH3>
+                      <TextBodySm
+                        color={ColorNeutral.neutral500}
+                        numberOfLines={1}
+                      >
+                        {branchLabel}
+                      </TextBodySm>
+                    </YStack>
+                  </XStack>
+                </YStack>
+
+                {isTablet ? (
+                  <YStack
+                    minWidth={220}
+                    maxWidth={260}
+                    gap="$2"
+                    style={styles.heroAside}
+                  >
+                    <TextCaption
+                      fontWeight="700"
+                      color={ColorNeutral.neutral500}
+                    >
+                      Jadwal buka hari ini
+                    </TextCaption>
+                    <XStack alignItems="center" gap={6} style={styles.metaPill}>
+                      <Ionicons
+                        name="calendar-outline"
+                        size={14}
+                        color={ColorNeutral.neutral500}
+                      />
+                      <TextCaption
+                        color={ColorNeutral.neutral500}
+                        numberOfLines={1}
+                      >
+                        {currentDateTime}
+                      </TextCaption>
+                    </XStack>
+                  </YStack>
+                ) : null}
+              </XStack>
+
+              <XStack width="100%" gap="$2" flexWrap="wrap">
+                <YStack style={styles.heroInfoCard}>
+                  <TextCaption color={ColorNeutral.neutral500}>Jadwal</TextCaption>
+                  <XStack alignItems="center" gap={6} marginTop={6}>
+                    <Ionicons
+                      name="calendar-outline"
+                      size={14}
+                      color={ColorNeutral.neutral500}
+                    />
+                    <TextBodySm
+                      fontWeight="600"
+                      color={ColorNeutral.neutral700}
+                      flex={1}
+                    >
+                      {currentDateTime}
+                    </TextBodySm>
+                  </XStack>
+                </YStack>
+                <YStack style={styles.heroInfoCardCompact}>
+                  <TextCaption color={ColorNeutral.neutral500}>Modal target</TextCaption>
+                  <TextH3
+                    fontWeight="800"
+                    color={ColorPrimary.primary700}
+                    numberOfLines={1}
+                    marginTop={6}
+                  >
+                    {formatPrice(amount)}
+                  </TextH3>
+                </YStack>
               </XStack>
             </YStack>
 
@@ -211,13 +304,18 @@ export default function BukaShiftPage() {
                 gap="$3"
                 flexWrap="wrap"
               >
-                <YStack gap={4} flex={1} minWidth={220}>
+                <YStack gap={4} flex={1} minWidth={0}>
                   <TextH3 fontWeight="700">Pengaturan Shift</TextH3>
                   <TextBodySm color={ColorNeutral.neutral500}>
                     Pilih slot dan tentukan modal awal kas sebelum mulai jaga.
                   </TextBodySm>
                 </YStack>
-                <YStack style={styles.amountSummary}>
+                <YStack
+                  style={[
+                    styles.amountSummary,
+                    !isTablet && styles.amountSummaryMobile,
+                  ]}
+                >
                   <TextCaption color={ColorNeutral.neutral500}>
                     Modal saat ini
                   </TextCaption>
@@ -386,25 +484,86 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     backgroundColor: ColorBase.white,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 24,
+    padding: 18,
     borderWidth: 1,
     borderColor: ColorNeutral.neutral200,
+    shadowColor: ColorNeutral.neutralShadow,
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 3,
   },
   heroCardTablet: {
     paddingVertical: 14,
   },
+  heroIconWrap: {
+    width: 88,
+    height: 88,
+    borderRadius: 28,
+    backgroundColor: ColorPrimary.primary25,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: ColorPrimary.primary100,
+  },
+  heroAside: {
+    alignSelf: "stretch",
+    justifyContent: "center",
+  },
+  heroInfoCard: {
+    flex: 1,
+    minWidth: 0,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 18,
+    backgroundColor: ColorNeutral.neutral50,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+  },
+  heroInfoCardCompact: {
+    minWidth: 140,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 18,
+    backgroundColor: ColorPrimary.primary50,
+    borderWidth: 1,
+    borderColor: ColorPrimary.primary100,
+  },
   metaPill: {
     paddingHorizontal: 10,
     paddingVertical: 7,
-    borderRadius: 999,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: ColorNeutral.neutral200,
     backgroundColor: ColorNeutral.neutral100,
   },
+  statusChip: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: ColorSuccess.success50,
+    borderWidth: 1,
+    borderColor: ColorSuccess.success200,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: ColorSuccess.success500,
+  },
+  slotBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: ColorPrimary.primary50,
+    borderWidth: 1,
+    borderColor: ColorPrimary.primary100,
+  },
   formCard: {
     backgroundColor: ColorBase.white,
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 16,
     gap: 14,
     borderWidth: 1,
@@ -456,6 +615,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: ColorPrimary.primary100,
     minWidth: 210,
+  },
+  amountSummaryMobile: {
+    minWidth: 0,
+    width: "100%",
   },
   slotChip: {
     flexDirection: "row",

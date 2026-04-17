@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -119,19 +118,7 @@ export function PrinterTestModal({ visible, onClose }: PrinterTestModalProps) {
   const handleSystemPrint = async () => {
     setIsPrinting(true);
     try {
-      const { uri } = await Print.printToFileAsync({
-        html: buildTestReceiptHtml(),
-        base64: false,
-      });
-      const canShare = await Sharing.isAvailableAsync();
-      if (canShare) {
-        await Sharing.shareAsync(uri, {
-          mimeType: "application/pdf",
-          dialogTitle: "Cetak / Bagikan Struk Test",
-        });
-      } else {
-        await Print.printAsync({ uri });
-      }
+      await Print.printAsync({ html: buildTestReceiptHtml() });
     } catch {
       Alert.alert("Gagal", "Tidak dapat membuka dialog cetak.");
     } finally {

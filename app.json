@@ -7,7 +7,7 @@
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "package": "com.rofisudiyono.kasirinaja",
+      "package": "id.satset.kasir",
       "permissions": [
         "android.permission.BLUETOOTH",
         "android.permission.BLUETOOTH_ADMIN",
@@ -51,8 +51,8 @@
       "expo-router",
       "expo-sharing"
     ],
-    "scheme": "kasirinaja",
-    "slug": "kasirin-aja",
+    "scheme": "sat-set",
+    "slug": "satset-kasir",
     "userInterfaceStyle": "automatic",
     "version": "1.0.0",
     "web": {
