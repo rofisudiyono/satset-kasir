@@ -16,16 +16,23 @@ import { YStack } from "tamagui";
 import { TextBody, TextBodySm, TextH3 } from "@/components";
 import { scannedBarcodeAtom } from "@/features/cart/store/cart.store";
 import { catalogProducts } from "@/features/catalog/api/catalog.data";
+import { useDeviceProfile } from "@/hooks/use-device-profile";
+import { getInputManualRoute } from "@/lib/routing/device-routes";
 import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function BarcodeScannerPage() {
   const router = useRouter();
+  const { isTablet } = useDeviceProfile();
   const setScannedBarcode = useSetAtom(scannedBarcodeAtom);
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [manualCode, setManualCode] = useState("");
+
+  function closeScanner() {
+    router.replace(getInputManualRoute(isTablet) as never);
+  }
 
   function handleBarCodeScanned({ data }: { data: string }) {
     if (scanned) return;
@@ -37,7 +44,7 @@ export default function BarcodeScannerPage() {
     const found = catalogProducts.find((p) => p.barcode === code.trim());
     if (found) {
       setScannedBarcode(code.trim());
-      router.back();
+      closeScanner();
     } else {
       Alert.alert(
         "Produk Tidak Ditemukan",
@@ -82,7 +89,7 @@ export default function BarcodeScannerPage() {
               Izinkan Kamera
             </TextBody>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={closeScanner}>
             <TextBodySm color={ColorNeutral.neutral500}>Batal</TextBodySm>
           </TouchableOpacity>
         </YStack>
@@ -108,7 +115,7 @@ export default function BarcodeScannerPage() {
           <View style={styles.topBar}>
             <TouchableOpacity
               style={styles.closeBtn}
-              onPress={() => router.back()}
+              onPress={closeScanner}
             >
               <Ionicons name="close" size={24} color={ColorBase.white} />
             </TouchableOpacity>

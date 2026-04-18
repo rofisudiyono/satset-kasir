@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Redirect, Tabs } from "expo-router";
+import { Redirect, Tabs, useFocusEffect, usePathname, useRouter } from "expo-router";
 import React from "react";
+import { BackHandler } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuth } from "@/lib/auth";
+import { getHomeRoute } from "@/lib/routing/device-routes";
 import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
 
 function getTabIcon(
@@ -27,6 +29,28 @@ function getTabIcon(
 export default function MobileTabsLayout() {
   const { isLoggedIn } = useAuth();
   const insets = useSafeAreaInsets();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        () => {
+          if (!isLoggedIn) return false;
+
+          if (pathname !== getHomeRoute(false)) {
+            router.replace(getHomeRoute(false) as never);
+            return true;
+          }
+
+          return false;
+        },
+      );
+
+      return () => subscription.remove();
+    }, [isLoggedIn, pathname, router]),
+  );
 
   if (!isLoggedIn) return <Redirect href="/mobile/login" />;
 

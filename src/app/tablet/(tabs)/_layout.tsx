@@ -1,6 +1,6 @@
 import { Redirect, Tabs } from "expo-router";
 import React, { useCallback } from "react";
-import { StyleSheet, useColorScheme, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { TopNavHeader } from "@/components/layout/TopNavHeader";
 import { Colors } from "@/config/theme";
@@ -9,8 +9,6 @@ import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
 
 export default function TabletTabsLayout() {
   const { isLoggedIn } = useAuth();
-  const scheme = useColorScheme();
-  const isDark = scheme === "dark";
 
   const screenOptions = useCallback(
     () => ({
@@ -19,11 +17,9 @@ export default function TabletTabsLayout() {
       tabBarLabel: () => null,
       tabBarStyle: { display: "none" as const },
       tabBarActiveTintColor: ColorPrimary.primary600,
-      tabBarInactiveTintColor: isDark
-        ? ColorNeutral.neutral400
-        : ColorNeutral.neutral500,
+      tabBarInactiveTintColor: ColorNeutral.neutral500,
     }),
-    [isDark],
+    [],
   );
 
   if (!isLoggedIn) return <Redirect href="/tablet/login" />;
@@ -46,7 +42,7 @@ export default function TabletTabsLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.backgroundElement,
+    backgroundColor: Colors.backgroundElement,
   },
   content: {
     flex: 1,

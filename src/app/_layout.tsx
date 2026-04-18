@@ -6,14 +6,12 @@ import {
   useFonts,
 } from "@expo-google-fonts/poppins";
 import {
-  DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
 import { Slot } from "expo-router";
 import { Provider as JotaiProvider } from "jotai";
 import React from "react";
-import { useColorScheme } from "react-native";
 import { TamaguiProvider } from "tamagui";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
@@ -28,8 +26,6 @@ import { DeviceProfileProvider } from "@/providers/DeviceProfileProvider";
 import { tamaguiConfig } from "../../tamagui.config";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
@@ -44,11 +40,9 @@ export default function RootLayout() {
           <DeviceProfileProvider>
             <TamaguiProvider
               config={tamaguiConfig}
-              defaultTheme={colorScheme === "dark" ? "dark" : "light"}
+              defaultTheme="light"
             >
-              <ThemeProvider
-                value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-              >
+              <ThemeProvider value={DefaultTheme}>
                 <OrientationController />
                 <AnimatedSplashOverlay />
                 <KdsRealtimeBridge />

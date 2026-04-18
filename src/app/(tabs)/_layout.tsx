@@ -1,6 +1,6 @@
 import { Redirect, Tabs } from "expo-router";
 import React, { useCallback } from "react";
-import { StyleSheet, useColorScheme, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { TopNavHeader } from "@/components/layout/TopNavHeader";
 import { useAuth } from "@/lib/auth";
@@ -8,8 +8,6 @@ import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Co
 
 export default function TabsLayout() {
   const { isLoggedIn } = useAuth();
-  const scheme = useColorScheme();
-  const isDark = scheme === "dark";
 
   const screenOptions = useCallback(
     ({ route }: { route: { name: string } }) => {
@@ -19,12 +17,10 @@ export default function TabsLayout() {
         tabBarLabel: () => null,
         tabBarStyle: { display: "none" as const },
         tabBarActiveTintColor: ColorPrimary.primary600,
-        tabBarInactiveTintColor: isDark
-          ? ColorNeutral.neutral400
-          : ColorNeutral.neutral500,
+        tabBarInactiveTintColor: ColorNeutral.neutral500,
       };
     },
-    [isDark],
+    [],
   );
 
   if (!isLoggedIn) return <Redirect href="/login" />;

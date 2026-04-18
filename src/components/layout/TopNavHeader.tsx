@@ -51,8 +51,8 @@ type NavItem = {
   href: string;
 };
 
-const ADMIN_HEADER_BG = Colors.dark.backgroundElement;
-const ADMIN_HEADER_SURFACE = Colors.dark.backgroundSelected;
+const ADMIN_HEADER_BG = Colors.backgroundElement;
+const ADMIN_HEADER_SURFACE = Colors.backgroundSelected;
 const ADMIN_HEADER_BORDER = "rgba(255,255,255,0.08)";
 const ADMIN_HEADER_TEXT_SECONDARY = "rgba(255,255,255,0.68)";
 const ADMIN_HEADER_TEXT_MUTED = "rgba(255,255,255,0.48)";
