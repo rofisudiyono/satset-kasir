@@ -11,7 +11,7 @@ import { XStack, YStack } from "tamagui";
 
 import type { CartItem } from "@/features/cart/store/cart.store";
 import { TextBody, TextBodyLg, TextBodySm } from "@/components";
-import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
+import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
 import { CartItemRow } from "./CartItemRow";
 
 interface CartItemsCardProps {
@@ -143,10 +143,12 @@ const styles = StyleSheet.create({
     backgroundColor: ColorBase.white,
     borderRadius: 16,
     padding: 16,
-    shadowColor: ColorBase.black,
-    shadowOffset: { width: 0, height: 2 },
+    borderWidth: 1,
+    borderColor: ColorSurface.border,
+    shadowColor: ColorSurface.shadow,
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowRadius: 16,
     elevation: 2,
   },
   divider: {

@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { XStack } from "tamagui";
 
 import { TextBody, TextH3 } from "@/components";
-import { ColorBase, ColorGreen, ColorNeutral } from "@/themes/Colors";
+import { ColorBase, ColorGreen, ColorNeutral, ColorSurface } from "@/themes/Colors";
 import { formatPrice } from "@/utils";
 
 interface PriceSummaryCardProps {
@@ -67,10 +67,12 @@ const styles = StyleSheet.create({
     backgroundColor: ColorBase.white,
     borderRadius: 16,
     padding: 16,
-    shadowColor: ColorBase.black,
-    shadowOffset: { width: 0, height: 2 },
+    borderWidth: 1,
+    borderColor: ColorSurface.border,
+    shadowColor: ColorSurface.shadow,
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowRadius: 16,
     elevation: 2,
   },
   divider: {

@@ -7,7 +7,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { XStack, YStack } from "tamagui";
-import { ColorBase, ColorNeutral } from "@/themes/Colors";
+import { ColorBase, ColorSurface } from "@/themes/Colors";
 
 import { IconButton } from "../atoms/IconButton";
 import { TextBodySm, TextH2, TextH3 } from "../atoms/Typography";
@@ -83,13 +83,16 @@ export function PageHeader({
 
 const styles = StyleSheet.create({
   shell: {
-    backgroundColor: ColorBase.bgScreen,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: ColorNeutral.neutral200,
+    backgroundColor: ColorBase.white,
+    borderBottomWidth: 1,
+    borderBottomColor: ColorSurface.border,
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
   },
   header: {
     width: "100%",
     alignSelf: "center",
+    paddingHorizontal: 4,
   },
   actions: {
     marginLeft: "auto",

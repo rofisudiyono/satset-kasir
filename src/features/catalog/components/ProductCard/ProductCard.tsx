@@ -12,6 +12,7 @@ import {
   ColorBase,
   ColorNeutral,
   ColorPrimary,
+  ColorSurface,
   ColorWarning,
 } from "@/themes/Colors";
 import { formatPrice } from "@/utils";
@@ -23,10 +24,12 @@ const styles = StyleSheet.create({
     backgroundColor: ColorBase.white,
     borderRadius: 14,
     overflow: "hidden",
-    shadowColor: ColorBase.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: ColorSurface.border,
+    shadowColor: ColorSurface.shadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
     elevation: 2,
   },
   cardEmpty: {

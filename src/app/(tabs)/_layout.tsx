@@ -4,7 +4,7 @@ import { StyleSheet, useColorScheme, View } from "react-native";
 
 import { TopNavHeader } from "@/components/layout/TopNavHeader";
 import { useAuth } from "@/lib/auth";
-import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
+import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
 
 export default function TabsLayout() {
   const { isLoggedIn } = useAuth();
@@ -46,10 +46,10 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: ColorSurface.canvas,
   },
   content: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: ColorSurface.canvas,
   },
 });

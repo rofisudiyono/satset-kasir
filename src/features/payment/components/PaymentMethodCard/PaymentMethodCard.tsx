@@ -3,7 +3,7 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { YStack } from "tamagui";
 
-import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
+import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
 
 import { TextBodyLg, TextCaption } from "@/components/atoms/Typography";
 
@@ -18,11 +18,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 14,
     borderWidth: 1.5,
-    borderColor: ColorBase.transparent,
-    shadowColor: ColorBase.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    borderColor: ColorSurface.border,
+    shadowColor: ColorSurface.shadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
     elevation: 2,
   },
   methodCardSelected: {

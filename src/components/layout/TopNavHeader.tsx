@@ -18,6 +18,7 @@ import { IconButton, TextBodySm, TextCaption, TextH3 } from "@/components";
 import { useAuth } from "@/lib/auth";
 import { useTenantInfoQuery, useReadyOrdersQuery } from "@/hooks/api/use-kasir-api";
 import { API_BASE_URL } from "@/config/env";
+import { Colors } from "@/config/theme";
 import {
   getHistoryRoute,
   getHomeRoute,
@@ -49,6 +50,12 @@ type NavItem = {
   segment: string;
   href: string;
 };
+
+const ADMIN_HEADER_BG = Colors.dark.backgroundElement;
+const ADMIN_HEADER_SURFACE = Colors.dark.backgroundSelected;
+const ADMIN_HEADER_BORDER = "rgba(255,255,255,0.08)";
+const ADMIN_HEADER_TEXT_SECONDARY = "rgba(255,255,255,0.68)";
+const ADMIN_HEADER_TEXT_MUTED = "rgba(255,255,255,0.48)";
 
 export function TopNavHeader() {
   const router = useRouter();
@@ -165,10 +172,10 @@ export function TopNavHeader() {
             </View>
 
             <YStack gap={2} flex={1}>
-              <TextH3 fontWeight="700" color={ColorNeutral.neutral800}>
+              <TextH3 fontWeight="700" color={ColorBase.white}>
                 {tenantName ?? branchName ?? "—"}
               </TextH3>
-              <TextCaption color={ColorNeutral.neutral500}>
+              <TextCaption color={ADMIN_HEADER_TEXT_SECONDARY}>
                 {branchName && tenantName ? `${branchName} • ` : ""}{cashierLabel}
               </TextCaption>
             </YStack>
@@ -181,8 +188,8 @@ export function TopNavHeader() {
             justifyContent="flex-end"
           >
             <View style={styles.shiftPill}>
-              <TextCaption color={ColorNeutral.neutral500}>Shift</TextCaption>
-              <TextBodySm fontWeight="700" color={ColorNeutral.neutral800}>
+              <TextCaption color={ADMIN_HEADER_TEXT_SECONDARY}>Shift</TextCaption>
+              <TextBodySm fontWeight="700" color={ColorBase.white}>
                 {shiftLabel}
                 {isShiftStarted ? " • Aktif" : " • Belum buka"}
               </TextBodySm>
@@ -220,8 +227,8 @@ export function TopNavHeader() {
                   iconName="notifications-outline"
                   shape="square"
                   size={42}
-                  iconColor={ColorNeutral.neutral700}
-                  bg={ColorNeutral.neutral50}
+                  iconColor={ColorBase.white}
+                  bg={ADMIN_HEADER_SURFACE}
                 />
                 <View style={styles.alertDot} />
               </View>
@@ -229,16 +236,16 @@ export function TopNavHeader() {
                 iconName="bluetooth-outline"
                 shape="square"
                 size={42}
-                iconColor={ColorNeutral.neutral700}
-                bg={ColorNeutral.neutral50}
+                iconColor={ColorBase.white}
+                bg={ADMIN_HEADER_SURFACE}
                 onPress={() => router.push("/bluetooth-printer" as never)}
               />
               <IconButton
                 iconName="person-outline"
                 shape="square"
                 size={42}
-                iconColor={ColorNeutral.neutral700}
-                bg={ColorNeutral.neutral50}
+                iconColor={ColorBase.white}
+                bg={ADMIN_HEADER_SURFACE}
                 onPress={() => setStaffDetailVisible(true)}
               />
             </View>
@@ -259,13 +266,13 @@ export function TopNavHeader() {
                   name={active ? item.iconActive : item.icon}
                   size={16}
                   color={
-                    active ? ColorPrimary.primary600 : ColorNeutral.neutral700
+                    active ? ColorBase.white : ADMIN_HEADER_TEXT_SECONDARY
                   }
                 />
                 <TextBodySm
                   fontWeight="700"
                   color={
-                    active ? ColorPrimary.primary600 : ColorNeutral.neutral700
+                    active ? ColorBase.white : ADMIN_HEADER_TEXT_SECONDARY
                   }
                 >
                   {item.label}
@@ -290,20 +297,20 @@ export function TopNavHeader() {
               size={16}
               color={
                 isSiapAntarTabActive
-                  ? ColorPrimary.primary600
+                  ? ColorBase.white
                   : displayReadyCount > 0
                     ? ColorSuccess.success600
-                    : ColorNeutral.neutral500
+                    : ADMIN_HEADER_TEXT_MUTED
               }
             />
             <TextBodySm
               fontWeight="700"
               color={
                 isSiapAntarTabActive
-                  ? ColorPrimary.primary600
+                  ? ColorBase.white
                   : displayReadyCount > 0
                     ? ColorSuccess.success600
-                    : ColorNeutral.neutral700
+                    : ADMIN_HEADER_TEXT_SECONDARY
               }
             >
               Siap Diantar
@@ -311,10 +318,10 @@ export function TopNavHeader() {
             <TextCaption
               color={
                 isSiapAntarTabActive
-                  ? ColorPrimary.primary600
+                  ? ColorBase.white
                   : displayReadyCount > 0
                     ? ColorSuccess.success600
-                    : ColorNeutral.neutral500
+                    : ADMIN_HEADER_TEXT_MUTED
               }
               fontWeight={displayReadyCount > 0 ? "700" : "500"}
             >
@@ -330,10 +337,10 @@ export function TopNavHeader() {
               size={16}
               color={ColorSuccess.success600}
             />
-            <TextBodySm fontWeight="700" color={ColorNeutral.neutral700}>
+            <TextBodySm fontWeight="700" color={ColorBase.white}>
               Reservasi
             </TextBodySm>
-            <TextCaption color={ColorNeutral.neutral500}>
+            <TextCaption color={ADMIN_HEADER_TEXT_MUTED}>
               Segera hadir
             </TextCaption>
           </View>
@@ -452,14 +459,14 @@ export function TopNavHeader() {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: ColorBase.white,
+    backgroundColor: ADMIN_HEADER_BG,
   },
   shell: {
     width: "100%",
     alignSelf: "center",
-    backgroundColor: ColorBase.white,
+    backgroundColor: ADMIN_HEADER_BG,
     borderBottomWidth: 1,
-    borderBottomColor: ColorNeutral.neutral200,
+    borderBottomColor: ADMIN_HEADER_BORDER,
   },
   topRow: {
     alignItems: "center",
@@ -491,9 +498,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 14,
-    backgroundColor: ColorNeutral.neutral50,
+    backgroundColor: ADMIN_HEADER_SURFACE,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
+    borderColor: ADMIN_HEADER_BORDER,
     gap: 2,
   },
   primaryAction: {
@@ -524,7 +531,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: ColorDanger.danger600,
     borderWidth: 2,
-    borderColor: ColorBase.white,
+    borderColor: ADMIN_HEADER_BG,
   },
   navRow: {
     gap: 10,
@@ -532,7 +539,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 14,
     paddingTop: 2,
-    backgroundColor: ColorBase.white,
+    backgroundColor: ADMIN_HEADER_BG,
   },
   navChip: {
     flexDirection: "row",
@@ -541,13 +548,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 14,
-    backgroundColor: ColorNeutral.neutral50,
+    backgroundColor: ADMIN_HEADER_SURFACE,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
+    borderColor: ADMIN_HEADER_BORDER,
   },
   navChipActive: {
-    backgroundColor: ColorPrimary.primary50,
-    borderColor: ColorPrimary.primary200,
+    backgroundColor: ColorPrimary.primary600,
+    borderColor: ColorPrimary.primary600,
   },
   readyChip: {
     flexDirection: "row",
@@ -556,13 +563,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 14,
-    backgroundColor: ColorNeutral.neutral50,
+    backgroundColor: ADMIN_HEADER_SURFACE,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
+    borderColor: ADMIN_HEADER_BORDER,
   },
   readyChipActive: {
-    backgroundColor: "#F0FDF4",
-    borderColor: "#BBF7D0",
+    backgroundColor: "rgba(16, 185, 129, 0.16)",
+    borderColor: "rgba(16, 185, 129, 0.34)",
   },
   comingSoonChip: {
     flexDirection: "row",
@@ -571,9 +578,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 14,
-    backgroundColor: ColorNeutral.neutral50,
+    backgroundColor: ADMIN_HEADER_SURFACE,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
+    borderColor: ADMIN_HEADER_BORDER,
   },
   // Modal / Staff popup
   modalOverlay: {

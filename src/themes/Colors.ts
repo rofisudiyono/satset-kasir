@@ -2,7 +2,16 @@ export const enum ColorBase {
   white = "#FFFFFF",
   black = "#000000",
   transparent = "transparent",
-  bgScreen = "#F8FAFF",
+  bgScreen = "#F6F3EE",
+}
+
+export const enum ColorSurface {
+  canvas = "#F6F3EE",
+  surface = "#FFFFFF",
+  surfaceMuted = "#FCFBF8",
+  border = "#ECE6DD",
+  borderStrong = "#DED5C8",
+  shadow = "#8B7B67",
 }
 
 export const enum ColorPrimary {

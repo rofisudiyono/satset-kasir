@@ -9,7 +9,7 @@ import {
   ProductGrid,
   VariantSheet,
 } from "@/features/transactions/components/transaksi-baru";
-import { ColorBase, ColorNeutral } from "@/themes/Colors";
+import { ColorBase, ColorSurface } from "@/themes/Colors";
 
 import { useTransactionEntry } from "../shared/useTransactionEntry";
 
@@ -91,26 +91,49 @@ export function TransactionEntryTabletScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: ColorSurface.canvas,
   },
   splitLayout: {
     flex: 1,
     flexDirection: "row",
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 16,
+    gap: 14,
   },
   catalogPanel: {
     flex: 0.65,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: ColorBase.white,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: ColorSurface.border,
+    overflow: "hidden",
+    shadowColor: ColorSurface.shadow,
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 4,
   },
   catalogScroll: {
     flex: 1,
     minHeight: 0,
+    backgroundColor: ColorBase.white,
   },
   divider: {
     width: 1,
-    backgroundColor: ColorNeutral.neutral200,
+    backgroundColor: "transparent",
   },
   cartPanel: {
     flex: 0.35,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: ColorBase.white,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: ColorSurface.border,
+    overflow: "hidden",
+    shadowColor: ColorSurface.shadow,
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 4,
   },
 });

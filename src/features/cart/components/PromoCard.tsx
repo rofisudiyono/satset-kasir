@@ -15,6 +15,7 @@ import {
   ColorGreen,
   ColorNeutral,
   ColorPrimary,
+  ColorSurface,
 } from "@/themes/Colors";
 import type { AppliedPromo } from "@/types";
 
@@ -109,10 +110,12 @@ const styles = StyleSheet.create({
     backgroundColor: ColorBase.white,
     borderRadius: 16,
     padding: 16,
-    shadowColor: ColorBase.black,
-    shadowOffset: { width: 0, height: 2 },
+    borderWidth: 1,
+    borderColor: ColorSurface.border,
+    shadowColor: ColorSurface.shadow,
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowRadius: 16,
     elevation: 2,
   },
   promoInputWrapper: {

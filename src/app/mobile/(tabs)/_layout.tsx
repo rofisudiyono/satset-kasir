@@ -4,7 +4,7 @@ import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuth } from "@/lib/auth";
-import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
+import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
 
 function getTabIcon(
   routeName: string,
@@ -38,11 +38,11 @@ export default function MobileTabsLayout() {
         tabBarInactiveTintColor: ColorNeutral.neutral500,
         sceneStyle: {
           paddingTop: insets.top,
-          backgroundColor: ColorBase.bgScreen,
+          backgroundColor: ColorSurface.canvas,
         },
         tabBarStyle: {
           backgroundColor: ColorBase.white,
-          borderTopColor: ColorNeutral.neutral200,
+          borderTopColor: ColorSurface.border,
           height: 62 + Math.max(insets.bottom, 10),
           paddingTop: 8,
           paddingBottom: Math.max(insets.bottom, 10),

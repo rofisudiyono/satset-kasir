@@ -31,7 +31,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { shiftDataAtom } from "@/features/shift/store/shift.store";
 import type { KasirTable } from "@/lib/api/types";
-import { ColorBase, ColorDanger, ColorNeutral } from "@/themes/Colors";
+import { ColorBase, ColorDanger, ColorNeutral, ColorSurface } from "@/themes/Colors";
 import type { AppliedPromo, OrderType } from "@/types";
 
 const PPN_RATE = 0.11;
@@ -292,16 +292,17 @@ export function CartPanel() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: ColorSurface.surfaceMuted,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingTop: 16,
+    paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: ColorNeutral.neutral100,
+    borderBottomColor: ColorSurface.border,
     backgroundColor: ColorBase.white,
   },
   trashBtn: {

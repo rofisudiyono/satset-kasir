@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 
-import { ColorBase, ColorNeutral } from "@/themes/Colors";
+import { ColorBase, ColorSurface } from "@/themes/Colors";
 
 interface BottomBarProps {
   children: React.ReactNode;
@@ -42,8 +42,8 @@ const styles = StyleSheet.create({
     backgroundColor: ColorBase.white,
     paddingHorizontal: 16,
     paddingTop: 14,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: ColorNeutral.neutral200,
+    borderTopWidth: 1,
+    borderTopColor: ColorSurface.border,
   },
   absolute: {
     position: "absolute",

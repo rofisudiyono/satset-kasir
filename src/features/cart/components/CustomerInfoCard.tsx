@@ -11,7 +11,7 @@ import {
 
 import { orderTypeOptions } from "@/features/payment/api/payment.data";
 import { TextBodySm, TextCaption } from "@/components";
-import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
+import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
 import type { KasirTable } from "@/lib/api/types";
 import type { OrderType } from "@/types";
 
@@ -214,10 +214,12 @@ const styles = StyleSheet.create({
     backgroundColor: ColorBase.white,
     borderRadius: 16,
     padding: 16,
-    shadowColor: ColorBase.black,
-    shadowOffset: { width: 0, height: 2 },
+    borderWidth: 1,
+    borderColor: ColorSurface.border,
+    shadowColor: ColorSurface.shadow,
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowRadius: 16,
     elevation: 2,
   },
   inputField: {
@@ -280,6 +282,8 @@ const styles = StyleSheet.create({
   modalCard: {
     backgroundColor: ColorBase.white,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: ColorSurface.border,
     padding: 16,
     maxHeight: "70%",
   },

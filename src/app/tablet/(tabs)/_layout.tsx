@@ -3,6 +3,7 @@ import React, { useCallback } from "react";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
 import { TopNavHeader } from "@/components/layout/TopNavHeader";
+import { Colors } from "@/config/theme";
 import { useAuth } from "@/lib/auth";
 import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
 
@@ -45,10 +46,10 @@ export default function TabletTabsLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: Colors.light.backgroundElement,
   },
   content: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: "#F6F3EE",
   },
 });
