@@ -26,7 +26,7 @@ import {
 } from "@/components";
 import { PrinterTestModal } from "@/components/molecules/PrinterTestModal";
 import { isShiftStartedAtom, shiftDataAtom } from "@/features/shift/store/shift.store";
-import { kasirShiftToShiftData } from "@/features/shift/utils/mapShift";
+import { buildShiftSyncState } from "@/features/shift/utils/syncShiftState";
 import { useLoginMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { getActiveShift } from "@/lib/api/kasir.api";
@@ -95,13 +95,9 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
       }
 
       if (hasResolvedShift) {
-        if (activeShift) {
-          setShiftData(kasirShiftToShiftData(activeShift));
-          setIsShiftStarted(true);
-        } else {
-          setShiftData(null);
-          setIsShiftStarted(false);
-        }
+        const nextState = buildShiftSyncState(activeShift);
+        setShiftData(nextState.shiftData);
+        setIsShiftStarted(nextState.isShiftStarted);
       }
 
       router.replace(

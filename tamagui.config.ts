@@ -70,6 +70,10 @@ const animations = createAnimations({
   },
 });
 
+const animationDrivers = {
+  default: animations,
+} as const;
+
 // ─── Raw Color Palette ───────────────────────────────────────────────────────
 const rawColors = {
   blue50: "#EFF6FF",
@@ -297,7 +301,7 @@ const poppinsFont = createFont({
 
 // ─── Final Config ─────────────────────────────────────────────────────────────
 export const tamaguiConfig = createTamagui({
-  animations,
+  animations: animationDrivers as never,
   defaultTheme: "light",
   shouldAddPrefersColorThemes: true,
   themeClassNameOnRoot: true,
@@ -330,9 +334,3 @@ export const tamaguiConfig = createTamagui({
 });
 
 export default tamaguiConfig;
-
-export type Conf = typeof tamaguiConfig;
-
-declare module "tamagui" {
-  interface TamaguiCustomConfig extends Conf {}
-}

@@ -1,27 +1,13 @@
 import { Redirect } from "expo-router";
 
-import { useActiveShiftQuery } from "@/hooks/api/use-kasir-api";
-import { useAuth } from "@/lib/auth";
-import { getAuthenticatedEntryRoute, getLoginRoute } from "@/lib/routing/device-routes";
+import { useShiftEntryRoute } from "@/features/shift/hooks/use-shift-entry-route";
 
 export default function TabletIndex() {
-  const { isLoggedIn } = useAuth();
-  const activeShiftQuery = useActiveShiftQuery(isLoggedIn);
+  const { href, isReady } = useShiftEntryRoute(true);
 
-  if (!isLoggedIn) {
-    return <Redirect href={getLoginRoute(true) as never} />;
-  }
-
-  if (activeShiftQuery.isPending) {
+  if (!isReady) {
     return null;
   }
 
-  return (
-    <Redirect
-      href={getAuthenticatedEntryRoute(
-        true,
-        Boolean(activeShiftQuery.data),
-      ) as never}
-    />
-  );
+  return <Redirect href={href as never} />;
 }

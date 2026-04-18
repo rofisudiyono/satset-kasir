@@ -350,6 +350,9 @@ export default function TutupShiftPage() {
                   : "Kas kurang — periksa transaksi yang belum tercatat"}
               </TextCaption>
             )}
+            <TextCaption color={ColorNeutral.neutral400} textAlign="center" marginTop={4}>
+              Angka di atas berdasarkan data perangkat ini. Laporan final dihitung server saat shift ditutup.
+            </TextCaption>
             </YStack>
           </YStack>
         </XStack>
