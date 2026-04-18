@@ -22,6 +22,12 @@ export type ApiErrorBody = {
 
 export type ShiftSlotApi = "PAGI" | "SIANG" | "MALAM";
 
+export type KasirTenantInfo = {
+  tenantName: string | null;
+  logoPath: string | null;
+  branchName: string | null;
+};
+
 // ─── Menu (Kasir) ─────────────────────────────────────────────────────────────
 
 export type KasirMenuVariant = {

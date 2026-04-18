@@ -11,6 +11,7 @@ import type {
   KasirShift,
   KasirTable,
   KasirTaxSettings,
+  KasirTenantInfo,
   PendingWebOrder,
   ShiftSlotApi,
   ValidatePromoResponse,
@@ -219,4 +220,9 @@ export async function validatePromoCode(payload: {
 export async function getTaxSettings(): Promise<KasirTaxSettings | null> {
   const { data } = await api.get<{ data: KasirTaxSettings | null }>("/kasir/settings/tax");
   return data.data ?? null;
+}
+
+export async function getTenantInfo(): Promise<KasirTenantInfo> {
+  const { data } = await api.get<{ data: KasirTenantInfo }>("/kasir/tenant-info");
+  return data.data;
 }

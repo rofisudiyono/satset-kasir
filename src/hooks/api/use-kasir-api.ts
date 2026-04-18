@@ -129,6 +129,16 @@ export function useTablesQuery(enabled: boolean, branchId?: string) {
   });
 }
 
+export function useTenantInfoQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: kasirKeys.tenantInfo(),
+    queryFn: kasirApi.getTenantInfo,
+    enabled,
+    staleTime: 30 * 60_000,
+    gcTime: 60 * 60_000,
+  });
+}
+
 export function useOrderHistoryQuery(enabled: boolean, params?: GetOrderHistoryParams) {
   return useQuery({
     queryKey: kasirKeys.orderHistory(params),

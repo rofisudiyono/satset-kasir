@@ -3,6 +3,7 @@ import { usePathname, useRouter } from "expo-router";
 import { useAtom, useSetAtom } from "jotai";
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  Image,
   Modal,
   StyleSheet,
   TouchableOpacity,
@@ -15,7 +16,8 @@ import { XStack, YStack } from "tamagui";
 
 import { IconButton, TextBodySm, TextCaption, TextH3 } from "@/components";
 import { useAuth } from "@/lib/auth";
-import { useReadyOrdersQuery } from "@/hooks/api/use-kasir-api";
+import { useTenantInfoQuery, useReadyOrdersQuery } from "@/hooks/api/use-kasir-api";
+import { API_BASE_URL } from "@/config/env";
 import {
   getHistoryRoute,
   getHomeRoute,
@@ -136,6 +138,11 @@ export function TopNavHeader() {
   const isSiapAntarTabActive =
     pathname === siapAntarHref || pathname.startsWith(`${siapAntarHref}/`);
 
+  const tenantInfoQuery = useTenantInfoQuery(isLoggedIn);
+  const tenantInfo = tenantInfoQuery.data;
+  const tenantName = tenantInfo?.tenantName ?? null;
+  const branchName = tenantInfo?.branchName ?? null;
+  const logoUri = tenantInfo?.logoPath ? `${API_BASE_URL}${tenantInfo.logoPath}` : null;
   const cashierLabel = shiftData?.cashierName ?? "Kasir 01";
   const shiftLabel = shiftData?.slot ?? "SHIFT";
   const shellMaxWidth = width >= 1360 ? 1480 : width >= 1024 ? 1240 : width;
@@ -146,15 +153,23 @@ export function TopNavHeader() {
         <XStack style={styles.topRow}>
           <XStack alignItems="center" gap="$3" flex={1}>
             <View style={styles.brandIcon}>
-              <Ionicons name="cafe-outline" size={22} color={ColorBase.white} />
+              {logoUri ? (
+                <Image
+                  source={{ uri: logoUri }}
+                  style={styles.brandLogo}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Ionicons name="cafe-outline" size={22} color={ColorBase.white} />
+              )}
             </View>
 
             <YStack gap={2} flex={1}>
               <TextH3 fontWeight="700" color={ColorNeutral.neutral800}>
-                Kasirin Aja
+                {tenantName ?? branchName ?? "—"}
               </TextH3>
               <TextCaption color={ColorNeutral.neutral500}>
-                Outlet utama • {cashierLabel}
+                {branchName && tenantName ? `${branchName} • ` : ""}{cashierLabel}
               </TextCaption>
             </YStack>
           </XStack>
@@ -464,6 +479,12 @@ const styles = StyleSheet.create({
     backgroundColor: ColorPrimary.primary600,
     borderWidth: 1,
     borderColor: ColorPrimary.primary600,
+    overflow: "hidden",
+  },
+  brandLogo: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
   },
   shiftPill: {
     minWidth: 156,

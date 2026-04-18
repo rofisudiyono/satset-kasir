@@ -9,4 +9,5 @@ export const kasirKeys = {
   orderDetail: (orderId?: string) => [...kasirKeys.all, "orders", "detail", orderId ?? "unknown"] as const,
   promos: () => [...kasirKeys.all, "promos"] as const,
   taxSettings: () => [...kasirKeys.all, "settings", "tax"] as const,
+  tenantInfo: () => [...kasirKeys.all, "tenant-info"] as const,
 };
