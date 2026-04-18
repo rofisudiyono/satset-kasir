@@ -25,11 +25,11 @@
     },
     "icon": "./assets/images/icon.png",
     "ios": {
-      "bundleIdentifier": "com.rofisudiyono.kasirinaja",
+      "bundleIdentifier": "id.web.satset.kasir",
       "icon": "./assets/expo.icon",
       "supportsTablet": true
     },
-    "name": "kasirin-aja",
+    "name": "Satset Kasir",
     "orientation": "default",
     "plugins": [
       [
