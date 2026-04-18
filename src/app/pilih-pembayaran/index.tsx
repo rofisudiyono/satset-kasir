@@ -44,6 +44,7 @@ import type { PaymentMethod } from "@/types";
 import { formatPrice } from "@/utils";
 
 type PaymentFlowMode = "full" | "partial" | "split_nominal" | "split_item";
+type MobilePaymentStep = "summary" | "method";
 
 export default function PilihPembayaranPage() {
   const router = useRouter();
@@ -65,6 +66,7 @@ export default function PilihPembayaranPage() {
   const [mode, setMode] = useState<PaymentFlowMode>("full");
   const [amountInput, setAmountInput] = useState("");
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+  const [mobileStep, setMobileStep] = useState<MobilePaymentStep>("summary");
 
   useEffect(() => {
     if (isShiftStarted) return;
@@ -87,7 +89,10 @@ export default function PilihPembayaranPage() {
 
   if (!order) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={["top", "left", "right", "bottom"]}
+      >
         <PageHeader
           title="Pilih Pembayaran"
           showBack
@@ -114,6 +119,11 @@ export default function PilihPembayaranPage() {
   }
 
   const currentOrder = order;
+
+  useEffect(() => {
+    if (isTablet) return;
+    setMobileStep("summary");
+  }, [isTablet, currentOrder.id]);
 
   const paidAmount = calculateOrderPaidAmount(currentOrder);
   const remaining = calculateOrderRemainingAmount(currentOrder);
@@ -241,6 +251,15 @@ export default function PilihPembayaranPage() {
         },
       ],
     );
+  }
+
+  function handleBack() {
+    if (!isTablet && mobileStep === "method") {
+      setMobileStep("summary");
+      return;
+    }
+
+    router.back();
   }
 
   const totalCard = (
@@ -444,61 +463,136 @@ export default function PilihPembayaranPage() {
     </View>
   );
 
+  const summaryButton = (
+    <View style={styles.bottomBar}>
+      <AppButton
+        variant="primary"
+        size="lg"
+        fullWidth
+        title="Lanjut ke Metode Pembayaran"
+        onPress={() => setMobileStep("method")}
+        disabled={!canProcess}
+      />
+      <TextCaption color="$colorSecondary" textAlign="center" marginTop={8}>
+        Lanjut setelah nominal pembayaran sudah sesuai.
+      </TextCaption>
+    </View>
+  );
+
+  const methodSelection = (
+    <>
+      <TextCaption
+        color="$colorSecondary"
+        fontWeight="700"
+        letterSpacing={0.8}
+      >
+        METODE PEMBAYARAN
+      </TextCaption>
+      {paymentMethodOptions.map((method) => (
+        <PaymentMethodCard
+          key={method.id}
+          {...method}
+          selected={selectedMethod === method.id}
+          onPress={() => setSelectedMethod(method.id)}
+        />
+      ))}
+    </>
+  );
+
+  const methodSummaryCard = (
+    <View style={styles.methodSummaryCard}>
+      <TextCaption color={ColorPrimary.primary700} fontWeight="700">
+        SIAP DICATAT
+      </TextCaption>
+      <TextH3 fontWeight="700" marginTop={6}>
+        {getPaymentMethodLabel(selectedMethod)}
+      </TextH3>
+      <TextBodySm color="$colorSecondary" marginTop={4}>
+        {getPaymentLabel()}
+      </TextBodySm>
+      <TextH2 fontWeight="700" marginTop={12}>
+        {formatPrice(paymentAmount)}
+      </TextH2>
+      <TextBodySm color="$colorSecondary" marginTop={8}>
+        Order {currentOrder.id} • sisa {formatPrice(remaining)}
+      </TextBodySm>
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top", "left", "right", "bottom"]}
+    >
       <PageHeader
-        title="Pilih Pembayaran"
+        title={
+          !isTablet && mobileStep === "summary"
+            ? "Ringkasan Order"
+            : "Pilih Pembayaran"
+        }
         showBack
-        onBack={() => router.back()}
+        onBack={handleBack}
         maxWidth={contentMaxWidth}
       />
-      <XStack
-        flex={1}
-        flexDirection={isTablet ? "row" : "column"}
-        style={[
-          styles.shell,
-          {
-            maxWidth: contentMaxWidth,
-            paddingHorizontal: horizontalPadding,
-          },
-        ]}
-      >
-        <ScrollView
-          style={[styles.tabletLeft, !isTablet && styles.stackPanel]}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 12 }}
+      {isTablet ? (
+        <XStack
+          flex={1}
+          flexDirection="row"
+          style={[
+            styles.shell,
+            {
+              maxWidth: contentMaxWidth,
+              paddingHorizontal: horizontalPadding,
+            },
+          ]}
         >
-          {orderInfo}
-        </ScrollView>
-        {isTablet ? <View style={styles.tabletDivider} /> : null}
-        <View style={[styles.tabletRight, !isTablet && styles.stackPanel]}>
           <ScrollView
+            style={styles.tabletLeft}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-              padding: 16,
-              paddingBottom: 120,
-              gap: 12,
-            }}
+            contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 12 }}
           >
-            <TextCaption
-              color="$colorSecondary"
-              fontWeight="700"
-              letterSpacing={0.8}
-            >
-              METODE PEMBAYARAN
-            </TextCaption>
-            {paymentMethodOptions.map((method) => (
-              <PaymentMethodCard
-                key={method.id}
-                {...method}
-                selected={selectedMethod === method.id}
-                onPress={() => setSelectedMethod(method.id)}
-              />
-            ))}
+            {orderInfo}
           </ScrollView>
-          {processButton}
+          <View style={styles.tabletDivider} />
+          <View style={styles.tabletRight}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{
+                padding: 16,
+                paddingBottom: 120,
+                gap: 12,
+              }}
+            >
+              {methodSelection}
+            </ScrollView>
+            {processButton}
+          </View>
+        </XStack>
+      ) : (
+        <View
+          style={[
+            styles.mobileShell,
+            {
+              maxWidth: contentMaxWidth,
+              paddingHorizontal: horizontalPadding,
+            },
+          ]}
+        >
+          <ScrollView
+            style={styles.mobileContent}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ padding: 16, paddingBottom: 132, gap: 12 }}
+          >
+            {mobileStep === "summary" ? orderInfo : (
+              <YStack gap="$3">
+                {methodSummaryCard}
+                {methodSelection}
+              </YStack>
+            )}
+          </ScrollView>
+          {mobileStep === "summary" ? summaryButton : processButton}
         </View>
-      </XStack>
+      )}
     </SafeAreaView>
   );
 }
@@ -511,6 +605,14 @@ const styles = StyleSheet.create({
   shell: {
     width: "100%",
     alignSelf: "center",
+    flex: 1,
+  },
+  mobileShell: {
+    width: "100%",
+    alignSelf: "center",
+    flex: 1,
+  },
+  mobileContent: {
     flex: 1,
   },
   totalCard: {
@@ -604,6 +706,13 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 24,
   },
+  methodSummaryCard: {
+    backgroundColor: ColorPrimary.primary50,
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: ColorPrimary.primary100,
+  },
   tabletLeft: {
     flex: 0.56,
   },
@@ -616,10 +725,5 @@ const styles = StyleSheet.create({
     backgroundColor: ColorBase.white,
     borderTopRightRadius: 20,
     borderBottomRightRadius: 20,
-  },
-  stackPanel: {
-    flex: 1,
-    borderRadius: 20,
-    overflow: "hidden",
   },
 });

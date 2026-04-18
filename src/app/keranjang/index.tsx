@@ -40,10 +40,9 @@ import {
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { getApiErrorMessage } from "@/lib/api/client";
 import type { KasirTable } from "@/lib/api/types";
+import { calculateTaxBreakdown } from "@/lib/tax";
 import { ColorBase, ColorDanger, ColorPrimary } from "@/themes/Colors";
 import type { AppliedPromo, OrderType } from "@/types";
-
-const DEFAULT_TAX_RATE = 0.11;
 
 export default function KeranjangPage() {
   const router = useRouter();
@@ -63,7 +62,6 @@ export default function KeranjangPage() {
 
   // ─── Promo & Tax ────────────────────────────────────────────────────────────
   const { data: taxSettings } = useTaxSettingsQuery(isShiftStarted);
-  const taxRate = taxSettings?.isEnabled ? Number(taxSettings.rate) : DEFAULT_TAX_RATE;
 
   useActivePromosQuery(isShiftStarted); // warm cache; PromoCard uses this list optionally
 
@@ -78,8 +76,9 @@ export default function KeranjangPage() {
   const subtotal = cart.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
   const discount = appliedPromo && promoEnabled ? appliedPromo.discount : 0;
   const afterDiscount = subtotal - discount;
-  const ppn = taxSettings?.isEnabled ? Math.round(afterDiscount * taxRate) : 0;
-  const total = afterDiscount + ppn;
+  const taxBreakdown = calculateTaxBreakdown(taxSettings, afterDiscount);
+  const ppn = taxBreakdown.taxAmount;
+  const total = taxBreakdown.grandTotal;
 
   // ─── Re-validasi promo jika subtotal berubah setelah promo diapply ──────────
   const prevSubtotalRef = useRef(subtotal);
@@ -382,7 +381,7 @@ export default function KeranjangPage() {
               ppn={ppn}
               total={total}
               taxLabel={taxSettings?.label ?? "PPN"}
-              taxRate={taxRate}
+              taxRate={taxBreakdown.rate}
             />
 
             <YStack gap={8}>

@@ -25,16 +25,19 @@ import {
   cartSnapshotAtom,
   heldOrdersAtom,
 } from "@/features/cart/store/cart.store";
-import { useTablesQuery, useValidatePromoMutation } from "@/hooks/api/use-kasir-api";
+import {
+  useTablesQuery,
+  useTaxSettingsQuery,
+  useValidatePromoMutation,
+} from "@/hooks/api/use-kasir-api";
 import { buildPosOrderFromCart } from "@/features/pos/pos.utils";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { calculateTaxBreakdown } from "@/lib/tax";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { shiftDataAtom } from "@/features/shift/store/shift.store";
 import type { KasirTable } from "@/lib/api/types";
 import { ColorBase, ColorDanger, ColorNeutral, ColorSurface } from "@/themes/Colors";
 import type { AppliedPromo, OrderType } from "@/types";
-
-const PPN_RATE = 0.11;
 
 export function CartPanel() {
   const router = useRouter();
@@ -53,13 +56,15 @@ export function CartPanel() {
   const [promoEnabled, setPromoEnabled] = useState(false);
   const [promoLoading, setPromoLoading] = useState(false);
   const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(true);
+  const { data: taxSettings } = useTaxSettingsQuery(Boolean(shiftData?.shiftId));
   const validatePromoMutation = useValidatePromoMutation();
 
   const subtotal = cart.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
   const discount = appliedPromo && promoEnabled ? appliedPromo.discount : 0;
   const afterDiscount = subtotal - discount;
-  const ppn = Math.round(afterDiscount * PPN_RATE);
-  const total = afterDiscount + ppn;
+  const taxBreakdown = calculateTaxBreakdown(taxSettings, afterDiscount);
+  const ppn = taxBreakdown.taxAmount;
+  const total = taxBreakdown.grandTotal;
 
   React.useEffect(() => {
     if (!orderDraft.tableId) return;
@@ -276,6 +281,8 @@ export function CartPanel() {
             discount={discount}
             ppn={ppn}
             total={total}
+            taxLabel={taxSettings?.label ?? "PPN"}
+            taxRate={taxBreakdown.rate}
           />
         </YStack>
       </ScrollView>

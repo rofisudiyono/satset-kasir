@@ -2,7 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAtom } from "jotai";
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
@@ -25,7 +31,10 @@ import {
 } from "@/features/pos/pos.utils";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
-import { getApiErrorMessage, useCheckoutMutation } from "@/hooks/api/use-kasir-api";
+import {
+  getApiErrorMessage,
+  useCheckoutMutation,
+} from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import {
   ColorBase,
@@ -42,7 +51,8 @@ export default function PembayaranTunaiPage() {
   const [, setCart] = useAtom(cartAtom);
   const [cartSnapshot, setCartSnapshot] = useAtom(cartSnapshotAtom);
   const [, setCatalogStock] = useAtom(catalogStockAtom);
-  const { isTablet, contentMaxWidth, horizontalPadding } = useResponsiveLayout();
+  const { isTablet, contentMaxWidth, horizontalPadding } =
+    useResponsiveLayout();
   const checkoutMutation = useCheckoutMutation();
   const params = useLocalSearchParams<{
     orderId: string;
@@ -65,7 +75,10 @@ export default function PembayaranTunaiPage() {
 
   if (!order) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={["top", "left", "right", "bottom"]}
+      >
         <PageHeader
           title="Pembayaran Tunai"
           showBack
@@ -82,6 +95,7 @@ export default function PembayaranTunaiPage() {
   const isEnough = receivedAmount >= amountToPay;
   const remainingBeforePayment = calculateOrderRemainingAmount(currentOrder);
   const suggestions = getCashSuggestions(amountToPay);
+  const isCompactMobile = !isTablet;
 
   function handleNumpad(key: string) {
     setInputValue((prev) => {
@@ -174,8 +188,8 @@ export default function PembayaranTunaiPage() {
   }
 
   const infoSection = (
-    <YStack gap={16}>
-      <YStack alignItems="center" gap={2}>
+    <YStack gap={isCompactMobile ? 12 : 16}>
+      <YStack alignItems="center" gap={isCompactMobile ? 0 : 2}>
         <TextBodySm
           color={ColorNeutral.neutral500}
           fontWeight="600"
@@ -183,7 +197,11 @@ export default function PembayaranTunaiPage() {
         >
           NOMINAL DIBAYAR SEKARANG
         </TextBodySm>
-        <TextH1 fontWeight="700" color={ColorPrimary.primary600} fontSize={26}>
+        <TextH1
+          fontWeight="700"
+          color={ColorPrimary.primary600}
+          fontSize={isCompactMobile ? 22 : 26}
+        >
           {formatPrice(amountToPay)}
         </TextH1>
         <TextCaption color="$colorSecondary">
@@ -191,20 +209,33 @@ export default function PembayaranTunaiPage() {
         </TextCaption>
       </YStack>
 
-      <YStack alignItems="center">
+      <YStack alignItems="center" gap={isCompactMobile ? 2 : 0}>
         <TextBodySm color={ColorNeutral.neutral500} fontWeight="500">
           Uang Diterima
         </TextBodySm>
-        <TextH1 fontWeight="800" marginTop={2} color={ColorNeutral.neutral900}>
+        <TextH1
+          fontWeight="800"
+          marginTop={isCompactMobile ? 0 : 2}
+          color={ColorNeutral.neutral900}
+          fontSize={isCompactMobile ? 24 : undefined}
+        >
           {formatPrice(receivedAmount)}
         </TextH1>
-        <View style={styles.inputUnderline} />
+        <View
+          style={[
+            styles.inputUnderline,
+            isCompactMobile && styles.inputUnderlineCompact,
+          ]}
+        />
       </YStack>
 
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipsContainer}
+        contentContainerStyle={[
+          styles.chipsContainer,
+          isCompactMobile && styles.chipsContainerCompact,
+        ]}
       >
         {suggestions.map((amount) => (
           <SuggestionChip
@@ -216,7 +247,9 @@ export default function PembayaranTunaiPage() {
         ))}
       </ScrollView>
 
-      <View style={styles.infoCard}>
+      <View
+        style={[styles.infoCard, isCompactMobile && styles.infoCardCompact]}
+      >
         <XStack justifyContent="space-between" alignItems="center">
           <TextBodySm color={ColorNeutral.neutral700}>
             Tagihan Dibayar
@@ -260,38 +293,38 @@ export default function PembayaranTunaiPage() {
   );
 
   const bottomAction = (
-    <>
-      <AppButton
-        title="Konfirmasi Pembayaran Tunai"
-        variant="success"
-        onPress={handleConfirm}
-        disabled={!isEnough || checkoutMutation.isPending}
-      />
-      <TextCaption
-        color={ColorNeutral.neutral500}
-        textAlign="center"
-        marginTop={6}
-      >
-        Kembalian akan otomatis tercatat
-      </TextCaption>
-      <TouchableOpacity
-        onPress={() => router.back()}
-        style={styles.batalBtn}
-        activeOpacity={0.7}
-      >
-        <TextBody
-          fontWeight="700"
-          color={ColorNeutral.neutral700}
-          letterSpacing={1}
+    <View style={{ flex: 1, flexDirection: "row" }}>
+      <View style={{ flex: 1, marginRight: 8 }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.batalBtn}
+          activeOpacity={0.7}
         >
-          BATAL
-        </TextBody>
-      </TouchableOpacity>
-    </>
+          <TextBody
+            fontWeight="700"
+            color={ColorNeutral.neutral700}
+            letterSpacing={1}
+          >
+            BATAL
+          </TextBody>
+        </TouchableOpacity>
+      </View>
+      <View style={{ flex: 1, marginLeft: 8 }}>
+        <AppButton
+          title="Konfirmasi Pembayaran Tunai"
+          variant="success"
+          onPress={handleConfirm}
+          disabled={!isEnough || checkoutMutation.isPending}
+        />
+      </View>
+    </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top", "left", "right", "bottom"]}
+    >
       <PageHeader
         title="Pembayaran Tunai"
         showBack
@@ -312,12 +345,17 @@ export default function PembayaranTunaiPage() {
         <ScrollView
           style={[styles.tabletInfoPanel, !isTablet && styles.stackPanel]}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 24, paddingBottom: 32 }}
+          contentContainerStyle={{
+            padding: isCompactMobile ? 16 : 24,
+            paddingBottom: isCompactMobile ? 20 : 32,
+          }}
         >
           {infoSection}
         </ScrollView>
         {isTablet ? <View style={styles.tabletDivider} /> : null}
-        <View style={[styles.tabletNumpadPanel, !isTablet && styles.stackPanel]}>
+        <View
+          style={[styles.tabletNumpadPanel, !isTablet && styles.stackPanel]}
+        >
           <View style={styles.tabletNumpadContent}>
             <NumpadGrid onPress={handleNumpad} />
           </View>
@@ -350,15 +388,26 @@ const styles = StyleSheet.create({
     backgroundColor: ColorPrimary.primary200,
     marginTop: 6,
   },
+  inputUnderlineCompact: {
+    width: 180,
+    marginTop: 2,
+  },
   chipsContainer: {
     paddingHorizontal: 4,
     gap: 10,
     flexDirection: "row",
   },
+  chipsContainerCompact: {
+    gap: 8,
+  },
   infoCard: {
     backgroundColor: ColorGreen.green75,
     borderRadius: 16,
     padding: 12,
+  },
+  infoCardCompact: {
+    borderRadius: 14,
+    padding: 10,
   },
   divider: {
     height: 1,
@@ -382,6 +431,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: ColorNeutral.neutral200,
+    flexDirection: "row",
   },
   batalBtn: {
     alignItems: "center",
