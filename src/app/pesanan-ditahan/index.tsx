@@ -1,14 +1,10 @@
+import { FlashList } from "@shopify/flash-list";
+import type { ListRenderItem } from "@shopify/flash-list";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAtom } from "jotai";
-import React from "react";
-import {
-  Alert,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { memo, useCallback } from "react";
+import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
@@ -42,7 +38,7 @@ export default function PesananDitahanPage() {
   const [, setCart] = useAtom(cartAtom);
   const [, setOrderDraft] = useAtom(cartOrderDraftAtom);
 
-  function handleResume(order: HeldOrder) {
+  const handleResume = useCallback((order: HeldOrder) => {
     Alert.alert("Lanjutkan Pesanan", `Lanjutkan pesanan "${order.label}"?`, [
       { text: "Batal", style: "cancel" },
       {
@@ -61,9 +57,9 @@ export default function PesananDitahanPage() {
         },
       },
     ]);
-  }
+  }, [router, setCart, setHeldOrders, setOrderDraft]);
 
-  function handleDelete(order: HeldOrder) {
+  const handleDelete = useCallback((order: HeldOrder) => {
     Alert.alert("Hapus Pesanan", `Hapus pesanan "${order.label}"?`, [
       { text: "Batal", style: "cancel" },
       {
@@ -73,7 +69,18 @@ export default function PesananDitahanPage() {
           setHeldOrders((prev) => prev.filter((o) => o.id !== order.id)),
       },
     ]);
-  }
+  }, [setHeldOrders]);
+
+  const renderItem = useCallback<ListRenderItem<HeldOrder>>(
+    ({ item }) => (
+      <HeldOrderCard
+        order={item}
+        onResume={handleResume}
+        onDelete={handleDelete}
+      />
+    ),
+    [handleDelete, handleResume],
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -103,21 +110,21 @@ export default function PesananDitahanPage() {
           </TextBodySm>
         </YStack>
       ) : (
-        <FlatList
+        <FlashList
           data={heldOrders}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <HeldOrderCard
-              order={item}
-              onResume={handleResume}
-              onDelete={handleDelete}
-            />
-          )}
+          renderItem={renderItem}
+          ItemSeparatorComponent={HeldOrderSeparator}
+          drawDistance={400}
         />
       )}
     </SafeAreaView>
   );
+}
+
+function HeldOrderSeparator() {
+  return <View style={styles.itemSeparator} />;
 }
 
 // ─── Card Component ───────────────────────────────────────────────────────────
@@ -128,7 +135,11 @@ interface HeldOrderCardProps {
   onDelete: (order: HeldOrder) => void;
 }
 
-function HeldOrderCard({ order, onResume, onDelete }: HeldOrderCardProps) {
+const HeldOrderCard = memo(function HeldOrderCard({
+  order,
+  onResume,
+  onDelete,
+}: HeldOrderCardProps) {
   const totalItems = order.items.reduce((s, c) => s + c.quantity, 0);
   const subtotal = order.items.reduce(
     (s, c) => s + c.unitPrice * c.quantity,
@@ -205,7 +216,7 @@ function HeldOrderCard({ order, onResume, onDelete }: HeldOrderCardProps) {
       </XStack>
     </View>
   );
-}
+});
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
@@ -216,13 +227,15 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 16,
-    gap: 12,
+    paddingBottom: 32,
+  },
+  itemSeparator: {
+    height: 12,
   },
   card: {
     backgroundColor: ColorBase.white,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,

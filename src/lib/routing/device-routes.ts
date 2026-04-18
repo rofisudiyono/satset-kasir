@@ -28,6 +28,13 @@ export function getOpenShiftRoute(isTablet: boolean): string {
   return getNamespacedRoute(getDeviceNamespace(isTablet), "/buka-shift");
 }
 
+export function getAuthenticatedEntryRoute(
+  isTablet: boolean,
+  hasActiveShift: boolean,
+): string {
+  return hasActiveShift ? getHomeRoute(isTablet) : getOpenShiftRoute(isTablet);
+}
+
 export function getHomeRoute(isTablet: boolean): string {
   return getNamespacedRoute(getDeviceNamespace(isTablet), "/pesanan-web");
 }

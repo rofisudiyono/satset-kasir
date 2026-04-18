@@ -1,14 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
+import { FlashList } from "@shopify/flash-list";
+import type { ListRenderItem } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useAtomValue } from "jotai";
-import React, { useMemo } from "react";
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { memo, useCallback, useMemo } from "react";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
@@ -40,7 +36,7 @@ function needsManualApproval(row: KasirReadyOrder) {
   return row.paymentStatus === "PENDING_MANUAL_APPROVAL";
 }
 
-function ReadyRow({
+const ReadyRow = memo(function ReadyRow({
   row,
   onPress,
   onDeliver,
@@ -51,10 +47,13 @@ function ReadyRow({
 }) {
   const manual = needsManualApproval(row);
   return (
-    <TouchableOpacity
-      style={styles.card}
+    <Pressable
+      disabled={Boolean(onDeliver)}
+      style={({ pressed }) => [
+        styles.card,
+        !onDeliver && pressed && styles.cardPressed,
+      ]}
       onPress={onDeliver ? undefined : onPress}
-      activeOpacity={onDeliver ? 1 : 0.85}
     >
       <XStack justifyContent="space-between" alignItems="flex-start">
         <YStack flex={1} gap={4}>
@@ -95,22 +94,140 @@ function ReadyRow({
         <YStack alignItems="flex-end" gap={4}>
           <TextBodyLg fontWeight="800">{formatPrice(row.grandTotal)}</TextBodyLg>
           {onDeliver ? (
-            <TouchableOpacity style={styles.deliverBtn} onPress={onDeliver}>
+            <Pressable
+              style={({ pressed }) => [styles.deliverBtn, pressed && { opacity: 0.88 }]}
+              onPress={onDeliver}
+            >
               <TextCaption fontWeight="800" color={ColorBase.white}>
                 Sudah diantar
               </TextCaption>
-            </TouchableOpacity>
+            </Pressable>
           ) : (
             <Ionicons name="chevron-forward" size={20} color={ColorNeutral.neutral400} />
           )}
         </YStack>
       </XStack>
-    </TouchableOpacity>
+    </Pressable>
   );
+});
+
+type SiapEntry =
+  | { kind: "meta"; id: string; variant: "error" | "loading" | "empty" }
+  | {
+      kind: "section";
+      id: string;
+      title: string;
+      subtitle: string;
+      icon: keyof typeof Ionicons.glyphMap;
+      iconColor: string;
+      marginTop: number;
+    }
+  | { kind: "order"; id: string; row: KasirReadyOrder; action: "deliver" | "bayar" }
+  | { kind: "footer"; id: string };
+
+function buildEntries(
+  isError: boolean,
+  isLoading: boolean,
+  dataLen: number,
+  deliveryRows: KasirReadyOrder[],
+  manualRows: KasirReadyOrder[],
+  pendingRows: KasirReadyOrder[],
+): SiapEntry[] {
+  const out: SiapEntry[] = [];
+  if (isError) {
+    out.push({ kind: "meta", id: "meta-error", variant: "error" });
+  }
+  if (isLoading) {
+    out.push({ kind: "meta", id: "meta-loading", variant: "loading" });
+  }
+  if (!isLoading && !isError && dataLen === 0) {
+    out.push({ kind: "meta", id: "meta-empty", variant: "empty" });
+  }
+
+  let firstSection = true;
+  const pushSection = (
+    key: string,
+    title: string,
+    subtitle: string,
+    icon: keyof typeof Ionicons.glyphMap,
+    iconColor: string,
+  ) => {
+    const marginTop = firstSection
+      ? out.length > 0
+        ? 12
+        : 0
+      : 20;
+    firstSection = false;
+    out.push({
+      kind: "section",
+      id: `section-${key}`,
+      title,
+      subtitle,
+      icon,
+      iconColor,
+      marginTop,
+    });
+  };
+
+  if (deliveryRows.length > 0) {
+    pushSection(
+      "delivery",
+      "Siap diantar",
+      "Pesanan sudah selesai dimasak dan bisa diantar oleh kasir atau tim dapur.",
+      "restaurant",
+      ColorSuccess.success700,
+    );
+    for (const row of deliveryRows) {
+      out.push({
+        kind: "order",
+        id: `order-${row.id}`,
+        row,
+        action: "deliver",
+      });
+    }
+  }
+
+  if (manualRows.length > 0) {
+    pushSection(
+      "manual",
+      "Perlu pencatatan manual",
+      "Pelanggan web pilih bayar ke kasir. Konfirmasi pembayaran di layar berikut.",
+      "alert-circle",
+      ColorWarning.warning700,
+    );
+    for (const row of manualRows) {
+      out.push({
+        kind: "order",
+        id: `order-${row.id}`,
+        row,
+        action: "bayar",
+      });
+    }
+  }
+
+  if (pendingRows.length > 0) {
+    pushSection(
+      "pending",
+      "Perlu tindak lanjut kasir",
+      "Pesanan ini sudah selesai dimasak, tetapi masih menunggu penyelesaian pembayaran.",
+      "card-outline",
+      ColorSuccess.success700,
+    );
+    for (const row of pendingRows) {
+      out.push({
+        kind: "order",
+        id: `order-${row.id}`,
+        row,
+        action: "bayar",
+      });
+    }
+  }
+
+  out.push({ kind: "footer", id: "footer-refresh" });
+  return out;
 }
 
 export type SiapAntarScreenProps = {
-  /** stack: halaman terpisah dengan tombol kembali; tab: konten di dalam shell tablet */
   variant: "stack" | "tab";
 };
 
@@ -135,24 +252,120 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
     return { manualRows: manual, deliveryRows: delivery, pendingRows: pending };
   }, [data]);
 
-  async function handleDeliver(row: KasirReadyOrder) {
-    if (!row.orderId) return;
-    try {
-      await deliverMutation.mutateAsync(row.orderId);
-    } catch (error) {
-      Alert.alert(
-        "Gagal",
-        getApiErrorMessage(error, "Gagal menandai pesanan sudah diantar."),
-      );
-    }
-  }
+  const entries = useMemo(
+    () =>
+      buildEntries(
+        isError,
+        isLoading,
+        data.length,
+        deliveryRows,
+        manualRows,
+        pendingRows,
+      ),
+    [
+      isError,
+      isLoading,
+      data.length,
+      deliveryRows,
+      manualRows,
+      pendingRows,
+    ],
+  );
 
-  const goBayarReady = (readyId: string) => {
-    router.push({
-      pathname: "/bayar-ready",
-      params: { readyId },
-    } as never);
-  };
+  const handleDeliver = useCallback(
+    async (row: KasirReadyOrder) => {
+      if (!row.orderId) return;
+      try {
+        await deliverMutation.mutateAsync(row.orderId);
+      } catch (error) {
+        Alert.alert(
+          "Gagal",
+          getApiErrorMessage(error, "Gagal menandai pesanan sudah diantar."),
+        );
+      }
+    },
+    [deliverMutation],
+  );
+
+  const goBayarReady = useCallback(
+    (readyId: string) => {
+      router.push({
+        pathname: "/bayar-ready",
+        params: { readyId },
+      } as never);
+    },
+    [router],
+  );
+
+  const renderItem = useCallback<ListRenderItem<SiapEntry>>(
+    ({ item }) => {
+      if (item.kind === "meta") {
+        if (item.variant === "error") {
+          return (
+            <TextBodySm color="$colorSecondary">
+              Gagal memuat daftar. Tarik untuk coba lagi.
+            </TextBodySm>
+          );
+        }
+        if (item.variant === "loading") {
+          return <TextBodySm color="$colorSecondary">Memuat…</TextBodySm>;
+        }
+        return (
+          <YStack alignItems="center" paddingVertical="$6" gap="$2">
+            <Ionicons name="bag-check-outline" size={40} color={ColorNeutral.neutral300} />
+            <TextBodySm color="$colorSecondary" textAlign="center">
+              Belum ada pesanan siap diantar untuk cabang ini.
+            </TextBodySm>
+          </YStack>
+        );
+      }
+
+      if (item.kind === "section") {
+        return (
+          <YStack
+            gap="$2"
+            marginTop={item.marginTop}
+            marginBottom="$2"
+          >
+            <XStack alignItems="center" gap="$2">
+              <Ionicons name={item.icon} size={18} color={item.iconColor} />
+              <TextH3 fontWeight="700">{item.title}</TextH3>
+            </XStack>
+            <TextCaption color="$colorSecondary">{item.subtitle}</TextCaption>
+          </YStack>
+        );
+      }
+
+      if (item.kind === "order") {
+        const { row, action } = item;
+        if (action === "deliver") {
+          return (
+            <ReadyRow
+              row={row}
+              onPress={() => {}}
+              onDeliver={() => void handleDeliver(row)}
+            />
+          );
+        }
+        return (
+          <ReadyRow row={row} onPress={() => goBayarReady(row.id)} />
+        );
+      }
+
+      return (
+        <Pressable onPress={() => void refetch()} style={styles.refreshBtn}>
+          <TextBodySm fontWeight="600" color={ColorPrimary.primary600}>
+            Muat ulang
+          </TextBodySm>
+        </Pressable>
+      );
+    },
+    [goBayarReady, handleDeliver, refetch],
+  );
+
+  const keyExtractor = useCallback((item: SiapEntry) => item.id, []);
+
+  const getItemType = useCallback((item: SiapEntry) => item.kind, []);
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
@@ -163,93 +376,15 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
         onBack={variant === "stack" ? () => router.back() : undefined}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.scroll}
+      <FlashList
+        data={entries}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        getItemType={getItemType}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-      >
-        {isError ? (
-          <TextBodySm color="$colorSecondary">
-            Gagal memuat daftar. Tarik untuk coba lagi.
-          </TextBodySm>
-        ) : null}
-
-        {isLoading ? (
-          <TextBodySm color="$colorSecondary">Memuat…</TextBodySm>
-        ) : null}
-
-        {!isLoading && data.length === 0 ? (
-          <YStack alignItems="center" paddingVertical="$6" gap="$2">
-            <Ionicons name="bag-check-outline" size={40} color={ColorNeutral.neutral300} />
-            <TextBodySm color="$colorSecondary" textAlign="center">
-              Belum ada pesanan siap diantar untuk cabang ini.
-            </TextBodySm>
-          </YStack>
-        ) : null}
-
-        {deliveryRows.length > 0 ? (
-          <YStack gap="$2" marginBottom="$4">
-            <XStack alignItems="center" gap="$2">
-              <Ionicons name="restaurant" size={18} color={ColorSuccess.success700} />
-              <TextH3 fontWeight="700">Siap diantar</TextH3>
-            </XStack>
-            <TextCaption color="$colorSecondary">
-              Pesanan sudah selesai dimasak dan bisa diantar oleh kasir atau tim dapur.
-            </TextCaption>
-            {deliveryRows.map((row) => (
-              <ReadyRow
-                key={row.id}
-                row={row}
-                onPress={() => {}}
-                onDeliver={() => void handleDeliver(row)}
-              />
-            ))}
-          </YStack>
-        ) : null}
-
-        {manualRows.length > 0 ? (
-          <YStack gap="$2" marginBottom="$4">
-            <XStack alignItems="center" gap="$2">
-              <Ionicons name="alert-circle" size={18} color={ColorWarning.warning700} />
-              <TextH3 fontWeight="700">Perlu pencatatan manual</TextH3>
-            </XStack>
-            <TextCaption color="$colorSecondary">
-              Pelanggan web pilih bayar ke kasir. Konfirmasi pembayaran di layar berikut.
-            </TextCaption>
-            {manualRows.map((row) => (
-              <ReadyRow
-                key={row.id}
-                row={row}
-                onPress={() => goBayarReady(row.id)}
-              />
-            ))}
-          </YStack>
-        ) : null}
-
-        {pendingRows.length > 0 ? (
-          <YStack gap="$2">
-            <XStack alignItems="center" gap="$2">
-              <Ionicons name="card-outline" size={18} color={ColorSuccess.success700} />
-              <TextH3 fontWeight="700">Perlu tindak lanjut kasir</TextH3>
-            </XStack>
-            <TextCaption color="$colorSecondary">
-              Pesanan ini sudah selesai dimasak, tetapi masih menunggu penyelesaian pembayaran.
-            </TextCaption>
-            {pendingRows.map((row) => (
-              <ReadyRow
-                key={row.id}
-                row={row}
-                onPress={() => goBayarReady(row.id)}
-              />
-            ))}
-          </YStack>
-        ) : null}
-
-        <TouchableOpacity onPress={() => void refetch()} style={styles.refreshBtn}>
-          <TextBodySm fontWeight="600" color={ColorPrimary.primary600}>
-            Muat ulang
-          </TextBodySm>
-        </TouchableOpacity>
-      </ScrollView>
+        drawDistance={480}
+      />
     </SafeAreaView>
   );
 }
@@ -259,10 +394,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: ColorBase.bgScreen,
   },
-  scroll: {
+  listContent: {
     paddingHorizontal: 16,
     paddingBottom: 32,
-    gap: 12,
   },
   card: {
     backgroundColor: ColorBase.white,
@@ -270,6 +404,9 @@ const styles = StyleSheet.create({
     padding: 14,
     borderWidth: 1,
     borderColor: ColorNeutral.neutral200,
+  },
+  cardPressed: {
+    opacity: 0.88,
   },
   badgeWeb: {
     backgroundColor: ColorPrimary.primary50,

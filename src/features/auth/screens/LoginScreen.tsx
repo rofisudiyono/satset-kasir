@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useSetAtom } from "jotai";
 import React, { useState } from "react";
 import {
   Alert,
@@ -24,11 +25,16 @@ import {
   TextH3,
 } from "@/components";
 import { PrinterTestModal } from "@/components/molecules/PrinterTestModal";
+import { isShiftStartedAtom, shiftDataAtom } from "@/features/shift/store/shift.store";
+import { kasirShiftToShiftData } from "@/features/shift/utils/mapShift";
 import { useLoginMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
+import { getActiveShift } from "@/lib/api/kasir.api";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth";
-import { getHomeRoute } from "@/lib/routing/device-routes";
+import { getAuthenticatedEntryRoute, getHomeRoute } from "@/lib/routing/device-routes";
+import { kasirKeys } from "@/hooks/api/query-keys";
+import { queryClient } from "@/providers/query-client";
 import {
   ColorBase,
   ColorGreen,
@@ -54,6 +60,8 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showPrinterTest, setShowPrinterTest] = useState(false);
+  const setIsShiftStarted = useSetAtom(isShiftStartedAtom);
+  const setShiftData = useSetAtom(shiftDataAtom);
 
   const handleLogin = async () => {
     try {
@@ -71,7 +79,36 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
         user: res.user,
         email: email.trim(),
       });
-      router.replace(getHomeRoute(isTablet) as never);
+
+      let activeShift = null;
+      let hasResolvedShift = false;
+
+      try {
+        activeShift = await queryClient.fetchQuery({
+          queryKey: kasirKeys.activeShift(),
+          queryFn: getActiveShift,
+          staleTime: 30_000,
+        });
+        hasResolvedShift = true;
+      } catch {
+        hasResolvedShift = false;
+      }
+
+      if (hasResolvedShift) {
+        if (activeShift) {
+          setShiftData(kasirShiftToShiftData(activeShift));
+          setIsShiftStarted(true);
+        } else {
+          setShiftData(null);
+          setIsShiftStarted(false);
+        }
+      }
+
+      router.replace(
+        (hasResolvedShift
+          ? getAuthenticatedEntryRoute(isTablet, Boolean(activeShift))
+          : getHomeRoute(isTablet)) as never,
+      );
     } catch (e) {
       Alert.alert(
         "Gagal masuk",

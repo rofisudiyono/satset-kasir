@@ -1,12 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
+import { FlashList } from "@shopify/flash-list";
+import type { ListRenderItem } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useAtomValue } from "jotai";
-import React from "react";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import React, { memo, useCallback, useMemo } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import { AppButton, PageHeader, TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components";
+import {
+  AppButton,
+  PageHeader,
+  TextBodyLg,
+  TextBodySm,
+  TextCaption,
+  TextH3,
+} from "@/components";
 import { usePendingWebOrdersQuery } from "@/hooks/api/use-kasir-api";
 import { useAuth } from "@/lib/auth";
 import type { PendingWebOrder } from "@/lib/api/types";
@@ -20,7 +29,7 @@ function formatItems(order: PendingWebOrder): string {
     .join(", ");
 }
 
-function PendingOrderCard({
+const PendingOrderCard = memo(function PendingOrderCard({
   order,
   onPress,
 }: {
@@ -30,7 +39,10 @@ function PendingOrderCard({
   const isOnline = order.webPaymentMode === "ONLINE";
 
   return (
-    <TouchableOpacity style={styles.orderCard} onPress={onPress} activeOpacity={0.85}>
+    <Pressable
+      style={({ pressed }) => [styles.orderCard, pressed && styles.orderCardPressed]}
+      onPress={onPress}
+    >
       <XStack justifyContent="space-between" alignItems="flex-start">
         <XStack gap={8} alignItems="center" flexWrap="wrap" flex={1}>
           <View style={[styles.badge, isOnline ? styles.badgeOnline : styles.badgeManual]}>
@@ -69,8 +81,12 @@ function PendingOrderCard({
           </TextBodySm>
         ) : null}
       </YStack>
-    </TouchableOpacity>
+    </Pressable>
   );
+});
+
+function ListItemSeparator() {
+  return <View style={styles.rowSep} />;
 }
 
 export default function WebOrdersTabPage() {
@@ -80,6 +96,65 @@ export default function WebOrdersTabPage() {
 
   const { data = [], isLoading, isError, refetch } = usePendingWebOrdersQuery(
     Boolean(isLoggedIn && isShiftStarted),
+  );
+
+  const onNavigate = useCallback(
+    (orderId: string) => {
+      router.push({
+        pathname: "/konfirmasi-web-order",
+        params: { pendingId: orderId },
+      } as never);
+    },
+    [router],
+  );
+
+  const renderItem = useCallback<ListRenderItem<PendingWebOrder>>(
+    ({ item }) => (
+      <PendingOrderCard order={item} onPress={() => onNavigate(item.id)} />
+    ),
+    [onNavigate],
+  );
+
+  const renderEmpty = useCallback(() => {
+    if (isLoading) {
+      return (
+        <View style={styles.emptyCard}>
+          <TextBodySm color="$colorSecondary">Memuat pesanan…</TextBodySm>
+        </View>
+      );
+    }
+    if (isError) {
+      return <View style={styles.emptyWhenError} />;
+    }
+    return (
+      <View style={styles.emptyCard}>
+        <TextBodySm color="$colorSecondary">
+          Tidak ada pesanan web yang menunggu konfirmasi.
+        </TextBodySm>
+      </View>
+    );
+  }, [isError, isLoading]);
+
+  const listHeader = useMemo(
+    () => (
+      <YStack gap="$3" marginBottom="$2">
+        <View style={styles.summaryCard}>
+          <TextCaption color="rgba(255,255,255,0.8)">Menunggu konfirmasi</TextCaption>
+          <TextBodyLg fontWeight="700" color={ColorBase.white}>
+            {data.length} pesanan
+          </TextBodyLg>
+        </View>
+
+        {isError ? (
+          <TextBodySm color="$colorSecondary">
+            Gagal memuat data. Tarik untuk coba lagi.
+          </TextBodySm>
+        ) : null}
+
+        <TextH3 fontWeight="700">Daftar Pending</TextH3>
+      </YStack>
+    ),
+    [data.length, isError],
   );
 
   return (
@@ -94,48 +169,17 @@ export default function WebOrdersTabPage() {
         }
       />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <FlashList
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={listHeader}
+        ListEmptyComponent={renderEmpty}
+        ItemSeparatorComponent={ListItemSeparator}
         contentContainerStyle={styles.content}
-      >
-        <View style={styles.summaryCard}>
-          <TextCaption color="rgba(255,255,255,0.8)">Menunggu konfirmasi</TextCaption>
-          <TextBodyLg fontWeight="700" color={ColorBase.white}>
-            {data.length} pesanan
-          </TextBodyLg>
-        </View>
-
-        {isError ? (
-          <TextBodySm color="$colorSecondary">Gagal memuat data. Tarik untuk coba lagi.</TextBodySm>
-        ) : null}
-
-        <TextH3 fontWeight="700">Daftar Pending</TextH3>
-
-        {isLoading ? (
-          <View style={styles.emptyCard}>
-            <TextBodySm color="$colorSecondary">Memuat pesanan…</TextBodySm>
-          </View>
-        ) : data.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <TextBodySm color="$colorSecondary">
-              Tidak ada pesanan web yang menunggu konfirmasi.
-            </TextBodySm>
-          </View>
-        ) : (
-          data.map((order) => (
-            <PendingOrderCard
-              key={order.id}
-              order={order}
-              onPress={() =>
-                router.push({
-                  pathname: "/konfirmasi-web-order",
-                  params: { pendingId: order.id },
-                } as never)
-              }
-            />
-          ))
-        )}
-      </ScrollView>
+        showsVerticalScrollIndicator={false}
+        drawDistance={400}
+      />
     </SafeAreaView>
   );
 }
@@ -147,8 +191,10 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    gap: 12,
     paddingBottom: 32,
+  },
+  rowSep: {
+    height: 12,
   },
   summaryCard: {
     borderRadius: 16,
@@ -162,6 +208,9 @@ const styles = StyleSheet.create({
     gap: 12,
     borderWidth: 1,
     borderColor: ColorNeutral.neutral200,
+  },
+  orderCardPressed: {
+    opacity: 0.88,
   },
   badge: {
     paddingHorizontal: 10,
@@ -180,5 +229,8 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: ColorNeutral.neutral200,
+  },
+  emptyWhenError: {
+    minHeight: 8,
   },
 });

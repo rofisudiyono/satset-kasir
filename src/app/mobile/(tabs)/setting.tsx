@@ -1,14 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useAtomValue } from "jotai";
 import React from "react";
 import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { YStack } from "tamagui";
 
 import { PageHeader, TextBodySm } from "@/components";
+import { isShiftStartedAtom, shiftDataAtom } from "@/features/shift/store/shift.store";
 import { ProfileCard, SettingRow } from "@/features/settings";
 import { useAuth } from "@/lib/auth";
-import { getLoginRoute } from "@/lib/routing/device-routes";
+import { getLoginRoute, getOpenShiftRoute } from "@/lib/routing/device-routes";
 import {
   ColorAccentOrange,
   ColorBase,
@@ -30,6 +32,8 @@ function formatRole(role?: string | null) {
 export default function MobileSettingsPage() {
   const router = useRouter();
   const { user, session, logout } = useAuth();
+  const isShiftStarted = useAtomValue(isShiftStartedAtom);
+  const shiftData = useAtomValue(shiftDataAtom);
 
   async function handleLogout() {
     try {
@@ -54,10 +58,30 @@ export default function MobileSettingsPage() {
         <ProfileCard
           name={session?.email ?? "Kasir"}
           role={formatRole(user?.role)}
-          status="Aktif"
+          status={isShiftStarted ? "Shift Aktif" : "Belum Buka Shift"}
         />
 
         <View style={styles.section}>
+          <SettingRow
+            iconName={isShiftStarted ? "moon-outline" : "sunny-outline"}
+            iconBg={isShiftStarted ? ColorWarning.warning100 : ColorSuccess.success50}
+            iconColor={isShiftStarted ? ColorWarning.warning700 : ColorSuccess.success600}
+            title={isShiftStarted ? "Tutup Shift" : "Buka Shift"}
+            subtitle={
+              isShiftStarted
+                ? `Shift ${shiftData?.slot ?? "aktif"} berjalan${shiftData?.startTime ? ` sejak ${shiftData.startTime}` : ""}`
+                : "Mulai operasional kasir dan catat modal awal"
+            }
+            badge={isShiftStarted ? "Aktif" : "Belum aktif"}
+            badgeBg={isShiftStarted ? ColorSuccess.success50 : ColorNeutral.neutral100}
+            badgeColor={isShiftStarted ? ColorSuccess.success600 : ColorNeutral.neutral600}
+            onPress={() =>
+              router.push(
+                (isShiftStarted ? "/tutup-shift" : getOpenShiftRoute(false)) as never,
+              )
+            }
+          />
+          <View style={styles.divider} />
           <SettingRow
             iconName="storefront-outline"
             iconBg={ColorPrimary.primary50}
@@ -74,15 +98,6 @@ export default function MobileSettingsPage() {
             title="Bluetooth Printer"
             subtitle="Hubungkan printer struk"
             onPress={() => router.push("/bluetooth-printer" as never)}
-          />
-          <View style={styles.divider} />
-          <SettingRow
-            iconName="time-outline"
-            iconBg={ColorSuccess.success50}
-            iconColor={ColorSuccess.success600}
-            title="Tutup Shift"
-            subtitle="Lanjutkan proses tutup shift kasir"
-            onPress={() => router.push("/tutup-shift" as never)}
           />
           <View style={styles.divider} />
           <SettingRow

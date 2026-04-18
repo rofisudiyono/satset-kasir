@@ -8,13 +8,9 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import {
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  type ListRenderItemInfo,
-} from "react-native";
+import { FlashList } from "@shopify/flash-list";
+import type { ListRenderItem } from "@shopify/flash-list";
+import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
@@ -64,6 +60,10 @@ function formatOrderTime(value?: string | null) {
 
 const FILTERS: HistoryFilter[] = ["SEMUA", "PAID", "CANCELLED", "REFUND"];
 
+function HistoryListItemSeparator() {
+  return <View style={styles.itemSeparator} />;
+}
+
 const HistoryOrderCard = memo(function HistoryOrderCard({
   item,
   onPress,
@@ -75,10 +75,12 @@ const HistoryOrderCard = memo(function HistoryOrderCard({
   const statusBg = getStatusBg(item.status);
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.82}
+    <Pressable
       onPress={onPress}
-      style={styles.orderCard}
+      style={({ pressed }) => [
+        styles.orderCard,
+        pressed && styles.orderCardPressed,
+      ]}
     >
       <View style={[styles.statusStripe, { backgroundColor: statusColor }]} />
       <XStack
@@ -126,7 +128,7 @@ const HistoryOrderCard = memo(function HistoryOrderCard({
           />
         </YStack>
       </XStack>
-    </TouchableOpacity>
+    </Pressable>
   );
 });
 
@@ -162,8 +164,8 @@ export function OrderHistoryMobileScreen() {
     [orders],
   );
 
-  const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<KasirOrder>) => (
+  const renderItem = useCallback<ListRenderItem<KasirOrder>>(
+    ({ item }) => (
       <HistoryOrderCard
         item={item}
         onPress={() =>
@@ -286,19 +288,16 @@ export function OrderHistoryMobileScreen() {
         subtitle="Arsip transaksi cabang untuk cari, cek, dan reprint invoice."
       />
 
-      <FlatList
+      <FlashList
         data={orders}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
         ListHeaderComponent={header}
-        ListFooterComponent={<View style={{ height: 24 }} />}
-        ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        removeClippedSubviews
+        ListFooterComponent={<View style={styles.listFooterSpacer} />}
+        ItemSeparatorComponent={HistoryListItemSeparator}
+        drawDistance={400}
       />
     </SafeAreaView>
   );
@@ -355,6 +354,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: ColorNeutral.neutral200,
   },
+  orderCardPressed: {
+    opacity: 0.82,
+  },
   statusStripe: {
     width: 4,
   },
@@ -372,5 +374,8 @@ const styles = StyleSheet.create({
   },
   itemSeparator: {
     height: 12,
+  },
+  listFooterSpacer: {
+    height: 24,
   },
 });
