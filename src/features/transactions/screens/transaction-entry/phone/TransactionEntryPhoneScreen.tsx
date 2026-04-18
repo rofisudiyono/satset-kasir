@@ -10,20 +10,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import {
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-  TextH1,
-  TextH3,
-} from "@/components";
-import { useDeviceProfile } from "@/hooks/use-device-profile";
+import { TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components";
 import {
   CartBar,
   CartPanel,
   ProductGrid,
   VariantSheet,
 } from "@/features/transactions/components/transaksi-baru";
+import { useDeviceProfile } from "@/hooks/use-device-profile";
 import {
   ColorAccentOrange,
   ColorBase,
@@ -31,7 +25,6 @@ import {
   ColorPrimary,
   ColorSky,
 } from "@/themes/Colors";
-import { formatPrice } from "@/utils";
 
 import { useTransactionEntry } from "../shared/useTransactionEntry";
 
@@ -94,68 +87,6 @@ export function TransactionEntryPhoneScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
-      <View style={styles.heroShell}>
-        <View style={styles.heroGlowA} />
-        <View style={styles.heroGlowB} />
-
-        <XStack alignItems="flex-start" justifyContent="space-between" gap="$3">
-          <YStack flex={1} gap="$2">
-            <View style={styles.kicker}>
-              <TextCaption fontWeight="700" color={ColorPrimary.primary700}>
-                POS PHONE MODE
-              </TextCaption>
-            </View>
-
-            <TextH1 fontWeight="700" color={ColorBase.white}>
-              Input Manual
-            </TextH1>
-
-            <TextBodySm color="rgba(255,255,255,0.76)">
-              Ruang kerja ringkas untuk kasir mobile. Pilih produk cepat,
-              tahan order, lalu buka cart saat siap checkout.
-            </TextBodySm>
-          </YStack>
-
-          <XStack gap="$2">
-            <TouchableOpacity
-              activeOpacity={0.86}
-              onPress={openHeldOrders}
-              style={styles.heroAction}
-            >
-              <Ionicons
-                name="pause-circle-outline"
-                size={18}
-                color={ColorBase.white}
-              />
-              <TextCaption fontWeight="700" color={ColorBase.white}>
-                {heldOrdersCount > 0 ? `${heldOrdersCount} hold` : "Hold"}
-              </TextCaption>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.86}
-              onPress={openScanner}
-              style={styles.heroActionPrimary}
-            >
-              <Ionicons
-                name="scan-outline"
-                size={18}
-                color={ColorNeutral.neutral900}
-              />
-            </TouchableOpacity>
-          </XStack>
-        </XStack>
-
-        <XStack gap="$2.5" marginTop="$4">
-          <StatPill label="Cart" value={`${cartTotalItems} item`} />
-          <StatPill
-            label="Total"
-            value={cartTotalItems > 0 ? formatPrice(cartTotalPrice) : "Belum ada"}
-            tone="accent"
-          />
-        </XStack>
-      </View>
-
       <View style={styles.catalogPanel}>
         <View style={styles.catalogPanelHeader}>
           <YStack gap={2}>

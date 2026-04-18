@@ -12,10 +12,12 @@ import {
   usePayReadyOrderMutation,
   useReadyOrdersQuery,
 } from "@/hooks/api/use-kasir-api";
+import { useDeviceProfile } from "@/hooks/use-device-profile";
 import { useAuth } from "@/lib/auth";
 import type { PaymentEntry } from "@/lib/api/kasir.api";
 import type { KasirReadyOrder } from "@/lib/api/types";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
+import { getHistoryRoute } from "@/lib/routing/device-routes";
 import { ColorBase, ColorNeutral, ColorPrimary, ColorWarning } from "@/themes/Colors";
 import { formatPrice } from "@/utils";
 
@@ -29,6 +31,7 @@ export default function BayarReadyPage() {
   const router = useRouter();
   const { readyId } = useLocalSearchParams<{ readyId: string }>();
   const { isLoggedIn } = useAuth();
+  const { isTablet } = useDeviceProfile();
   const isShiftStarted = useAtomValue(isShiftStartedAtom);
   const payMutation = usePayReadyOrderMutation();
   const [method, setMethod] = useState<QuickMethod>("CASH");
@@ -59,7 +62,7 @@ export default function BayarReadyPage() {
         manualApproval: manual,
       });
       Alert.alert("Berhasil", manual ? "Pembayaran manual tercatat." : "Pembayaran berhasil.", [
-        { text: "OK", onPress: () => router.replace("/(tabs)/pengaturan" as never) },
+        { text: "OK", onPress: () => router.replace(getHistoryRoute(isTablet) as never) },
       ]);
     } catch (error) {
       Alert.alert("Gagal", getApiErrorMessage(error, "Pembayaran tidak berhasil."));

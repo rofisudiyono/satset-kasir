@@ -108,7 +108,7 @@ export function buildPrintableReceiptOrderFromKasirOrder(
   };
 }
 
-export function buildReceiptHtml(receipt: PrintableReceiptOrder) {
+export function buildReceiptHtml(receipt: PrintableReceiptOrder, printerWidthPx = 384) {
   const itemsHtml = receipt.items
     .map(
       (item) =>
@@ -116,46 +116,47 @@ export function buildReceiptHtml(receipt: PrintableReceiptOrder) {
     )
     .join("");
 
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8"/>
-        <style>
-          body { font-family: monospace; width: 280px; margin: 0 auto; font-size: 12px; }
-          h2 { text-align: center; margin: 4px 0; font-size: 14px; }
-          p { text-align: center; margin: 2px 0; font-size: 11px; }
-          hr { border: none; border-top: 1px dashed #000; margin: 8px 0; }
-          table { width: 100%; border-collapse: collapse; }
-          td { padding: 2px 0; vertical-align: top; }
-          .total { font-weight: bold; font-size: 13px; }
-        </style>
-      </head>
-      <body>
-        <h2>${storeInfo.name}</h2>
-        <p>${storeInfo.address}</p>
-        <p>${storeInfo.phone}</p>
-        <hr/>
-        <p>No. Order: ${receipt.orderNumber}</p>
-        <p>${receipt.dateTime} WIB</p>
-        <hr/>
-        <table>${itemsHtml}</table>
-        <hr/>
-        <table>
-          <tr><td>Subtotal</td><td style="text-align:right">${formatPrice(receipt.subtotal)}</td></tr>
-          ${receipt.discount > 0 ? `<tr><td>Diskon</td><td style="text-align:right">-${formatPrice(receipt.discount)}</td></tr>` : ""}
-          <tr><td>Pajak</td><td style="text-align:right">${formatPrice(receipt.tax)}</td></tr>
-          <tr class="total"><td>TOTAL</td><td style="text-align:right">${formatPrice(receipt.grandTotal)}</td></tr>
-          <tr><td>Metode</td><td style="text-align:right">${receipt.paymentMethod}</td></tr>
-          <tr><td>Pembayaran Ini</td><td style="text-align:right">${formatPrice(receipt.amountPaid)}</td></tr>
-          <tr><td>Total Dibayar</td><td style="text-align:right">${formatPrice(receipt.totalPaid)}</td></tr>
-          <tr><td>Sisa</td><td style="text-align:right">${formatPrice(receipt.remaining)}</td></tr>
-          ${receipt.cashReceived !== undefined ? `<tr><td>Uang Diterima</td><td style="text-align:right">${formatPrice(receipt.cashReceived)}</td></tr>` : ""}
-          ${receipt.change !== undefined ? `<tr><td>Kembalian</td><td style="text-align:right">${formatPrice(receipt.change)}</td></tr>` : ""}
-        </table>
-      </body>
-    </html>
-  `;
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body { font-family: monospace; width: ${printerWidthPx}px; padding: 8px; font-size: 20px; color: #000; background: #fff; }
+      h2 { text-align: center; margin: 4px 0; font-size: 24px; }
+      p { text-align: center; margin: 2px 0; font-size: 18px; }
+      hr { border: none; border-top: 1px dashed #000; margin: 8px 0; }
+      table { width: 100%; border-collapse: collapse; }
+      td { padding: 3px 0; vertical-align: top; font-size: 20px; }
+      .total td { font-weight: bold; font-size: 22px; }
+    </style>
+  </head>
+  <body>
+    <h2>${storeInfo.name}</h2>
+    <p>${storeInfo.address}</p>
+    <p>${storeInfo.phone}</p>
+    <hr/>
+    <p>No. Order: ${receipt.orderNumber.slice(0, 16)}</p>
+    <p>${receipt.dateTime} WIB</p>
+    <hr/>
+    <table>${itemsHtml}</table>
+    <hr/>
+    <table>
+      <tr><td>Subtotal</td><td style="text-align:right">${formatPrice(receipt.subtotal)}</td></tr>
+      ${receipt.discount > 0 ? `<tr><td>Diskon</td><td style="text-align:right">-${formatPrice(receipt.discount)}</td></tr>` : ""}
+      <tr><td>Pajak</td><td style="text-align:right">${formatPrice(receipt.tax)}</td></tr>
+      <tr class="total"><td>TOTAL</td><td style="text-align:right">${formatPrice(receipt.grandTotal)}</td></tr>
+      <tr><td>Metode</td><td style="text-align:right">${receipt.paymentMethod}</td></tr>
+      <tr><td>Total Dibayar</td><td style="text-align:right">${formatPrice(receipt.totalPaid)}</td></tr>
+      ${receipt.remaining > 0 ? `<tr><td>Sisa</td><td style="text-align:right">${formatPrice(receipt.remaining)}</td></tr>` : ""}
+      ${receipt.cashReceived !== undefined ? `<tr><td>Uang Diterima</td><td style="text-align:right">${formatPrice(receipt.cashReceived)}</td></tr>` : ""}
+      ${receipt.change !== undefined ? `<tr><td>Kembalian</td><td style="text-align:right">${formatPrice(receipt.change)}</td></tr>` : ""}
+    </table>
+    <hr/>
+    <p style="margin-top:8px">Terima kasih!</p>
+  </body>
+</html>`;
 }
 
 export function buildEscPosReceiptData(

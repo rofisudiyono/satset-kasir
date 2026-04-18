@@ -194,8 +194,9 @@ export default function RiwayatOrderTabPage() {
     }
 
     try {
+      const widthPx = printerState.printer?.type === "thermal_80mm" ? 576 : 384;
       const success = await bluetoothPrinterManager.printReceiptHtml(
-        buildReceiptHtml(printableReceipt),
+        buildReceiptHtml(printableReceipt, widthPx),
       );
       if (success) {
         Alert.alert("Berhasil", "Invoice berhasil dicetak via Bluetooth.");

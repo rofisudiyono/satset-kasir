@@ -27,6 +27,7 @@ import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { useCloseShiftMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { getHomeRoute } from "@/lib/routing/device-routes";
 import {
   ColorBase,
   ColorDanger,
@@ -141,7 +142,7 @@ export default function TutupShiftPage() {
               });
               setIsShiftStarted(false);
               setShiftData(null);
-              router.replace("/(tabs)");
+              router.replace(getHomeRoute(isTablet) as never);
             } catch (e) {
               Alert.alert("Gagal tutup shift", getApiErrorMessage(e));
             }

@@ -2,6 +2,6 @@ import React from "react";
 
 import { SiapAntarScreen } from "@/features/orders/screens/SiapAntarScreen";
 
-export default function SiapAntarPage() {
-  return <SiapAntarScreen variant="stack" />;
+export default function TabletSiapAntarTab() {
+  return <SiapAntarScreen variant="tab" />;
 }

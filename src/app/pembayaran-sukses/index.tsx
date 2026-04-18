@@ -8,8 +8,8 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
-  Share,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -17,10 +17,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
 import {
-  BarcodePlaceholder,
-  DottedSeparator,
-  PageHeader,
-  TextBody,
   TextBodyLg,
   TextBodySm,
   TextCaption,
@@ -28,7 +24,6 @@ import {
   TextH3,
 } from "@/components";
 import { cartAtom } from "@/features/cart/store/cart.store";
-import { storeInfo } from "@/features/payment/api/receipt.data";
 import { buildReceiptHtml } from "@/features/payment/utils/receipt.utils";
 import {
   buildOrderItemsSummary,
@@ -38,37 +33,35 @@ import {
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import {
+  getHistoryRoute,
+  getInputManualRoute,
+} from "@/lib/routing/device-routes";
+import {
   ColorBase,
   ColorDanger,
   ColorGreen,
   ColorNeutral,
   ColorPrimary,
+  ColorSuccess,
+  ColorWarning,
 } from "@/themes/Colors";
 import { formatPrice } from "@/utils";
-import {
-  bluetoothPrinterManager,
-  PrinterState,
-} from "@/utils/bluetooth-printer";
-type ReceiptView = "summary" | "receipt";
+import type { PrinterState } from "@/utils/bluetooth-printer";
+import { bluetoothPrinterManager } from "@/utils/bluetooth-printer";
 
 export default function PembayaranSuksesPage() {
   const router = useRouter();
   const [orders] = useAtom(posOrdersAtom);
   const [, setCart] = useAtom(cartAtom);
-  const { isTablet, contentMaxWidth, horizontalPadding } =
-    useResponsiveLayout();
-  const [activeView, setActiveView] = useState<ReceiptView>("summary");
+  const { isTablet } = useResponsiveLayout();
   const [printerState, setPrinterState] = useState<PrinterState>({
     connected: false,
     printer: null,
     printing: false,
   });
-  const params = useLocalSearchParams<{
-    orderId: string;
-    paymentId?: string;
-  }>();
 
-  // Subscribe to printer state
+  const params = useLocalSearchParams<{ orderId: string; paymentId?: string }>();
+
   useEffect(() => {
     const unsubscribe = bluetoothPrinterManager.subscribe((state) => {
       setPrinterState(state);
@@ -82,18 +75,15 @@ export default function PembayaranSuksesPage() {
   if (!order) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.missingState}>
-          <YStack alignItems="center" gap="$3">
-            <TextBodySm color="$colorSecondary">
-              Order tidak ditemukan.
-            </TextBodySm>
-          </YStack>
-        </ScrollView>
+        <View style={styles.missingState}>
+          <TextBodySm color={ColorNeutral.neutral500}>
+            Order tidak ditemukan.
+          </TextBodySm>
+        </View>
       </SafeAreaView>
     );
   }
 
-  const currentOrder = order;
   const receiptItems = order.items.map((item) => ({
     name: item.modifierLabels?.[0]
       ? `${item.name} (${item.modifierLabels[0]})`
@@ -110,14 +100,15 @@ export default function PembayaranSuksesPage() {
   const paymentAmount = payment?.amountPaid ?? 0;
   const received = payment?.amountReceived ?? paymentAmount;
   const change = payment?.amountReceived
-    ? payment.amountReceived - payment.amountPaid
+    ? Math.max(0, payment.amountReceived - payment.amountPaid)
     : 0;
   const methodLabel = payment
     ? getPaymentMethodLabel(payment.method)
     : "Pembayaran";
+
   const receiptPayload = React.useMemo(
     () => ({
-      orderNumber: currentOrder.id,
+      orderNumber: order.id,
       dateTime: new Intl.DateTimeFormat("id-ID", {
         weekday: "long",
         day: "numeric",
@@ -126,12 +117,12 @@ export default function PembayaranSuksesPage() {
         hour: "2-digit",
         minute: "2-digit",
         timeZone: "Asia/Jakarta",
-      }).format(new Date(payment?.paidAt ?? currentOrder.createdAt)),
+      }).format(new Date(payment?.paidAt ?? order.createdAt)),
       items: receiptItems,
       subtotal,
       discount,
       tax: ppn,
-      grandTotal: currentOrder.grandTotal,
+      grandTotal: order.grandTotal,
       paymentMethod: methodLabel,
       amountPaid: paymentAmount,
       totalPaid,
@@ -139,37 +130,33 @@ export default function PembayaranSuksesPage() {
       cashReceived: payment?.method === "tunai" ? received : undefined,
       change: payment?.method === "tunai" ? change : undefined,
     }),
-    [
-      discount,
-      methodLabel,
-      currentOrder.createdAt,
-      currentOrder.grandTotal,
-      currentOrder.id,
-      payment?.method,
-      payment?.paidAt,
-      paymentAmount,
-      ppn,
-      receiptItems,
-      received,
-      remaining,
-      subtotal,
-      totalPaid,
-      change,
-    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [order.id],
   );
-  const dateTime = `${receiptPayload.dateTime} WIB`;
+
+  const dateStr = new Date(
+    payment?.paidAt ?? order.createdAt,
+  ).toLocaleString("id-ID", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Jakarta",
+  });
 
   function handleNewTransaction() {
     setCart([]);
-    router.replace("/(tabs)/transaksi" as never);
+    router.replace(getInputManualRoute(isTablet) as never);
   }
 
   function handleGoRiwayat() {
     setCart([]);
-    router.replace("/(tabs)/pengaturan" as never);
+    router.replace(getHistoryRoute(isTablet) as never);
   }
 
-  async function handlePrint() {
+  async function handlePrintPdf() {
     try {
       const { uri } = await Print.printToFileAsync({
         html: buildReceiptHtml(receiptPayload),
@@ -189,59 +176,220 @@ export default function PembayaranSuksesPage() {
     }
   }
 
-  async function handleShare() {
-    const text = `Order ${currentOrder.id}\n${buildOrderItemsSummary(currentOrder)}\nDibayar: ${formatPrice(paymentAmount)}\nSisa: ${formatPrice(remaining)}`;
-    await Share.share({ message: text, title: "Ringkasan Pembayaran" });
-  }
-
   async function handleBluetoothPrint() {
     if (!printerState.connected) {
-      Alert.alert(
-        "Printer Tidak Terhubung",
-        "Silakan hubungkan ke printer Bluetooth terlebih dahulu melalui pengaturan printer.",
-        [
-          { text: "Batal", style: "cancel" },
-          {
-            text: "Buka Pengaturan",
-            onPress: () => router.push("/bluetooth-printer" as never),
-          },
-        ],
-      );
+      router.push("/bluetooth-printer" as never);
       return;
     }
-
     try {
+      const widthPx =
+        printerState.printer?.type === "thermal_80mm" ? 576 : 384;
       const success = await bluetoothPrinterManager.printReceiptHtml(
-        buildReceiptHtml(receiptPayload),
+        buildReceiptHtml(receiptPayload, widthPx),
       );
-
       if (success) {
-        Alert.alert("Berhasil", "Struk berhasil dicetak via Bluetooth");
+        Alert.alert("Berhasil", "Struk berhasil dicetak via Bluetooth.");
       }
     } catch (error) {
       console.error("Bluetooth print error:", error);
-      Alert.alert(
-        "Cetak Gagal",
-        "Terjadi kesalahan saat mencetak. Silakan coba lagi.",
-      );
+      Alert.alert("Cetak Gagal", "Terjadi kesalahan saat mencetak.");
     }
   }
 
-  const summaryPanel = (
-    <YStack gap="$4">
-      <View style={styles.actionPanel}>
-        <TextH3 fontWeight="700">Langkah berikutnya</TextH3>
-        <YStack gap="$3" marginTop={14}>
+  const isPaid = remaining === 0;
+
+  return (
+    <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}
+      >
+        {/* ── Success Header ── */}
+        <View style={[styles.successCard, isPaid ? styles.successCardPaid : styles.successCardPartial]}>
+          <XStack alignItems="center" gap={14}>
+            <View style={[styles.checkCircle, isPaid ? styles.checkCirclePaid : styles.checkCirclePartial]}>
+              <Ionicons name="checkmark" size={22} color={ColorBase.white} />
+            </View>
+            <YStack flex={1} gap={2}>
+              <TextH3 fontWeight="800" color={isPaid ? ColorSuccess.success700 : ColorWarning.warning800}>
+                {isPaid ? "Pembayaran Berhasil" : "Pembayaran Tercatat"}
+              </TextH3>
+              <TextBodySm color={isPaid ? ColorSuccess.success600 : ColorWarning.warning700} style={{ opacity: 0.85 }}>
+                {order.customerName || order.tableLabel || "Walk-in"} · {methodLabel}
+              </TextBodySm>
+              <TextCaption color={isPaid ? ColorSuccess.success600 : ColorWarning.warning700} style={{ opacity: 0.65 }}>
+                {dateStr} WIB
+              </TextCaption>
+            </YStack>
+            <YStack alignItems="flex-end" gap={2}>
+              <Text style={[styles.bigAmount, { color: isPaid ? ColorSuccess.success700 : ColorWarning.warning800 }]}>
+                {formatPrice(paymentAmount)}
+              </Text>
+              {remaining > 0 && (
+                <TextCaption color={ColorDanger.danger600} fontWeight="700">
+                  Sisa {formatPrice(remaining)}
+                </TextCaption>
+              )}
+            </YStack>
+          </XStack>
+        </View>
+
+        {/* ── Print Actions ── */}
+        <View style={styles.printRow}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.printBtnPrimary}
+            onPress={() => void handlePrintPdf()}
+          >
+            <Ionicons name="print-outline" size={17} color={ColorBase.white} />
+            <TextBodySm fontWeight="700" color={ColorBase.white}>
+              Cetak PDF
+            </TextBodySm>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={[
+              styles.printBtnBt,
+              printerState.connected && styles.printBtnBtConnected,
+              printerState.printing && styles.printBtnDisabled,
+            ]}
+            onPress={() => void handleBluetoothPrint()}
+            disabled={printerState.printing}
+          >
+            {printerState.printing ? (
+              <ActivityIndicator size="small" color={ColorBase.white} />
+            ) : (
+              <>
+                <Ionicons
+                  name={printerState.connected ? "bluetooth" : "bluetooth-outline"}
+                  size={17}
+                  color={printerState.connected ? ColorBase.white : ColorPrimary.primary600}
+                />
+                <TextBodySm
+                  fontWeight="700"
+                  color={printerState.connected ? ColorBase.white : ColorPrimary.primary600}
+                >
+                  {printerState.connected ? "Cetak BT" : "Hubungkan BT"}
+                </TextBodySm>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* ── Item List ── */}
+        <View style={styles.section}>
+          <TextBodySm fontWeight="700" color={ColorNeutral.neutral500} style={styles.sectionLabel}>
+            ITEM PESANAN
+          </TextBodySm>
+          {receiptItems.map((item, idx) => (
+            <React.Fragment key={idx}>
+              {idx > 0 && <View style={styles.divider} />}
+              <XStack
+                justifyContent="space-between"
+                alignItems="center"
+                paddingVertical={10}
+                gap="$3"
+              >
+                <YStack flex={1} gap={2}>
+                  <TextBodySm fontWeight="600">{item.name}</TextBodySm>
+                  <TextCaption color={ColorNeutral.neutral400}>× {item.qty}</TextCaption>
+                </YStack>
+                <Text style={styles.monoAmt}>{formatPrice(item.price)}</Text>
+              </XStack>
+            </React.Fragment>
+          ))}
+        </View>
+
+        {/* ── Summary ── */}
+        <View style={styles.section}>
+          <TextBodySm fontWeight="700" color={ColorNeutral.neutral500} style={styles.sectionLabel}>
+            RINGKASAN
+          </TextBodySm>
+
+          <XStack justifyContent="space-between" paddingVertical={9}>
+            <TextBodySm color={ColorNeutral.neutral500}>Subtotal</TextBodySm>
+            <Text style={styles.monoAmt}>{formatPrice(subtotal)}</Text>
+          </XStack>
+
+          {discount > 0 && (
+            <>
+              <View style={styles.divider} />
+              <XStack justifyContent="space-between" paddingVertical={9}>
+                <TextBodySm color={ColorNeutral.neutral500}>Diskon</TextBodySm>
+                <Text style={[styles.monoAmt, { color: ColorSuccess.success600 }]}>
+                  -{formatPrice(discount)}
+                </Text>
+              </XStack>
+            </>
+          )}
+
+          <View style={styles.divider} />
+          <XStack justifyContent="space-between" paddingVertical={9}>
+            <TextBodySm color={ColorNeutral.neutral500}>Pajak</TextBodySm>
+            <Text style={styles.monoAmt}>{formatPrice(ppn)}</Text>
+          </XStack>
+
+          <View style={styles.totalDivider} />
+          <XStack justifyContent="space-between" paddingVertical={11}>
+            <TextBodyLg fontWeight="800">Total</TextBodyLg>
+            <Text style={[styles.monoAmt, { fontSize: 15, fontWeight: "800", color: ColorNeutral.neutral900 }]}>
+              {formatPrice(order.grandTotal)}
+            </Text>
+          </XStack>
+
+          <View style={styles.divider} />
+          <XStack justifyContent="space-between" paddingVertical={9}>
+            <TextBodySm color={ColorNeutral.neutral500}>Metode</TextBodySm>
+            <TextBodySm fontWeight="700">{methodLabel}</TextBodySm>
+          </XStack>
+
+          <View style={styles.divider} />
+          <XStack justifyContent="space-between" paddingVertical={9}>
+            <TextBodySm color={ColorNeutral.neutral500}>Pembayaran ini</TextBodySm>
+            <Text style={[styles.monoAmt, { color: ColorPrimary.primary700, fontWeight: "700" }]}>
+              {formatPrice(paymentAmount)}
+            </Text>
+          </XStack>
+
+          {payment?.method === "tunai" && received > 0 && (
+            <>
+              <View style={styles.divider} />
+              <XStack justifyContent="space-between" paddingVertical={9}>
+                <TextBodySm color={ColorNeutral.neutral500}>Uang diterima</TextBodySm>
+                <Text style={styles.monoAmt}>{formatPrice(received)}</Text>
+              </XStack>
+              <View style={styles.divider} />
+              <XStack justifyContent="space-between" paddingVertical={9}>
+                <TextBodySm color={ColorNeutral.neutral500}>Kembalian</TextBodySm>
+                <Text style={[styles.monoAmt, { color: ColorGreen.green600, fontWeight: "700" }]}>
+                  {formatPrice(change)}
+                </Text>
+              </XStack>
+            </>
+          )}
+
+          {remaining > 0 && (
+            <>
+              <View style={styles.divider} />
+              <XStack justifyContent="space-between" paddingVertical={9}>
+                <TextBodySm color={ColorNeutral.neutral500}>Sisa tagihan</TextBodySm>
+                <Text style={[styles.monoAmt, { color: ColorDanger.danger600, fontWeight: "700" }]}>
+                  {formatPrice(remaining)}
+                </Text>
+              </XStack>
+            </>
+          )}
+        </View>
+
+        {/* ── Next Actions ── */}
+        <YStack gap="$2">
           <TouchableOpacity
             activeOpacity={0.88}
-            style={styles.primaryButton}
+            style={styles.btnPrimary}
             onPress={handleNewTransaction}
           >
-            <Ionicons
-              name="add-circle-outline"
-              size={18}
-              color={ColorBase.white}
-            />
+            <Ionicons name="add-circle-outline" size={18} color={ColorBase.white} />
             <TextBodyLg fontWeight="700" color={ColorBase.white}>
               Input Manual Baru
             </TextBodyLg>
@@ -249,376 +397,15 @@ export default function PembayaranSuksesPage() {
 
           <TouchableOpacity
             activeOpacity={0.82}
-            style={styles.secondaryLink}
+            style={styles.btnSecondary}
             onPress={handleGoRiwayat}
           >
-            <TextBody fontWeight="700" color={ColorPrimary.primary600}>
-              Buka Riwayat Order
-            </TextBody>
+            <TextBodySm fontWeight="700" color={ColorPrimary.primary600}>
+              Lihat Riwayat Order
+            </TextBodySm>
           </TouchableOpacity>
         </YStack>
-      </View>
-
-      <View style={styles.heroPanel}>
-        <YStack alignItems="center" gap="$3">
-          <View style={styles.successIcon}>
-            <Ionicons name="checkmark" size={40} color={ColorBase.white} />
-          </View>
-          <YStack alignItems="center" gap={8}>
-            <TextH2 fontWeight="700" textAlign="center">
-              {remaining === 0 ? "Pembayaran Berhasil!" : "Pembayaran Tercatat"}
-            </TextH2>
-            <TextBody color="$colorSecondary" textAlign="center">
-              {formatPrice(paymentAmount)} dicatat ke {order.id}
-            </TextBody>
-            <TextBodySm color="$colorSecondary" textAlign="center">
-              {dateTime}
-            </TextBodySm>
-          </YStack>
-        </YStack>
-      </View>
-
-      <View style={styles.metricPanel}>
-        <XStack gap="$3" flexWrap="wrap">
-          <View style={[styles.metricCard, styles.metricCardPrimary]}>
-            <TextCaption color="rgba(255,255,255,0.82)">
-              Pembayaran Ini
-            </TextCaption>
-            <TextH3 fontWeight="700" color={ColorBase.white}>
-              {formatPrice(paymentAmount)}
-            </TextH3>
-          </View>
-          <View style={styles.metricCard}>
-            <TextCaption color="$colorSecondary">Sisa Tagihan</TextCaption>
-            <TextH3
-              fontWeight="700"
-              color={
-                remaining === 0 ? ColorGreen.green600 : ColorDanger.danger600
-              }
-            >
-              {formatPrice(remaining)}
-            </TextH3>
-          </View>
-        </XStack>
-      </View>
-
-      <View style={styles.infoBlock}>
-        <TextH3 fontWeight="700">Ringkasan transaksi</TextH3>
-        <YStack gap={12} marginTop={14}>
-          <XStack justifyContent="space-between">
-            <TextBodySm color="$colorSecondary">Order</TextBodySm>
-            <TextBodySm fontWeight="700">{order.id}</TextBodySm>
-          </XStack>
-          <XStack justifyContent="space-between">
-            <TextBodySm color="$colorSecondary">Pelanggan</TextBodySm>
-            <TextBodySm fontWeight="700">
-              {order.customerName || order.tableLabel || "-"}
-            </TextBodySm>
-          </XStack>
-          <XStack justifyContent="space-between">
-            <TextBodySm color="$colorSecondary">Metode</TextBodySm>
-            <TextBodySm fontWeight="700">{methodLabel}</TextBodySm>
-          </XStack>
-          <XStack justifyContent="space-between">
-            <TextBodySm color="$colorSecondary">Status</TextBodySm>
-            <TextBodySm fontWeight="700">{order.status}</TextBodySm>
-          </XStack>
-          {payment?.method === "tunai" && (
-            <>
-              <XStack justifyContent="space-between">
-                <TextBodySm color="$colorSecondary">Uang Diterima</TextBodySm>
-                <TextBodySm fontWeight="700">
-                  {formatPrice(received)}
-                </TextBodySm>
-              </XStack>
-              <XStack justifyContent="space-between">
-                <TextBodySm color="$colorSecondary">Kembalian</TextBodySm>
-                <TextBodySm fontWeight="700" color={ColorGreen.green600}>
-                  {formatPrice(change)}
-                </TextBodySm>
-              </XStack>
-            </>
-          )}
-        </YStack>
-      </View>
-    </YStack>
-  );
-
-  const receiptPanel = (
-    <YStack gap="$4" flex={1}>
-      <View style={styles.receiptStage}>
-        <YStack gap="$3" marginBottom={16}>
-          <XStack justifyContent="space-between" alignItems="center">
-            <YStack gap={4}>
-              <TextH3 fontWeight="700">Preview resi</TextH3>
-              <TextBodySm color="$colorSecondary">
-                Area cetak dipisah supaya aksi resi langsung terlihat.
-              </TextBodySm>
-            </YStack>
-            <View style={styles.previewBadge}>
-              <TextCaption color={ColorPrimary.primary600} fontWeight="700">
-                SIAP CETAK
-              </TextCaption>
-            </View>
-          </XStack>
-
-          <XStack gap="$3" flexDirection={isTablet ? "row" : "column"}>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              style={styles.receiptActionPrimary}
-              onPress={handlePrint}
-            >
-              <Ionicons
-                name="print-outline"
-                size={18}
-                color={ColorBase.white}
-                style={styles.buttonIcon}
-              />
-              <TextBodyLg fontWeight="700" color={ColorBase.white}>
-                Cetak Resi (PDF)
-              </TextBodyLg>
-            </TouchableOpacity>
-            {printerState.connected ? (
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={[
-                  styles.receiptActionBluetooth,
-                  printerState.printing && styles.receiptActionDisabled,
-                ]}
-                onPress={handleBluetoothPrint}
-                disabled={printerState.printing}
-              >
-                {printerState.printing ? (
-                  <ActivityIndicator color={ColorBase.white} />
-                ) : (
-                  <>
-                    <Ionicons
-                      name="bluetooth"
-                      size={18}
-                      color={ColorBase.white}
-                      style={styles.buttonIcon}
-                    />
-                    <TextBodyLg fontWeight="700" color={ColorBase.white}>
-                      Cetak Bluetooth
-                    </TextBodyLg>
-                  </>
-                )}
-              </TouchableOpacity>
-            ) : null}
-            <TouchableOpacity
-              activeOpacity={0.85}
-              style={styles.receiptActionSecondary}
-              onPress={handleShare}
-            >
-              <Ionicons
-                name="share-outline"
-                size={18}
-                color={ColorNeutral.neutral700}
-                style={styles.buttonIcon}
-              />
-              <TextBodyLg fontWeight="700" color={ColorNeutral.neutral700}>
-                Bagikan Ringkasan
-              </TextBodyLg>
-            </TouchableOpacity>
-          </XStack>
-        </YStack>
-
-        <View style={styles.receiptCard}>
-          <YStack alignItems="center" gap={4} paddingVertical={16}>
-            <View style={styles.storeIcon}>
-              <Ionicons
-                name="storefront"
-                size={24}
-                color={ColorPrimary.primary600}
-              />
-            </View>
-            <TextBodyLg fontWeight="700">{storeInfo.name}</TextBodyLg>
-            <TextCaption color="$colorSecondary" textAlign="center">
-              {storeInfo.address}
-            </TextCaption>
-          </YStack>
-
-          <DottedSeparator />
-
-          <YStack gap={8}>
-            <XStack justifyContent="space-between">
-              <TextBodySm color="$colorSecondary">No. Order</TextBodySm>
-              <TextBodySm fontWeight="700">{order.id}</TextBodySm>
-            </XStack>
-            <XStack justifyContent="space-between">
-              <TextBodySm color="$colorSecondary">Pelanggan</TextBodySm>
-              <TextBodySm fontWeight="700">
-                {order.customerName || order.tableLabel || "-"}
-              </TextBodySm>
-            </XStack>
-            <XStack justifyContent="space-between">
-              <TextBodySm color="$colorSecondary">Status</TextBodySm>
-              <TextBodySm fontWeight="700">{order.status}</TextBodySm>
-            </XStack>
-          </YStack>
-
-          <DottedSeparator />
-
-          <YStack gap={8}>
-            {receiptItems.map((item, index) => (
-              <XStack key={index} justifyContent="space-between" gap="$3">
-                <TextBodySm color="$colorSecondary" flex={1}>
-                  {item.name} x{item.qty}
-                </TextBodySm>
-                <TextBodySm fontWeight="600">
-                  {formatPrice(item.price)}
-                </TextBodySm>
-              </XStack>
-            ))}
-          </YStack>
-
-          <DottedSeparator />
-
-          <YStack gap={8}>
-            <XStack justifyContent="space-between">
-              <TextBodySm color="$colorSecondary">Subtotal</TextBodySm>
-              <TextBodySm fontWeight="600">{formatPrice(subtotal)}</TextBodySm>
-            </XStack>
-            {discount > 0 && (
-              <XStack justifyContent="space-between">
-                <TextBodySm color="$colorSecondary">Diskon</TextBodySm>
-                <TextBodySm fontWeight="600" color={ColorDanger.danger600}>
-                  -{formatPrice(discount)}
-                </TextBodySm>
-              </XStack>
-            )}
-            <XStack justifyContent="space-between">
-              <TextBodySm color="$colorSecondary">PPN 11%</TextBodySm>
-              <TextBodySm fontWeight="600">{formatPrice(ppn)}</TextBodySm>
-            </XStack>
-            <XStack justifyContent="space-between">
-              <TextBodyLg fontWeight="700">TOTAL</TextBodyLg>
-              <TextBodyLg fontWeight="700" color={ColorGreen.green600}>
-                {formatPrice(order.grandTotal)}
-              </TextBodyLg>
-            </XStack>
-          </YStack>
-
-          <DottedSeparator />
-
-          <YStack gap={8}>
-            <XStack justifyContent="space-between">
-              <TextBodySm color="$colorSecondary">Metode</TextBodySm>
-              <TextBodySm fontWeight="700">{methodLabel}</TextBodySm>
-            </XStack>
-            <XStack justifyContent="space-between">
-              <TextBodySm color="$colorSecondary">Pembayaran Ini</TextBodySm>
-              <TextBodySm fontWeight="700">
-                {formatPrice(paymentAmount)}
-              </TextBodySm>
-            </XStack>
-            <XStack justifyContent="space-between">
-              <TextBodySm color="$colorSecondary">Total Dibayar</TextBodySm>
-              <TextBodySm fontWeight="700">{formatPrice(totalPaid)}</TextBodySm>
-            </XStack>
-            <XStack justifyContent="space-between">
-              <TextBodySm color="$colorSecondary">Sisa</TextBodySm>
-              <TextBodySm
-                fontWeight="700"
-                color={
-                  remaining === 0 ? ColorGreen.green600 : ColorDanger.danger600
-                }
-              >
-                {formatPrice(remaining)}
-              </TextBodySm>
-            </XStack>
-          </YStack>
-
-          <YStack alignItems="center" gap={8} marginTop={20}>
-            <BarcodePlaceholder />
-            <TextCaption color="$colorSecondary">{order.id}</TextCaption>
-          </YStack>
-        </View>
-      </View>
-    </YStack>
-  );
-
-  const shellDirection = isTablet ? "row" : "column";
-  const showSummary = isTablet || activeView === "summary";
-  const showReceipt = isTablet || activeView === "receipt";
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <PageHeader
-        title="Pembayaran Selesai"
-        subtitle="Ringkasan transaksi dan resi kini dipisah supaya aksi cetak lebih cepat."
-        showBack
-        onBack={handleGoRiwayat}
-        maxWidth={contentMaxWidth}
-      />
-
-      {!isTablet ? (
-        <View
-          style={[
-            styles.viewSwitcher,
-            { paddingHorizontal: horizontalPadding },
-          ]}
-        >
-          {[
-            { id: "summary", label: "Ringkasan" },
-            { id: "receipt", label: "Resi" },
-          ].map((item) => {
-            const active = activeView === item.id;
-            return (
-              <TouchableOpacity
-                key={item.id}
-                style={[styles.switchChip, active && styles.switchChipActive]}
-                activeOpacity={0.82}
-                onPress={() => setActiveView(item.id as ReceiptView)}
-              >
-                <TextBodySm
-                  fontWeight="700"
-                  color={active ? ColorBase.white : ColorNeutral.neutral700}
-                >
-                  {item.label}
-                </TextBodySm>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      ) : null}
-
-      <View
-        style={[
-          styles.shell,
-          {
-            maxWidth: contentMaxWidth,
-            paddingHorizontal: horizontalPadding,
-          },
-        ]}
-      >
-        <XStack
-          flex={1}
-          gap="$4"
-          flexDirection={shellDirection}
-          alignItems="stretch"
-        >
-          {showSummary ? (
-            <ScrollView
-              style={styles.panel}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.panelContent}
-            >
-              {summaryPanel}
-            </ScrollView>
-          ) : null}
-
-          {showReceipt ? (
-            <ScrollView
-              style={styles.panel}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.panelContent}
-            >
-              {receiptPanel}
-            </ScrollView>
-          ) : null}
-        </XStack>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -626,174 +413,134 @@ export default function PembayaranSuksesPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F3F6FB",
+    backgroundColor: ColorBase.bgScreen,
   },
   missingState: {
-    flexGrow: 1,
-    justifyContent: "center",
-  },
-  shell: {
     flex: 1,
-    width: "100%",
-    alignSelf: "center",
-    paddingTop: 18,
-    paddingBottom: 24,
-  },
-  panel: {
-    flex: 1,
-  },
-  panelContent: {
-    paddingBottom: 24,
-  },
-  heroPanel: {
-    backgroundColor: ColorBase.white,
-    borderRadius: 28,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: "#E5EBF5",
-    shadowColor: "#10213A",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
-    elevation: 4,
-  },
-  successIcon: {
-    width: 78,
-    height: 78,
-    borderRadius: 24,
-    backgroundColor: ColorGreen.green600,
     alignItems: "center",
     justifyContent: "center",
   },
-  metricPanel: {
+  scroll: {
+    padding: 16,
+    paddingBottom: 36,
     gap: 12,
   },
-  metricCard: {
-    flex: 1,
-    minWidth: 190,
-    borderRadius: 24,
-    padding: 20,
-    backgroundColor: ColorBase.white,
+
+  // Success header
+  successCard: {
+    borderRadius: 20,
+    padding: 16,
     borderWidth: 1,
-    borderColor: "#E5EBF5",
   },
-  metricCardPrimary: {
-    backgroundColor: ColorPrimary.primary600,
-    borderColor: ColorPrimary.primary600,
+  successCardPaid: {
+    backgroundColor: ColorSuccess.success50,
+    borderColor: ColorSuccess.success200,
   },
-  infoBlock: {
-    backgroundColor: ColorBase.white,
-    borderRadius: 24,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: "#E5EBF5",
+  successCardPartial: {
+    backgroundColor: ColorWarning.warning50,
+    borderColor: ColorWarning.warning200,
   },
-  actionPanel: {
-    backgroundColor: "#F7FAFF",
-    borderRadius: 24,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: "#D9E5F8",
-  },
-  primaryButton: {
-    minHeight: 54,
-    borderRadius: 16,
-    backgroundColor: ColorGreen.green600,
+  checkCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
+  },
+  checkCirclePaid: {
+    backgroundColor: ColorSuccess.success600,
+  },
+  checkCirclePartial: {
+    backgroundColor: ColorWarning.warning600,
+  },
+  bigAmount: {
+    fontSize: 20,
+    fontWeight: "800",
+    fontFamily: "monospace",
+  },
+
+  // Print row
+  printRow: {
     flexDirection: "row",
+    gap: 10,
   },
-  secondaryLink: {
-    minHeight: 48,
-    borderRadius: 16,
-    backgroundColor: ColorBase.white,
-    borderWidth: 1,
-    borderColor: "#D9E5F8",
+  printBtnPrimary: {
+    flex: 1,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-  },
-  receiptStage: {
-    backgroundColor: "#EEF4FF",
-    borderRadius: 28,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: "#DBE6F8",
-  },
-  previewBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: ColorPrimary.primary50,
-  },
-  receiptCard: {
-    backgroundColor: ColorBase.white,
-    borderRadius: 24,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    shadowColor: ColorBase.black,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 4,
-  },
-  storeIcon: {
-    width: 48,
-    height: 48,
+    gap: 7,
+    paddingVertical: 13,
     borderRadius: 14,
-    backgroundColor: ColorPrimary.primary50,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  receiptActionPrimary: {
-    flex: 1,
-    minHeight: 56,
-    borderRadius: 18,
     backgroundColor: ColorPrimary.primary600,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
   },
-  receiptActionBluetooth: {
+  printBtnBt: {
     flex: 1,
-    minHeight: 56,
-    borderRadius: 18,
-    backgroundColor: ColorGreen.green600,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    flexDirection: "row",
+    gap: 7,
+    paddingVertical: 13,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: ColorPrimary.primary200,
+    backgroundColor: ColorBase.white,
   },
-  receiptActionDisabled: {
+  printBtnBtConnected: {
+    backgroundColor: ColorSuccess.success600,
+    borderColor: ColorSuccess.success600,
+  },
+  printBtnDisabled: {
     opacity: 0.6,
   },
-  receiptActionSecondary: {
-    flex: 1,
-    minHeight: 56,
-    borderRadius: 18,
-    borderWidth: 1.5,
-    borderColor: ColorNeutral.neutral200,
+
+  // Sections
+  section: {
     backgroundColor: ColorBase.white,
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+  },
+  sectionLabel: {
+    letterSpacing: 0.6,
+    paddingTop: 14,
+    paddingBottom: 2,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: ColorNeutral.neutral100,
+  },
+  totalDivider: {
+    height: 1,
+    backgroundColor: ColorNeutral.neutral300,
+    marginVertical: 2,
+  },
+  monoAmt: {
+    fontFamily: "monospace",
+    fontSize: 13,
+    fontWeight: "600",
+    color: ColorNeutral.neutral800,
+  },
+
+  // Next actions
+  btnPrimary: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    flexDirection: "row",
+    gap: 8,
+    minHeight: 52,
+    borderRadius: 16,
+    backgroundColor: ColorGreen.green600,
   },
-  buttonIcon: {
-    marginRight: 8,
-  },
-  viewSwitcher: {
-    paddingTop: 14,
-  },
-  switchChip: {
-    flex: 1,
+  btnSecondary: {
+    alignItems: "center",
+    justifyContent: "center",
     minHeight: 46,
     borderRadius: 16,
     backgroundColor: ColorBase.white,
-    alignItems: "center",
-    justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#DCE5F3",
-  },
-  switchChipActive: {
-    backgroundColor: ColorPrimary.primary600,
-    borderColor: ColorPrimary.primary600,
+    borderColor: ColorNeutral.neutral200,
   },
 });

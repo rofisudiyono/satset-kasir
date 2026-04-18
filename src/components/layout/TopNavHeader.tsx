@@ -17,6 +17,14 @@ import { IconButton, TextBodySm, TextCaption, TextH3 } from "@/components";
 import { useAuth } from "@/lib/auth";
 import { useReadyOrdersQuery } from "@/hooks/api/use-kasir-api";
 import {
+  getHistoryRoute,
+  getHomeRoute,
+  getInputManualRoute,
+  getNamespaceFromPathname,
+  getOpenShiftRoute,
+  getSiapAntarRoute,
+} from "@/lib/routing/device-routes";
+import {
   ensurePosSeedDataAtom,
   posOrdersAtom,
 } from "@/features/pos/store/pos.store";
@@ -50,6 +58,7 @@ export function TopNavHeader() {
   const [posOrders] = useAtom(posOrdersAtom);
   const ensurePosSeedData = useSetAtom(ensurePosSeedDataAtom);
   const [staffDetailVisible, setStaffDetailVisible] = useState(false);
+  const isTabletNamespace = getNamespaceFromPathname(pathname) === "tablet";
 
   useEffect(() => {
     ensurePosSeedData();
@@ -93,35 +102,39 @@ export function TopNavHeader() {
       label: "Pesanan Web",
       icon: "globe-outline",
       iconActive: "globe",
-      segment: "/",
-      href: "/",
+      segment: getHomeRoute(isTabletNamespace),
+      href: getHomeRoute(isTabletNamespace),
     },
     {
       label: "Input Manual",
       icon: "create-outline",
       iconActive: "create",
-      segment: "/transaksi",
-      href: "/transaksi",
+      segment: getInputManualRoute(isTabletNamespace),
+      href: getInputManualRoute(isTabletNamespace),
     },
     {
       label: "Riwayat",
       icon: "time-outline",
       iconActive: "time",
-      segment: "/pengaturan",
-      href: "/pengaturan",
+      segment: getHistoryRoute(isTabletNamespace),
+      href: getHistoryRoute(isTabletNamespace),
     },
   ];
 
   function isActive(item: NavItem) {
-    if (item.segment === "/") return pathname === "/";
+    if (pathname === item.segment) return true;
     if (
-      item.segment === "/transaksi" &&
+      item.segment === getInputManualRoute(isTabletNamespace) &&
       pathname.startsWith("/transaksi-baru")
     ) {
       return true;
     }
     return pathname.startsWith(item.segment);
   }
+
+  const siapAntarHref = getSiapAntarRoute(isTabletNamespace);
+  const isSiapAntarTabActive =
+    pathname === siapAntarHref || pathname.startsWith(`${siapAntarHref}/`);
 
   const cashierLabel = shiftData?.cashierName ?? "Kasir 01";
   const shiftLabel = shiftData?.slot ?? "SHIFT";
@@ -169,7 +182,11 @@ export function TopNavHeader() {
                   : styles.primaryActionNeutral,
               ]}
               onPress={() =>
-                router.push(isShiftStarted ? "/tutup-shift" : "/buka-shift")
+                router.push(
+                  (isShiftStarted
+                    ? "/tutup-shift"
+                    : getOpenShiftRoute(isTabletNamespace)) as never,
+                )
               }
             >
               <Ionicons
@@ -246,34 +263,43 @@ export function TopNavHeader() {
             activeOpacity={0.85}
             style={[
               styles.readyChip,
-              displayReadyCount > 0 && styles.readyChipActive,
+              isSiapAntarTabActive && styles.navChipActive,
+              !isSiapAntarTabActive &&
+                displayReadyCount > 0 &&
+                styles.readyChipActive,
             ]}
-            onPress={() => router.push("/siap-antar" as never)}
+            onPress={() => router.push(siapAntarHref as never)}
           >
             <Ionicons
               name={displayReadyCount > 0 ? "bag-check" : "bag-check-outline"}
               size={16}
               color={
-                displayReadyCount > 0
-                  ? ColorSuccess.success600
-                  : ColorNeutral.neutral500
+                isSiapAntarTabActive
+                  ? ColorPrimary.primary600
+                  : displayReadyCount > 0
+                    ? ColorSuccess.success600
+                    : ColorNeutral.neutral500
               }
             />
             <TextBodySm
               fontWeight="700"
               color={
-                displayReadyCount > 0
-                  ? ColorSuccess.success600
-                  : ColorNeutral.neutral700
+                isSiapAntarTabActive
+                  ? ColorPrimary.primary600
+                  : displayReadyCount > 0
+                    ? ColorSuccess.success600
+                    : ColorNeutral.neutral700
               }
             >
               Siap Diantar
             </TextBodySm>
             <TextCaption
               color={
-                displayReadyCount > 0
-                  ? ColorSuccess.success600
-                  : ColorNeutral.neutral500
+                isSiapAntarTabActive
+                  ? ColorPrimary.primary600
+                  : displayReadyCount > 0
+                    ? ColorSuccess.success600
+                    : ColorNeutral.neutral500
               }
               fontWeight={displayReadyCount > 0 ? "700" : "500"}
             >
