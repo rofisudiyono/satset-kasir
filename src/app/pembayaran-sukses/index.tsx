@@ -74,7 +74,10 @@ export default function PembayaranSuksesPage() {
 
   if (!order) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={["top", "left", "right", "bottom"]}
+      >
         <View style={styles.missingState}>
           <TextBodySm color={ColorNeutral.neutral500}>
             Order tidak ditemukan.
@@ -199,7 +202,10 @@ export default function PembayaranSuksesPage() {
   const isPaid = remaining === 0;
 
   return (
-    <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top", "left", "right", "bottom"]}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
