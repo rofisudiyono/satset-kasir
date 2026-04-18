@@ -41,6 +41,7 @@ export type KasirMenuVariant = {
 export type KasirMenu = {
   id: string;
   name: string;
+  imageUrl?: string | null;
   price: number;
   categoryId: string;
   categoryName: string;

@@ -5,6 +5,7 @@ export type ProductStockStatus = "normal" | "low" | "empty" | "inactive";
 
 export interface ProductCardProps {
   name: string;
+  imageUrl?: string;
   basePrice: number;
   categoryIcon: React.ComponentProps<typeof Ionicons>["name"];
   categoryIconBg: string;

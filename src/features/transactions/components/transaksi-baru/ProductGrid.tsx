@@ -59,6 +59,7 @@ export function ProductGrid({
     ({ item }) => (
       <ProductCard
         name={item.name}
+        imageUrl={item.imageUrl}
         basePrice={item.basePrice}
         categoryIcon={CATEGORY_ICONS[item.category]}
         categoryIconBg={CATEGORY_COLORS[item.category].bg}

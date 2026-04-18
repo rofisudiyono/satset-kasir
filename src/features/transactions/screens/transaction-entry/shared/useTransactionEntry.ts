@@ -16,6 +16,7 @@ import {
   type CartItem,
 } from "@/features/cart/store/cart.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
+import { API_BASE_URL } from "@/config/env";
 import { useMenusQuery } from "@/hooks/api/use-kasir-api";
 import type { KasirMenu } from "@/lib/api/types";
 import type { CatalogProduct, CategoryFilter, ProductCategory } from "@/types";
@@ -70,6 +71,11 @@ function mapMenuToCatalogProduct(menu: KasirMenu): CatalogProduct {
   return {
     id: menu.id,
     name: menu.name,
+    imageUrl: menu.imageUrl
+      ? menu.imageUrl.startsWith("http")
+        ? menu.imageUrl
+        : `${API_BASE_URL}${menu.imageUrl}`
+      : undefined,
     category: normalizeCategoryName(menu.categoryName),
     basePrice: menu.price,
     stockStatus: menu.isAvailable

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useMemo } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { Image, Pressable, StyleSheet, View } from "react-native";
 import { XStack, YStack } from "tamagui";
 
 import {
@@ -42,6 +42,11 @@ const styles = StyleSheet.create({
     height: 110,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
+  },
+  menuImage: {
+    width: "100%",
+    height: "100%",
   },
   cardImageAreaEmpty: {
     opacity: 0.5,
@@ -80,6 +85,7 @@ const styles = StyleSheet.create({
 
 export const ProductCard = React.memo(function ProductCard({
   name,
+  imageUrl,
   basePrice,
   categoryIcon,
   categoryIconBg,
@@ -94,6 +100,11 @@ export const ProductCard = React.memo(function ProductCard({
   const isInactive = stockStatus === "inactive";
   const isLow = stockStatus === "low";
   const isDisabled = isEmpty || isInactive;
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [imageUrl]);
 
   const cardStyle = useMemo(
     () => [styles.card, { width }, isEmpty && styles.cardEmpty, isInactive && styles.cardInactive, style],
@@ -116,11 +127,21 @@ export const ProductCard = React.memo(function ProductCard({
     ],
     [isDisabled],
   );
+  const shouldShowImage = Boolean(imageUrl && !imageFailed);
 
   return (
     <View style={cardStyle}>
       <View style={imageAreaStyle}>
-        <Ionicons name={categoryIcon} size={42} color={categoryIconColor} />
+        {shouldShowImage ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.menuImage}
+            resizeMode="cover"
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <Ionicons name={categoryIcon} size={42} color={categoryIconColor} />
+        )}
 
         {isLow && (
           <View style={[styles.stockBadge, styles.stockBadgeLow]}>

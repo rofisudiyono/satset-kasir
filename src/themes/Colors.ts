@@ -15,14 +15,14 @@ export const enum ColorSurface {
 }
 
 export const enum ColorPrimary {
-  primary25 = "#EFF4FF",
-  primary50 = "#EFF6FF",
-  primary100 = "#DBEAFE",
-  primary200 = "#BFDBFE",
-  primary400 = "#60A5FA",
-  primary600 = "#2563EB",
-  primary700 = "#1D4ED8",
-  primary900 = "#1E3A8A",
+  primary25 = "#FFF9ED",
+  primary50 = "#FEF6E5",
+  primary100 = "#F9E6B8",
+  primary200 = "#F0CF84",
+  primary400 = "#D7A23A",
+  primary600 = "#B87907",
+  primary700 = "#996105",
+  primary900 = "#5E3B00",
 }
 
 export const enum ColorSky {
@@ -120,7 +120,7 @@ export const enum ColorTeal {
 }
 
 export const enum ColorIconGradient {
-  gradientStart = "#3C9FFE",
-  gradientEnd = "#0274DF",
-  iconBg = "#208AEF",
+  gradientStart = "#F2D36D",
+  gradientEnd = "#B87907",
+  iconBg = "#C58B17",
 }

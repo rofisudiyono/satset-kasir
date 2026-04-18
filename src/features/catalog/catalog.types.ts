@@ -21,6 +21,7 @@ export interface VariantGroup {
 export interface CatalogProduct {
   id: string;
   name: string;
+  imageUrl?: string;
   category: ProductCategory;
   basePrice: number;
   stockStatus: StockStatus;
