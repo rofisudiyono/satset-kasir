@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter } from "expo-router";
 import { useAtom, useSetAtom } from "jotai";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Image,
   Modal,
@@ -17,8 +18,8 @@ import { XStack, YStack } from "tamagui";
 import { IconButton, TextBodySm, TextCaption, TextH3 } from "@/components";
 import { useAuth } from "@/lib/auth";
 import { useTenantInfoQuery, useReadyOrdersQuery } from "@/hooks/api/use-kasir-api";
+import { kasirKeys } from "@/hooks/api/query-keys";
 import { API_BASE_URL } from "@/config/env";
-import { Colors } from "@/config/theme";
 import {
   getHistoryRoute,
   getHomeRoute,
@@ -51,14 +52,17 @@ type NavItem = {
   href: string;
 };
 
-const ADMIN_HEADER_BG = Colors.backgroundElement;
-const ADMIN_HEADER_SURFACE = Colors.backgroundSelected;
+type RefreshTarget = "web-orders" | "input-manual" | "history" | "ready-orders";
+
+const ADMIN_HEADER_BG = ColorNeutral.neutral900;
+const ADMIN_HEADER_SURFACE = ColorNeutral.neutral800;
 const ADMIN_HEADER_BORDER = "rgba(255,255,255,0.08)";
 const ADMIN_HEADER_TEXT_SECONDARY = "rgba(255,255,255,0.68)";
 const ADMIN_HEADER_TEXT_MUTED = "rgba(255,255,255,0.48)";
 
 export function TopNavHeader() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { session, logout, isLoggedIn } = useAuth();
   const pathname = usePathname();
   const { width } = useWindowDimensions();
@@ -144,6 +148,72 @@ export function TopNavHeader() {
   const siapAntarHref = getSiapAntarRoute(isTabletNamespace);
   const isSiapAntarTabActive =
     pathname === siapAntarHref || pathname.startsWith(`${siapAntarHref}/`);
+  const refreshTarget = useMemo<RefreshTarget | null>(() => {
+    if (
+      pathname === getHomeRoute(isTabletNamespace) ||
+      pathname.startsWith(`${getHomeRoute(isTabletNamespace)}/`)
+    ) {
+      return "web-orders";
+    }
+    if (
+      pathname === getInputManualRoute(isTabletNamespace) ||
+      pathname.startsWith(`${getInputManualRoute(isTabletNamespace)}/`) ||
+      pathname.startsWith("/transaksi-baru")
+    ) {
+      return "input-manual";
+    }
+    if (
+      pathname === getHistoryRoute(isTabletNamespace) ||
+      pathname.startsWith(`${getHistoryRoute(isTabletNamespace)}/`)
+    ) {
+      return "history";
+    }
+    if (isSiapAntarTabActive) {
+      return "ready-orders";
+    }
+    return null;
+  }, [isSiapAntarTabActive, isTabletNamespace, pathname]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    if (!refreshTarget || isRefreshing) return;
+
+    setIsRefreshing(true);
+    try {
+      if (refreshTarget === "web-orders") {
+        await queryClient.invalidateQueries({
+          queryKey: kasirKeys.pendingWebOrders(),
+        });
+        return;
+      }
+
+      if (refreshTarget === "input-manual") {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: kasirKeys.menus() }),
+          queryClient.invalidateQueries({ queryKey: kasirKeys.tables() }),
+          queryClient.invalidateQueries({ queryKey: kasirKeys.promos() }),
+          queryClient.invalidateQueries({ queryKey: kasirKeys.taxSettings() }),
+        ]);
+        return;
+      }
+
+      if (refreshTarget === "history") {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: [...kasirKeys.all, "orders", "history"],
+          }),
+          queryClient.invalidateQueries({
+            queryKey: [...kasirKeys.all, "orders", "detail"],
+          }),
+        ]);
+        return;
+      }
+
+      await queryClient.invalidateQueries({ queryKey: kasirKeys.readyOrders() });
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, queryClient, refreshTarget]);
 
   const tenantInfoQuery = useTenantInfoQuery(isLoggedIn);
   const tenantInfo = tenantInfoQuery.data;
@@ -330,6 +400,29 @@ export function TopNavHeader() {
                 : "Belum ada READY"}
             </TextCaption>
           </TouchableOpacity>
+
+          {refreshTarget ? (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              disabled={isRefreshing}
+              style={[
+                styles.refreshChip,
+                isRefreshing && styles.refreshChipDisabled,
+              ]}
+              onPress={() => {
+                void handleRefresh();
+              }}
+            >
+              <Ionicons
+                name={isRefreshing ? "sync" : "refresh-outline"}
+                size={16}
+                color={ColorBase.white}
+              />
+              <TextBodySm fontWeight="700" color={ColorBase.white}>
+                Refresh
+              </TextBodySm>
+            </TouchableOpacity>
+          ) : null}
 
           <View style={styles.comingSoonChip}>
             <Ionicons
@@ -570,6 +663,20 @@ const styles = StyleSheet.create({
   readyChipActive: {
     backgroundColor: "rgba(16, 185, 129, 0.16)",
     borderColor: "rgba(16, 185, 129, 0.34)",
+  },
+  refreshChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: ColorPrimary.primary600,
+    borderWidth: 1,
+    borderColor: ColorPrimary.primary600,
+  },
+  refreshChipDisabled: {
+    opacity: 0.72,
   },
   comingSoonChip: {
     flexDirection: "row",
