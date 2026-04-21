@@ -4,7 +4,7 @@ import { StyleSheet, View } from "react-native";
 
 import { TopNavHeader } from "@/components/layout/TopNavHeader";
 import { useAuth } from "@/lib/auth";
-import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
+import { ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
 
 export default function TabsLayout() {
   const { isLoggedIn } = useAuth();

@@ -12,7 +12,7 @@ export const CATEGORY_COLORS: Record<
   { bg: string; color: string }
 > = {
   Makanan: { bg: "#FFEDD5", color: "#EA580C" },
-  Minuman: { bg: "#DBEAFE", color: "#2563EB" },
+  Minuman: { bg: "#E8FAF8", color: "#129A8F" },
   Snack: { bg: "#FEF3C7", color: "#D97706" },
 };
 

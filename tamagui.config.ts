@@ -76,6 +76,24 @@ const animationDrivers = {
 
 // ─── Raw Color Palette ───────────────────────────────────────────────────────
 const rawColors = {
+  brand25: "#F4FBF1",
+  brand50: "#EAF8E7",
+  brand100: "#D8F2C2",
+  brand200: "#B9E88B",
+  brand400: "#87D961",
+  brand500: "#29A36F",
+  brand600: "#167245",
+  brand700: "#0E5A33",
+  brand800: "#0B482B",
+  brand900: "#08381F",
+
+  teal50: "#E8FAF8",
+  teal100: "#CFF4EF",
+  teal300: "#69D6CE",
+  teal500: "#1DB5AC",
+  teal600: "#129A8F",
+  teal800: "#0B5D57",
+
   blue50: "#EFF6FF",
   blue100: "#DBEAFE",
   blue300: "#93C5FD",
@@ -188,10 +206,10 @@ const tokens = createTokens({
 // ─── Themes ───────────────────────────────────────────────────────────────────
 const lightTheme = {
   // Primary
-  primary: rawColors.blue600,
-  primaryLight: rawColors.blue50,
-  primaryMid: rawColors.blue100,
-  primaryDark: rawColors.blue700,
+  primary: rawColors.brand600,
+  primaryLight: rawColors.brand50,
+  primaryMid: rawColors.brand100,
+  primaryDark: rawColors.brand700,
   // Success
   success: rawColors.green600,
   successLight: rawColors.green50,
@@ -204,14 +222,14 @@ const lightTheme = {
   dangerLight: rawColors.red50,
   // Background
   background: rawColors.white,
-  backgroundSecondary: rawColors.gray50,
-  backgroundTertiary: rawColors.gray100,
+  backgroundSecondary: "#F4F8F3",
+  backgroundTertiary: rawColors.brand50,
   // Text
-  color: rawColors.gray900,
-  colorSecondary: rawColors.gray600,
-  colorTertiary: rawColors.gray400,
+  color: "#0A2518",
+  colorSecondary: "#597062",
+  colorTertiary: "#8EA096",
   // Border
-  borderColor: rawColors.gray200,
+  borderColor: "#E1EADD",
   // Surfaces
   white: rawColors.white,
   black: rawColors.black,
@@ -220,10 +238,10 @@ const lightTheme = {
 
 const darkTheme = {
   // Primary
-  primary: rawColors.blue500,
-  primaryLight: rawColors.blue900,
-  primaryMid: rawColors.blue800,
-  primaryDark: rawColors.blue400,
+  primary: rawColors.brand400,
+  primaryLight: rawColors.brand900,
+  primaryMid: rawColors.brand800,
+  primaryDark: rawColors.brand100,
   // Success
   success: rawColors.green500,
   successLight: rawColors.green900,
@@ -235,15 +253,15 @@ const darkTheme = {
   danger: rawColors.red500,
   dangerLight: rawColors.red900,
   // Background
-  background: rawColors.gray900,
-  backgroundSecondary: rawColors.gray800,
-  backgroundTertiary: rawColors.gray700,
+  background: "#061F13",
+  backgroundSecondary: rawColors.brand900,
+  backgroundTertiary: rawColors.brand800,
   // Text
   color: rawColors.white,
-  colorSecondary: rawColors.gray300,
-  colorTertiary: rawColors.gray400,
+  colorSecondary: "#C7D8C6",
+  colorTertiary: "#8FA995",
   // Border
-  borderColor: rawColors.gray700,
+  borderColor: "#24543A",
   // Surfaces
   white: rawColors.white,
   black: rawColors.black,

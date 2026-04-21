@@ -46,6 +46,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    backgroundColor: "#F6F3EE",
+    backgroundColor: ColorBase.bgScreen,
   },
 });

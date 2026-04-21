@@ -2,32 +2,32 @@ export const enum ColorBase {
   white = "#FFFFFF",
   black = "#000000",
   transparent = "transparent",
-  bgScreen = "#F6F3EE",
+  bgScreen = "#F4F8F3",
 }
 
 export const enum ColorSurface {
-  canvas = "#F6F3EE",
+  canvas = "#F4F8F3",
   surface = "#FFFFFF",
-  surfaceMuted = "#FCFBF8",
-  border = "#ECE6DD",
-  borderStrong = "#DED5C8",
-  shadow = "#8B7B67",
+  surfaceMuted = "#FBFDF9",
+  border = "#E1EADD",
+  borderStrong = "#CADBC2",
+  shadow = "#24543A",
 }
 
 export const enum ColorPrimary {
-  primary25 = "#FFF9ED",
-  primary50 = "#FEF6E5",
-  primary100 = "#F9E6B8",
-  primary200 = "#F0CF84",
-  primary400 = "#D7A23A",
-  primary600 = "#B87907",
-  primary700 = "#996105",
-  primary900 = "#5E3B00",
+  primary25 = "#F4FBF1",
+  primary50 = "#EAF8E7",
+  primary100 = "#D8F2C2",
+  primary200 = "#B9E88B",
+  primary400 = "#87D961",
+  primary600 = "#167245",
+  primary700 = "#0E5A33",
+  primary900 = "#08381F",
 }
 
 export const enum ColorSky {
-  sky50 = "#F0F9FF",
-  indigo50 = "#EEF2FF",
+  sky50 = "#E8FAF8",
+  indigo50 = "#EAF8E7",
 }
 
 export const enum ColorSuccess {
@@ -116,11 +116,11 @@ export const enum ColorAccentOrange {
 }
 
 export const enum ColorTeal {
-  teal700 = "#0F766E",
+  teal700 = "#129A8F",
 }
 
 export const enum ColorIconGradient {
-  gradientStart = "#F2D36D",
-  gradientEnd = "#B87907",
-  iconBg = "#C58B17",
+  gradientStart = "#A9DF67",
+  gradientEnd = "#1DB5AC",
+  iconBg = "#0E5A33",
 }

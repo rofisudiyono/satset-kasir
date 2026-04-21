@@ -22,8 +22,8 @@ export const paymentMethodOptions: PaymentMethodOption[] = [
   {
     id: "qris",
     icon: "qr-code-outline",
-    iconBg: "#DBEAFE",
-    iconColor: "#2563EB",
+    iconBg: "#E8FAF8",
+    iconColor: "#129A8F",
     title: "QRIS",
     subtitle: "Scan QR code untuk pembayaran digital",
   },
@@ -46,8 +46,8 @@ export const paymentMethodOptions: PaymentMethodOption[] = [
   {
     id: "ewallet",
     icon: "phone-portrait-outline",
-    iconBg: "#E0F2FE",
-    iconColor: "#0284C7",
+    iconBg: "#EAF8E7",
+    iconColor: "#167245",
     title: "E-Wallet",
     subtitle: "OVO, GoPay, DANA, atau dompet digital lain",
   },

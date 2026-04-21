@@ -54,11 +54,11 @@ type NavItem = {
 
 type RefreshTarget = "web-orders" | "input-manual" | "history" | "ready-orders";
 
-const ADMIN_HEADER_BG = ColorNeutral.neutral900;
-const ADMIN_HEADER_SURFACE = ColorNeutral.neutral800;
-const ADMIN_HEADER_BORDER = "rgba(255,255,255,0.08)";
-const ADMIN_HEADER_TEXT_SECONDARY = "rgba(255,255,255,0.68)";
-const ADMIN_HEADER_TEXT_MUTED = "rgba(255,255,255,0.48)";
+const ADMIN_HEADER_BG = "#08381F";
+const ADMIN_HEADER_SURFACE = "#0E4D2E";
+const ADMIN_HEADER_BORDER = "rgba(216,242,194,0.14)";
+const ADMIN_HEADER_TEXT_SECONDARY = "rgba(235,250,231,0.74)";
+const ADMIN_HEADER_TEXT_MUTED = "rgba(235,250,231,0.5)";
 
 export function TopNavHeader() {
   const router = useRouter();
@@ -258,7 +258,9 @@ export function TopNavHeader() {
             justifyContent="flex-end"
           >
             <View style={styles.shiftPill}>
-              <TextCaption color={ADMIN_HEADER_TEXT_SECONDARY}>Shift</TextCaption>
+              <TextCaption color={ADMIN_HEADER_TEXT_SECONDARY} fontWeight="700">
+                Shift
+              </TextCaption>
               <TextBodySm fontWeight="700" color={ColorBase.white}>
                 {shiftLabel}
                 {isShiftStarted ? " • Aktif" : " • Belum buka"}
@@ -578,7 +580,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: ColorPrimary.primary600,
     borderWidth: 1,
-    borderColor: ColorPrimary.primary600,
+    borderColor: "rgba(216,242,194,0.28)",
     overflow: "hidden",
   },
   brandLogo: {
@@ -587,14 +589,17 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   shiftPill: {
-    minWidth: 156,
+    minWidth: 174,
+    height: 42,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
     paddingHorizontal: 14,
-    paddingVertical: 10,
     borderRadius: 14,
     backgroundColor: ADMIN_HEADER_SURFACE,
     borderWidth: 1,
     borderColor: ADMIN_HEADER_BORDER,
-    gap: 2,
   },
   primaryAction: {
     flexDirection: "row",
@@ -605,7 +610,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   primaryActionNeutral: {
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: ColorPrimary.primary700,
   },
   primaryActionDanger: {
     backgroundColor: ColorDanger.danger600,
@@ -647,7 +652,7 @@ const styles = StyleSheet.create({
   },
   navChipActive: {
     backgroundColor: ColorPrimary.primary600,
-    borderColor: ColorPrimary.primary600,
+    borderColor: "rgba(216,242,194,0.34)",
   },
   readyChip: {
     flexDirection: "row",
@@ -661,8 +666,8 @@ const styles = StyleSheet.create({
     borderColor: ADMIN_HEADER_BORDER,
   },
   readyChipActive: {
-    backgroundColor: "rgba(16, 185, 129, 0.16)",
-    borderColor: "rgba(16, 185, 129, 0.34)",
+    backgroundColor: "rgba(29, 181, 172, 0.16)",
+    borderColor: "rgba(29, 181, 172, 0.34)",
   },
   refreshChip: {
     flexDirection: "row",
@@ -671,9 +676,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 14,
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: ColorPrimary.primary700,
     borderWidth: 1,
-    borderColor: ColorPrimary.primary600,
+    borderColor: "rgba(216,242,194,0.34)",
   },
   refreshChipDisabled: {
     opacity: 0.72,

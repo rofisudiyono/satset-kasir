@@ -182,7 +182,7 @@ export function TransactionEntryPhoneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#EDF3FF",
+    backgroundColor: ColorBase.bgScreen,
   },
   heroShell: {
     marginHorizontal: 12,
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingTop: 18,
     paddingBottom: 16,
-    backgroundColor: "#0F1E46",
+    backgroundColor: ColorPrimary.primary900,
     overflow: "hidden",
   },
   heroGlowA: {
