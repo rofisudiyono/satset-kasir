@@ -4,7 +4,7 @@
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "backgroundImage": "./assets/images/android-icon-background.png",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "foregroundImage": "./assets/images/satset_1024.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "package": "id.satset.kasir",
@@ -23,10 +23,10 @@
     "extra": {
       "apiUrl": "http://127.0.0.1:3000"
     },
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/satset_1024.png",
     "ios": {
       "bundleIdentifier": "id.web.satset.kasir",
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/images/satset_1024.png",
       "supportsTablet": true
     },
     "name": "Satset Kasir",
@@ -42,10 +42,14 @@
         "expo-splash-screen",
         {
           "android": {
-            "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
+            "image": "./assets/images/satset_1024.png",
+            "imageWidth": 200
           },
-          "backgroundColor": "#208AEF"
+          "ios": {
+            "image": "./assets/images/satset_1024.png",
+            "imageWidth": 200
+          },
+          "backgroundColor": "#FFFFFF"
         }
       ],
       "expo-router",

@@ -12,6 +12,7 @@ import {
 import { Slot } from "expo-router";
 import { Provider as JotaiProvider } from "jotai";
 import React from "react";
+import { StatusBar } from "expo-status-bar";
 import { TamaguiProvider } from "tamagui";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
@@ -43,6 +44,7 @@ export default function RootLayout() {
               defaultTheme="light"
             >
               <ThemeProvider value={DefaultTheme}>
+                <StatusBar style="light" translucent backgroundColor="transparent" />
                 <OrientationController />
                 <AnimatedSplashOverlay />
                 <KdsRealtimeBridge />

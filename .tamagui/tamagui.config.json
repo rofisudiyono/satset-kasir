@@ -25706,6 +25706,22 @@
     "themeClassNameOnRoot": true,
     "themes": {
       "dark": {
+        "brand25": "#F4FBF1",
+        "brand50": "#EAF8E7",
+        "brand100": "#D8F2C2",
+        "brand200": "#B9E88B",
+        "brand400": "#87D961",
+        "brand500": "#29A36F",
+        "brand600": "#167245",
+        "brand700": "#0E5A33",
+        "brand800": "#0B482B",
+        "brand900": "#08381F",
+        "teal50": "#E8FAF8",
+        "teal100": "#CFF4EF",
+        "teal300": "#69D6CE",
+        "teal500": "#1DB5AC",
+        "teal600": "#129A8F",
+        "teal800": "#0B5D57",
         "blue50": "#EFF6FF",
         "blue100": "#DBEAFE",
         "blue300": "#93C5FD",
@@ -25760,10 +25776,10 @@
         "white": "#FFFFFF",
         "black": "#000000",
         "transparent": "rgba(0,0,0,0)",
-        "primary": "#3B82F6",
-        "primaryLight": "#1E3A8A",
-        "primaryMid": "#1E40AF",
-        "primaryDark": "#60A5FA",
+        "primary": "#87D961",
+        "primaryLight": "#08381F",
+        "primaryMid": "#0B482B",
+        "primaryDark": "#D8F2C2",
         "success": "#22C55E",
         "successLight": "#14532D",
         "successMid": "#166534",
@@ -25771,16 +25787,32 @@
         "warningLight": "#78350F",
         "danger": "#EF4444",
         "dangerLight": "#7F1D1D",
-        "background": "#111827",
-        "backgroundSecondary": "#1F2937",
-        "backgroundTertiary": "#374151",
+        "background": "#061F13",
+        "backgroundSecondary": "#08381F",
+        "backgroundTertiary": "#0B482B",
         "color": "#FFFFFF",
-        "colorSecondary": "#D1D5DB",
-        "colorTertiary": "#9CA3AF",
-        "borderColor": "#374151",
+        "colorSecondary": "#C7D8C6",
+        "colorTertiary": "#8FA995",
+        "borderColor": "#24543A",
         "id": "dark"
       },
       "light": {
+        "brand25": "#F4FBF1",
+        "brand50": "#EAF8E7",
+        "brand100": "#D8F2C2",
+        "brand200": "#B9E88B",
+        "brand400": "#87D961",
+        "brand500": "#29A36F",
+        "brand600": "#167245",
+        "brand700": "#0E5A33",
+        "brand800": "#0B482B",
+        "brand900": "#08381F",
+        "teal50": "#E8FAF8",
+        "teal100": "#CFF4EF",
+        "teal300": "#69D6CE",
+        "teal500": "#1DB5AC",
+        "teal600": "#129A8F",
+        "teal800": "#0B5D57",
         "blue50": "#EFF6FF",
         "blue100": "#DBEAFE",
         "blue300": "#93C5FD",
@@ -25835,10 +25867,10 @@
         "white": "#FFFFFF",
         "black": "#000000",
         "transparent": "rgba(0,0,0,0)",
-        "primary": "#2563EB",
-        "primaryLight": "#EFF6FF",
-        "primaryMid": "#DBEAFE",
-        "primaryDark": "#1D4ED8",
+        "primary": "#167245",
+        "primaryLight": "#EAF8E7",
+        "primaryMid": "#D8F2C2",
+        "primaryDark": "#0E5A33",
         "success": "#16A34A",
         "successLight": "#F0FDF4",
         "successMid": "#DCFCE7",
@@ -25847,17 +25879,129 @@
         "danger": "#DC2626",
         "dangerLight": "#FEF2F2",
         "background": "#FFFFFF",
-        "backgroundSecondary": "#F9FAFB",
-        "backgroundTertiary": "#F3F4F6",
-        "color": "#111827",
-        "colorSecondary": "#6B7280",
-        "colorTertiary": "#9CA3AF",
-        "borderColor": "#E5E7EB",
+        "backgroundSecondary": "#F4F8F3",
+        "backgroundTertiary": "#EAF8E7",
+        "color": "#0A2518",
+        "colorSecondary": "#597062",
+        "colorTertiary": "#8EA096",
+        "borderColor": "#E1EADD",
         "id": "light"
       }
     },
     "tokens": {
       "color": {
+        "brand25": {
+          "isVar": true,
+          "key": "$brand25",
+          "name": "c-brand25",
+          "val": "#F4FBF1",
+          "variable": ""
+        },
+        "brand50": {
+          "isVar": true,
+          "key": "$brand50",
+          "name": "c-brand50",
+          "val": "#EAF8E7",
+          "variable": ""
+        },
+        "brand100": {
+          "isVar": true,
+          "key": "$brand100",
+          "name": "c-brand100",
+          "val": "#D8F2C2",
+          "variable": ""
+        },
+        "brand200": {
+          "isVar": true,
+          "key": "$brand200",
+          "name": "c-brand200",
+          "val": "#B9E88B",
+          "variable": ""
+        },
+        "brand400": {
+          "isVar": true,
+          "key": "$brand400",
+          "name": "c-brand400",
+          "val": "#87D961",
+          "variable": ""
+        },
+        "brand500": {
+          "isVar": true,
+          "key": "$brand500",
+          "name": "c-brand500",
+          "val": "#29A36F",
+          "variable": ""
+        },
+        "brand600": {
+          "isVar": true,
+          "key": "$brand600",
+          "name": "c-brand600",
+          "val": "#167245",
+          "variable": ""
+        },
+        "brand700": {
+          "isVar": true,
+          "key": "$brand700",
+          "name": "c-brand700",
+          "val": "#0E5A33",
+          "variable": ""
+        },
+        "brand800": {
+          "isVar": true,
+          "key": "$brand800",
+          "name": "c-brand800",
+          "val": "#0B482B",
+          "variable": ""
+        },
+        "brand900": {
+          "isVar": true,
+          "key": "$brand900",
+          "name": "c-brand900",
+          "val": "#08381F",
+          "variable": ""
+        },
+        "teal50": {
+          "isVar": true,
+          "key": "$teal50",
+          "name": "c-teal50",
+          "val": "#E8FAF8",
+          "variable": ""
+        },
+        "teal100": {
+          "isVar": true,
+          "key": "$teal100",
+          "name": "c-teal100",
+          "val": "#CFF4EF",
+          "variable": ""
+        },
+        "teal300": {
+          "isVar": true,
+          "key": "$teal300",
+          "name": "c-teal300",
+          "val": "#69D6CE",
+          "variable": ""
+        },
+        "teal500": {
+          "isVar": true,
+          "key": "$teal500",
+          "name": "c-teal500",
+          "val": "#1DB5AC",
+          "variable": ""
+        },
+        "teal600": {
+          "isVar": true,
+          "key": "$teal600",
+          "name": "c-teal600",
+          "val": "#129A8F",
+          "variable": ""
+        },
+        "teal800": {
+          "isVar": true,
+          "key": "$teal800",
+          "name": "c-teal800",
+          "val": "#0B5D57",
+          "variable": ""
+        },
         "blue50": {
           "isVar": true,
           "key": "$blue50",
@@ -26776,6 +26920,76 @@
         "val": "#1E3A8A",
         "variable": ""
       },
+      "$color.brand100": {
+        "isVar": true,
+        "key": "$brand100",
+        "name": "c-brand100",
+        "val": "#D8F2C2",
+        "variable": ""
+      },
+      "$color.brand200": {
+        "isVar": true,
+        "key": "$brand200",
+        "name": "c-brand200",
+        "val": "#B9E88B",
+        "variable": ""
+      },
+      "$color.brand25": {
+        "isVar": true,
+        "key": "$brand25",
+        "name": "c-brand25",
+        "val": "#F4FBF1",
+        "variable": ""
+      },
+      "$color.brand400": {
+        "isVar": true,
+        "key": "$brand400",
+        "name": "c-brand400",
+        "val": "#87D961",
+        "variable": ""
+      },
+      "$color.brand50": {
+        "isVar": true,
+        "key": "$brand50",
+        "name": "c-brand50",
+        "val": "#EAF8E7",
+        "variable": ""
+      },
+      "$color.brand500": {
+        "isVar": true,
+        "key": "$brand500",
+        "name": "c-brand500",
+        "val": "#29A36F",
+        "variable": ""
+      },
+      "$color.brand600": {
+        "isVar": true,
+        "key": "$brand600",
+        "name": "c-brand600",
+        "val": "#167245",
+        "variable": ""
+      },
+      "$color.brand700": {
+        "isVar": true,
+        "key": "$brand700",
+        "name": "c-brand700",
+        "val": "#0E5A33",
+        "variable": ""
+      },
+      "$color.brand800": {
+        "isVar": true,
+        "key": "$brand800",
+        "name": "c-brand800",
+        "val": "#0B482B",
+        "variable": ""
+      },
+      "$color.brand900": {
+        "isVar": true,
+        "key": "$brand900",
+        "name": "c-brand900",
+        "val": "#08381F",
+        "variable": ""
+      },
       "$color.gray100": {
         "isVar": true,
         "key": "$gray100",
@@ -27019,6 +27233,48 @@
         "key": "$red900",
         "name": "c-red900",
         "val": "#7F1D1D",
+        "variable": ""
+      },
+      "$color.teal100": {
+        "isVar": true,
+        "key": "$teal100",
+        "name": "c-teal100",
+        "val": "#CFF4EF",
+        "variable": ""
+      },
+      "$color.teal300": {
+        "isVar": true,
+        "key": "$teal300",
+        "name": "c-teal300",
+        "val": "#69D6CE",
+        "variable": ""
+      },
+      "$color.teal50": {
+        "isVar": true,
+        "key": "$teal50",
+        "name": "c-teal50",
+        "val": "#E8FAF8",
+        "variable": ""
+      },
+      "$color.teal500": {
+        "isVar": true,
+        "key": "$teal500",
+        "name": "c-teal500",
+        "val": "#1DB5AC",
+        "variable": ""
+      },
+      "$color.teal600": {
+        "isVar": true,
+        "key": "$teal600",
+        "name": "c-teal600",
+        "val": "#129A8F",
+        "variable": ""
+      },
+      "$color.teal800": {
+        "isVar": true,
+        "key": "$teal800",
+        "name": "c-teal800",
+        "val": "#0B5D57",
         "variable": ""
       },
       "$color.transparent": {

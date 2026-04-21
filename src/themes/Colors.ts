@@ -122,5 +122,5 @@ export const enum ColorTeal {
 export const enum ColorIconGradient {
   gradientStart = "#A9DF67",
   gradientEnd = "#1DB5AC",
-  iconBg = "#0E5A33",
+  iconBg = "#FFFFFF",
 }

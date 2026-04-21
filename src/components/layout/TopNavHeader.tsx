@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { XStack, YStack } from "tamagui";
 
 import { IconButton, TextBodySm, TextCaption, TextH3 } from "@/components";
@@ -225,8 +226,15 @@ export function TopNavHeader() {
   const shellMaxWidth = width >= 1360 ? 1480 : width >= 1024 ? 1240 : width;
 
   return (
-    <SafeAreaView edges={["top"]} style={styles.safeArea}>
-      <View style={[styles.shell, { maxWidth: shellMaxWidth }]}>
+    <View style={styles.wrapper}>
+      <LinearGradient
+        colors={[ColorPrimary.primary700, ColorPrimary.primary900]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.gradientBg}
+      />
+      <SafeAreaView edges={["top"]} style={styles.safeArea}>
+        <View style={[styles.shell, { maxWidth: shellMaxWidth }]}>
         <XStack style={styles.topRow}>
           <XStack alignItems="center" gap="$3" flex={1}>
             <View style={styles.brandIcon}>
@@ -440,7 +448,8 @@ export function TopNavHeader() {
             </TextCaption>
           </View>
         </XStack>
-      </View>
+        </View>
+      </SafeAreaView>
 
       <Modal
         visible={staffDetailVisible}
@@ -548,18 +557,24 @@ export function TopNavHeader() {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    position: "relative",
+  },
+  gradientBg: {
+    ...StyleSheet.absoluteFillObject,
+  },
   safeArea: {
-    backgroundColor: ADMIN_HEADER_BG,
+    backgroundColor: "transparent",
   },
   shell: {
     width: "100%",
     alignSelf: "center",
-    backgroundColor: ADMIN_HEADER_BG,
+    backgroundColor: "transparent",
     borderBottomWidth: 1,
     borderBottomColor: ADMIN_HEADER_BORDER,
   },
@@ -637,7 +652,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 14,
     paddingTop: 2,
-    backgroundColor: ADMIN_HEADER_BG,
+    backgroundColor: "transparent",
   },
   navChip: {
     flexDirection: "row",
