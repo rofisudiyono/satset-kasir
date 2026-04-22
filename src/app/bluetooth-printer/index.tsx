@@ -41,6 +41,7 @@ export default function BluetoothPrinterSettingsPage() {
     connected: false,
     printer: null,
     printing: false,
+    reconnecting: false,
   });
   const [scanning, setScanning] = useState(false);
   const [discoveredPrinters, setDiscoveredPrinters] = useState<BluetoothPrinter[]>([]);
@@ -123,10 +124,12 @@ export default function BluetoothPrinterSettingsPage() {
 
   const getStatusColor = () => {
     if (printerState.connected) return ColorGreen.green600;
+    if (printerState.reconnecting) return ColorPrimary.primary600;
     return ColorNeutral.neutral400;
   };
 
   const getStatusText = () => {
+    if (printerState.reconnecting) return "Menyambung...";
     if (printerState.connected) return "Terhubung";
     return "Tidak Terhubung";
   };

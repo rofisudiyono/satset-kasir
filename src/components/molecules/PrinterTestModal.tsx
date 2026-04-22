@@ -101,6 +101,7 @@ export function PrinterTestModal({ visible, onClose }: PrinterTestModalProps) {
     connected: false,
     printer: null,
     printing: false,
+    reconnecting: false,
   });
   const [scanning, setScanning] = useState(false);
   const [discoveredPrinters, setDiscoveredPrinters] = useState<

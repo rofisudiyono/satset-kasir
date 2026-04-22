@@ -105,6 +105,7 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
     connected: false,
     printer: null,
     printing: false,
+    reconnecting: false,
   });
 
   useEffect(() => {
@@ -149,13 +150,18 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
   }, [printableReceipt, tenantInfo]);
 
   const handleBluetoothPrint = useCallback(async () => {
-    if (!printerState.connected) {
+    const connected =
+      printerState.connected ||
+      (await bluetoothPrinterManager.autoReconnectLastPrinter());
+
+    if (!connected) {
       router.push("/bluetooth-printer" as never);
       return;
     }
     if (!printableReceipt) return;
     try {
-      const widthPx = printerState.printer?.type === "thermal_80mm" ? 576 : 384;
+      const currentPrinter = bluetoothPrinterManager.getState().printer;
+      const widthPx = currentPrinter?.type === "thermal_80mm" ? 576 : 384;
       const success = await bluetoothPrinterManager.printReceiptHtml(
         buildReceiptHtml(printableReceipt, widthPx, tenantInfo),
       );
@@ -537,7 +543,13 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
           </View>
           <View style={{ flex: 1 }}>
             <AppButton
-              title={printerState.connected ? "Print BT" : "Hubungkan BT"}
+              title={
+                printerState.reconnecting
+                  ? "Menyambung..."
+                  : printerState.connected
+                    ? "Print BT"
+                    : "Hubungkan BT"
+              }
               variant="outline"
               disabled={printerState.connected && !printableReceipt}
               onPress={() => void handleBluetoothPrint()}

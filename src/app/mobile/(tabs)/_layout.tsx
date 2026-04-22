@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
 import { Redirect, Tabs, useFocusEffect, usePathname, useRouter } from "expo-router";
 import React from "react";
 import { BackHandler } from "react-native";
@@ -17,6 +18,8 @@ function getTabIcon(
       return focused ? "globe" : "globe-outline";
     case "input-manual":
       return focused ? "create" : "create-outline";
+    case "siap-antar":
+      return focused ? "bag-check" : "bag-check-outline";
     case "riwayat":
       return focused ? "time" : "time-outline";
     case "setting":
@@ -55,51 +58,62 @@ export default function MobileTabsLayout() {
   if (!isLoggedIn) return <Redirect href="/mobile/login" />;
 
   return (
-    <Tabs
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: ColorPrimary.primary600,
-        tabBarInactiveTintColor: ColorNeutral.neutral500,
-        sceneStyle: {
-          paddingTop: insets.top,
-          backgroundColor: ColorSurface.canvas,
-        },
-        tabBarStyle: {
-          backgroundColor: ColorBase.white,
-          borderTopColor: ColorSurface.border,
-          height: 62 + Math.max(insets.bottom, 10),
-          paddingTop: 8,
-          paddingBottom: Math.max(insets.bottom, 10),
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: "700",
-        },
-        tabBarIcon: ({ color, focused, size }) => (
-          <Ionicons
-            name={getTabIcon(route.name, focused)}
-            size={size}
-            color={color}
-          />
-        ),
-      })}
-    >
-      <Tabs.Screen
-        name="pesanan-web"
-        options={{ title: "Pesanan Web" }}
+    <>
+      <StatusBar
+        style="dark"
+        translucent
+        backgroundColor={ColorSurface.canvas}
       />
-      <Tabs.Screen
-        name="input-manual"
-        options={{ title: "Input Manual" }}
-      />
-      <Tabs.Screen
-        name="riwayat"
-        options={{ title: "Riwayat" }}
-      />
-      <Tabs.Screen
-        name="setting"
-        options={{ title: "Setting" }}
-      />
-    </Tabs>
+      <Tabs
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarActiveTintColor: ColorPrimary.primary600,
+          tabBarInactiveTintColor: ColorNeutral.neutral500,
+          sceneStyle: {
+            paddingTop: insets.top,
+            backgroundColor: ColorSurface.canvas,
+          },
+          tabBarStyle: {
+            backgroundColor: ColorBase.white,
+            borderTopColor: ColorSurface.border,
+            height: 62 + Math.max(insets.bottom, 10),
+            paddingTop: 8,
+            paddingBottom: Math.max(insets.bottom, 10),
+          },
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: "700",
+          },
+          tabBarIcon: ({ color, focused, size }) => (
+            <Ionicons
+              name={getTabIcon(route.name, focused)}
+              size={size}
+              color={color}
+            />
+          ),
+        })}
+      >
+        <Tabs.Screen
+          name="pesanan-web"
+          options={{ title: "Pesanan Web" }}
+        />
+        <Tabs.Screen
+          name="input-manual"
+          options={{ title: "Input Manual" }}
+        />
+        <Tabs.Screen
+          name="siap-antar"
+          options={{ title: "Siap Antar" }}
+        />
+        <Tabs.Screen
+          name="riwayat"
+          options={{ title: "Riwayat" }}
+        />
+        <Tabs.Screen
+          name="setting"
+          options={{ title: "Setting" }}
+        />
+      </Tabs>
+    </>
   );
 }

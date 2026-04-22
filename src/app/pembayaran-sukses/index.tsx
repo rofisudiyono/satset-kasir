@@ -65,6 +65,7 @@ export default function PembayaranSuksesPage() {
     connected: false,
     printer: null,
     printing: false,
+    reconnecting: false,
   });
 
   const params = useLocalSearchParams<{ orderId: string; paymentId?: string }>();
@@ -190,13 +191,18 @@ export default function PembayaranSuksesPage() {
   }
 
   async function handleBluetoothPrint() {
-    if (!printerState.connected) {
+    const connected =
+      printerState.connected ||
+      (await bluetoothPrinterManager.autoReconnectLastPrinter());
+
+    if (!connected) {
       router.push("/bluetooth-printer" as never);
       return;
     }
     try {
+      const currentPrinter = bluetoothPrinterManager.getState().printer;
       const widthPx =
-        printerState.printer?.type === "thermal_80mm" ? 576 : 384;
+        currentPrinter?.type === "thermal_80mm" ? 576 : 384;
       const success = await bluetoothPrinterManager.printReceiptHtml(
         buildReceiptHtml(receiptPayload, widthPx, tenantInfo),
       );
@@ -286,7 +292,11 @@ export default function PembayaranSuksesPage() {
                   fontWeight="700"
                   color={printerState.connected ? ColorBase.white : ColorPrimary.primary600}
                 >
-                  {printerState.connected ? "Cetak BT" : "Hubungkan BT"}
+                  {printerState.reconnecting
+                    ? "Menyambung..."
+                    : printerState.connected
+                      ? "Cetak BT"
+                      : "Hubungkan BT"}
                 </TextBodySm>
               </>
             )}

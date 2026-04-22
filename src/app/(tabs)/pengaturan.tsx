@@ -75,6 +75,7 @@ export default function RiwayatOrderTabPage() {
     connected: false,
     printer: null,
     printing: false,
+    reconnecting: false,
   });
 
   const deferredSearchTerm = useDeferredValue(searchTerm.trim());
@@ -194,13 +195,18 @@ export default function RiwayatOrderTabPage() {
       return;
     }
 
-    if (!printerState.connected) {
+    const connected =
+      printerState.connected ||
+      (await bluetoothPrinterManager.autoReconnectLastPrinter());
+
+    if (!connected) {
       Alert.alert("Printer tidak terhubung", "Hubungkan printer Bluetooth terlebih dahulu.");
       return;
     }
 
     try {
-      const widthPx = printerState.printer?.type === "thermal_80mm" ? 576 : 384;
+      const currentPrinter = bluetoothPrinterManager.getState().printer;
+      const widthPx = currentPrinter?.type === "thermal_80mm" ? 576 : 384;
       const success = await bluetoothPrinterManager.printReceiptHtml(
         buildReceiptHtml(printableReceipt, widthPx, tenantInfo),
       );
@@ -451,7 +457,9 @@ export default function RiwayatOrderTabPage() {
                 />
                 <AppButton
                   title={
-                    printerState.connected
+                    printerState.reconnecting
+                      ? "Menyambung printer..."
+                      : printerState.connected
                       ? "Print Invoice Bluetooth"
                       : "Hubungkan printer untuk Bluetooth"
                   }

@@ -48,10 +48,7 @@ export function getHistoryRoute(isTablet: boolean): string {
 }
 
 export function getSiapAntarRoute(isTablet: boolean): string {
-  if (isTablet) {
-    return getNamespacedRoute("tablet", "/siap-antar");
-  }
-  return "/siap-antar";
+  return getNamespacedRoute(getDeviceNamespace(isTablet), "/siap-antar");
 }
 
 export function getSettingsRoute(isTablet: boolean): string {

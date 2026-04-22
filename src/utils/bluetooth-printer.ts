@@ -9,6 +9,8 @@ import { Alert, PermissionsAndroid, Platform } from "react-native";
 import type { BluetoothDevice } from "react-native-bluetooth-classic";
 import RNBluetoothClassic from "react-native-bluetooth-classic";
 
+import { appStorage } from "@/store/storage";
+
 export interface BluetoothPrinter {
   id: string;
   name: string;
@@ -21,9 +23,16 @@ export interface PrinterState {
   connected: boolean;
   printer: BluetoothPrinter | null;
   printing: boolean;
+  reconnecting: boolean;
 }
 
 type ConnectionStateChangeCallback = (state: PrinterState) => void;
+type ConnectOptions = {
+  persist?: boolean;
+  silent?: boolean;
+};
+
+const LAST_PRINTER_STORAGE_KEY = "bluetooth:lastPrinter";
 
 function uint8ArrayToBase64(bytes: Uint8Array): string {
   let binary = "";
@@ -59,11 +68,18 @@ class BluetoothPrinterManager {
     connected: false,
     printer: null,
     printing: false,
+    reconnecting: false,
   };
   private listeners: ConnectionStateChangeCallback[] = [];
   private connectedDevice: BluetoothDevice | null = null;
+  private reconnectPromise: Promise<boolean> | null = null;
 
-  private constructor() {}
+  private constructor() {
+    const lastPrinter = this.getStoredPrinter();
+    if (lastPrinter) {
+      this.state = { ...this.state, printer: lastPrinter };
+    }
+  }
 
   static getInstance(): BluetoothPrinterManager {
     if (!BluetoothPrinterManager.instance) {
@@ -75,6 +91,8 @@ class BluetoothPrinterManager {
   subscribe(callback: ConnectionStateChangeCallback): () => void {
     this.listeners.push(callback);
     callback(this.state);
+    void this.autoReconnectLastPrinter();
+
     return () => {
       this.listeners = this.listeners.filter((l) => l !== callback);
     };
@@ -84,7 +102,43 @@ class BluetoothPrinterManager {
     return { ...this.state };
   }
 
-  private async requestBluetoothPermissions(): Promise<boolean> {
+  private getStoredPrinter(): BluetoothPrinter | null {
+    const raw = appStorage.getItem(LAST_PRINTER_STORAGE_KEY);
+    if (!raw) return null;
+
+    try {
+      const parsed = JSON.parse(raw) as Partial<BluetoothPrinter>;
+      if (!parsed.id || !parsed.address || !parsed.name) return null;
+
+      return {
+        id: parsed.id,
+        name: parsed.name,
+        address: parsed.address,
+        type: parsed.type ?? "thermal_58mm",
+      };
+    } catch {
+      appStorage.removeItem(LAST_PRINTER_STORAGE_KEY);
+      return null;
+    }
+  }
+
+  private rememberPrinter(printer: BluetoothPrinter): void {
+    appStorage.setItem(
+      LAST_PRINTER_STORAGE_KEY,
+      JSON.stringify({
+        id: printer.id,
+        name: printer.name,
+        address: printer.address,
+        type: printer.type,
+      }),
+    );
+  }
+
+  private forgetPrinter(): void {
+    appStorage.removeItem(LAST_PRINTER_STORAGE_KEY);
+  }
+
+  private async requestBluetoothPermissions(silent = false): Promise<boolean> {
     if (Platform.OS !== "android") return true;
     if (Platform.Version < 31) return true;
 
@@ -93,48 +147,61 @@ class BluetoothPrinterManager {
       PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
     ]);
 
-    return (
+    const allowed =
       granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] ===
         PermissionsAndroid.RESULTS.GRANTED &&
       granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] ===
-        PermissionsAndroid.RESULTS.GRANTED
-    );
+        PermissionsAndroid.RESULTS.GRANTED;
+
+    if (!allowed && !silent) {
+      Alert.alert(
+        "Izin Bluetooth Diperlukan",
+        "Berikan izin Bluetooth untuk memindai printer.",
+        [{ text: "OK" }],
+      );
+    }
+
+    return allowed;
   }
 
-  async scanPrinters(): Promise<BluetoothPrinter[]> {
-    try {
-      const hasPermission = await this.requestBluetoothPermissions();
-      if (!hasPermission) {
-        Alert.alert(
-          "Izin Bluetooth Diperlukan",
-          "Berikan izin Bluetooth untuk memindai printer.",
-          [{ text: "OK" }],
-        );
-        return [];
-      }
+  private async ensureBluetoothReady(silent = false): Promise<boolean> {
+    const hasPermission = await this.requestBluetoothPermissions(silent);
+    if (!hasPermission) return false;
 
-      const available = await RNBluetoothClassic.isBluetoothAvailable();
-      if (!available) {
+    const available = await RNBluetoothClassic.isBluetoothAvailable();
+    if (!available) {
+      if (!silent) {
         Alert.alert(
           "Bluetooth Tidak Tersedia",
           "Perangkat tidak mendukung Bluetooth Classic.",
           [{ text: "OK" }],
         );
-        return [];
       }
+      return false;
+    }
 
-      const enabled = await RNBluetoothClassic.isBluetoothEnabled();
-      if (!enabled) {
-        const requested = await RNBluetoothClassic.requestBluetoothEnabled();
-        if (!requested) {
-          Alert.alert(
-            "Bluetooth Dinonaktifkan",
-            "Aktifkan Bluetooth untuk memindai printer.",
-            [{ text: "OK" }],
-          );
-          return [];
-        }
-      }
+    const enabled = await RNBluetoothClassic.isBluetoothEnabled();
+    if (enabled) return true;
+
+    if (silent) return false;
+
+    const requested = await RNBluetoothClassic.requestBluetoothEnabled();
+    if (!requested) {
+      Alert.alert(
+        "Bluetooth Dinonaktifkan",
+        "Aktifkan Bluetooth untuk memindai printer.",
+        [{ text: "OK" }],
+      );
+      return false;
+    }
+
+    return await RNBluetoothClassic.isBluetoothEnabled();
+  }
+
+  async scanPrinters(): Promise<BluetoothPrinter[]> {
+    try {
+      const ready = await this.ensureBluetoothReady();
+      if (!ready) return [];
 
       const bonded = await RNBluetoothClassic.getBondedDevices();
 
@@ -159,50 +226,128 @@ class BluetoothPrinterManager {
     }
   }
 
-  async connectPrinter(printer: BluetoothPrinter): Promise<boolean> {
+  async connectPrinter(
+    printer: BluetoothPrinter,
+    options: ConnectOptions = {},
+  ): Promise<boolean> {
+    const { persist = true, silent = false } = options;
+
     try {
-      this.setState({ printing: false, connected: false, printer });
+      this.setState({
+        printing: false,
+        connected: false,
+        printer,
+        reconnecting: silent,
+      });
+
+      const ready = await this.ensureBluetoothReady(silent);
+      if (!ready) {
+        this.setState({
+          connected: false,
+          printer,
+          printing: false,
+          reconnecting: false,
+        });
+        return false;
+      }
 
       const bonded = await RNBluetoothClassic.getBondedDevices();
       const device = bonded.find((d) => d.address === printer.address);
 
       if (!device) {
-        Alert.alert(
-          "Printer Tidak Ditemukan",
-          "Pastikan printer sudah dipasangkan (paired) di pengaturan Bluetooth.",
-          [{ text: "OK" }],
-        );
-        this.setState({ connected: false, printer: null, printing: false });
+        if (!silent) {
+          Alert.alert(
+            "Printer Tidak Ditemukan",
+            "Pastikan printer sudah dipasangkan (paired) di pengaturan Bluetooth.",
+            [{ text: "OK" }],
+          );
+        }
+        this.setState({
+          connected: false,
+          printer,
+          printing: false,
+          reconnecting: false,
+        });
         return false;
       }
 
       await device.connect();
       this.connectedDevice = device;
-      this.setState({ connected: true, printer, printing: false });
-      Alert.alert("Berhasil", `Printer ${printer.name} terhubung`);
+      if (persist) this.rememberPrinter(printer);
+      this.setState({
+        connected: true,
+        printer,
+        printing: false,
+        reconnecting: false,
+      });
+      if (!silent) {
+        Alert.alert("Berhasil", `Printer ${printer.name} terhubung`);
+      }
       return true;
     } catch (error: unknown) {
       console.error("Error connecting to printer:", error);
       this.connectedDevice = null;
-      this.setState({ connected: false, printer: null, printing: false });
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Tidak dapat menghubungkan ke printer";
-      Alert.alert("Koneksi Gagal", message, [{ text: "OK" }]);
+      this.setState({
+        connected: false,
+        printer,
+        printing: false,
+        reconnecting: false,
+      });
+      if (!silent) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Tidak dapat menghubungkan ke printer";
+        Alert.alert("Koneksi Gagal", message, [{ text: "OK" }]);
+      }
       return false;
     }
   }
 
+  async autoReconnectLastPrinter(): Promise<boolean> {
+    if (this.state.connected && this.connectedDevice) return true;
+    if (this.reconnectPromise) return this.reconnectPromise;
+
+    const printer = this.state.printer ?? this.getStoredPrinter();
+    if (!printer) return false;
+
+    this.reconnectPromise = this.connectPrinter(printer, {
+      persist: true,
+      silent: true,
+    }).finally(() => {
+      this.reconnectPromise = null;
+    });
+
+    return this.reconnectPromise;
+  }
+
   async disconnect(): Promise<void> {
-    if (!this.connectedDevice || !this.state.connected) return;
+    const device = this.connectedDevice;
+    this.forgetPrinter();
+
+    if (!device || !this.state.connected) {
+      this.connectedDevice = null;
+      this.setState({
+        connected: false,
+        printer: null,
+        printing: false,
+        reconnecting: false,
+      });
+      return;
+    }
+
     try {
-      await this.connectedDevice.disconnect();
+      await device.disconnect();
     } catch (error) {
       console.error("Error disconnecting:", error);
     } finally {
       this.connectedDevice = null;
-      this.setState({ connected: false, printer: null, printing: false });
+      this.setState({
+        connected: false,
+        printer: null,
+        printing: false,
+        reconnecting: false,
+      });
     }
   }
 
@@ -210,19 +355,22 @@ class BluetoothPrinterManager {
    * Send ESC/POS bytes from expo-escpos (or any Uint8Array) to the printer.
    */
   async printEscPosBytes(data: Uint8Array): Promise<boolean> {
+    if (!this.connectedDevice || !this.state.connected || !this.state.printer) {
+      const reconnected = await this.autoReconnectLastPrinter();
+      if (!reconnected) {
+        Alert.alert(
+          "Printer Tidak Terhubung",
+          "Silakan hubungkan ke printer Bluetooth terlebih dahulu.",
+          [{ text: "OK" }],
+        );
+        return false;
+      }
+    }
+
     if (!this.connectedDevice) {
       Alert.alert(
         "Printer Tidak Tersedia",
         "Modul Bluetooth printer tidak tersedia.",
-        [{ text: "OK" }],
-      );
-      return false;
-    }
-
-    if (!this.state.connected || !this.state.printer) {
-      Alert.alert(
-        "Printer Tidak Terhubung",
-        "Silakan hubungkan ke printer Bluetooth terlebih dahulu.",
         [{ text: "OK" }],
       );
       return false;
@@ -237,7 +385,8 @@ class BluetoothPrinterManager {
       return true;
     } catch (error: unknown) {
       console.error("Error printing:", error);
-      this.setState({ printing: false });
+      this.connectedDevice = null;
+      this.setState({ connected: false, printing: false });
       const message =
         error instanceof Error
           ? error.message
@@ -287,6 +436,16 @@ class BluetoothPrinterManager {
   }
 
   async testPrint(): Promise<boolean> {
+    const connected = await this.autoReconnectLastPrinter();
+    if (!connected) {
+      Alert.alert(
+        "Printer Tidak Terhubung",
+        "Silakan hubungkan ke printer Bluetooth terlebih dahulu.",
+        [{ text: "OK" }],
+      );
+      return false;
+    }
+
     const model = printerModelFromType(
       this.state.printer?.type ?? "thermal_58mm",
     );
