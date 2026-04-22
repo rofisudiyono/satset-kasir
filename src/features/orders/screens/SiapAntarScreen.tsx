@@ -55,6 +55,12 @@ const ReadyRow = memo(function ReadyRow({
       ]}
       onPress={onDeliver ? undefined : onPress}
     >
+      <View
+        style={[
+          styles.cardAccent,
+          onDeliver ? styles.cardAccentReady : styles.cardAccentPayment,
+        ]}
+      />
       <XStack justifyContent="space-between" alignItems="flex-start">
         <YStack flex={1} gap={4}>
           <XStack alignItems="center" gap={8} flexWrap="wrap">
@@ -311,8 +317,14 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
           return <TextBodySm color="$colorSecondary">Memuat…</TextBodySm>;
         }
         return (
-          <YStack alignItems="center" paddingVertical="$6" gap="$2">
-            <Ionicons name="bag-check-outline" size={40} color={ColorNeutral.neutral300} />
+          <YStack
+            alignItems="center"
+            paddingVertical="$6"
+            paddingHorizontal="$4"
+            gap="$2"
+            style={styles.emptyPanel}
+          >
+            <Ionicons name="bag-check-outline" size={42} color={ColorNeutral.neutral300} />
             <TextBodySm color="$colorSecondary" textAlign="center">
               Belum ada pesanan siap diantar untuk cabang ini.
             </TextBodySm>
@@ -326,6 +338,7 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
             gap="$2"
             marginTop={item.marginTop}
             marginBottom="$2"
+            style={styles.sectionHeader}
           >
             <XStack alignItems="center" gap="$2">
               <Ionicons name={item.icon} size={18} color={item.iconColor} />
@@ -396,14 +409,35 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: 32,
+    paddingTop: 8,
+    paddingBottom: 112,
   },
   card: {
     backgroundColor: ColorBase.white,
-    borderRadius: 14,
+    borderRadius: 22,
     padding: 14,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
+    borderColor: ColorNeutral.neutral100,
+    shadowColor: ColorNeutral.neutralShadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 3,
+  },
+  cardAccent: {
+    position: "absolute",
+    left: 0,
+    top: 14,
+    bottom: 14,
+    width: 5,
+    borderTopRightRadius: 999,
+    borderBottomRightRadius: 999,
+  },
+  cardAccentReady: {
+    backgroundColor: ColorSuccess.success500,
+  },
+  cardAccentPayment: {
+    backgroundColor: ColorPrimary.primary600,
   },
   cardPressed: {
     opacity: 0.88,
@@ -430,7 +464,16 @@ const styles = StyleSheet.create({
     backgroundColor: ColorSuccess.success600,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 10,
+    borderRadius: 999,
+  },
+  sectionHeader: {
+    paddingHorizontal: 2,
+  },
+  emptyPanel: {
+    backgroundColor: ColorBase.white,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral100,
   },
   refreshBtn: {
     alignSelf: "center",

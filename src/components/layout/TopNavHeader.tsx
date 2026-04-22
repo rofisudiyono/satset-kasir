@@ -55,11 +55,11 @@ type NavItem = {
 
 type RefreshTarget = "web-orders" | "input-manual" | "history" | "ready-orders";
 
-const ADMIN_HEADER_BG = "#08381F";
-const ADMIN_HEADER_SURFACE = "#0E4D2E";
-const ADMIN_HEADER_BORDER = "rgba(216,242,194,0.14)";
-const ADMIN_HEADER_TEXT_SECONDARY = "rgba(235,250,231,0.74)";
-const ADMIN_HEADER_TEXT_MUTED = "rgba(235,250,231,0.5)";
+const ADMIN_HEADER_BG = ColorPrimary.primary900;
+const ADMIN_HEADER_SURFACE = "rgba(238,244,239,0.1)";
+const ADMIN_HEADER_BORDER = "rgba(238,244,239,0.18)";
+const ADMIN_HEADER_TEXT_SECONDARY = "rgba(247,250,247,0.78)";
+const ADMIN_HEADER_TEXT_MUTED = "rgba(247,250,247,0.54)";
 
 export function TopNavHeader() {
   const router = useRouter();
@@ -595,7 +595,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: ColorPrimary.primary600,
     borderWidth: 1,
-    borderColor: "rgba(216,242,194,0.28)",
+    borderColor: "rgba(238,244,239,0.28)",
     overflow: "hidden",
   },
   brandLogo: {
@@ -667,7 +667,7 @@ const styles = StyleSheet.create({
   },
   navChipActive: {
     backgroundColor: ColorPrimary.primary600,
-    borderColor: "rgba(216,242,194,0.34)",
+    borderColor: "rgba(238,244,239,0.34)",
   },
   readyChip: {
     flexDirection: "row",
@@ -681,8 +681,8 @@ const styles = StyleSheet.create({
     borderColor: ADMIN_HEADER_BORDER,
   },
   readyChipActive: {
-    backgroundColor: "rgba(29, 181, 172, 0.16)",
-    borderColor: "rgba(29, 181, 172, 0.34)",
+    backgroundColor: "rgba(216, 233, 230, 0.14)",
+    borderColor: "rgba(216, 233, 230, 0.32)",
   },
   refreshChip: {
     flexDirection: "row",
@@ -693,7 +693,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: ColorPrimary.primary700,
     borderWidth: 1,
-    borderColor: "rgba(216,242,194,0.34)",
+    borderColor: "rgba(238,244,239,0.34)",
   },
   refreshChipDisabled: {
     opacity: 0.72,

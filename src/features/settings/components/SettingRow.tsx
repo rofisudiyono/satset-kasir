@@ -6,7 +6,7 @@
  */
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Switch, TouchableOpacity } from "react-native";
+import { StyleSheet, Switch, TouchableOpacity } from "react-native";
 import { XStack, YStack } from "tamagui";
 
 import { TextBodyLg, TextBodySm } from "@/components/atoms/Typography";
@@ -30,9 +30,9 @@ export function SettingRow({
   onPress,
 }: SettingRowProps) {
   return (
-    <TouchableOpacity disabled={hasToggle} onPress={onPress}>
+    <TouchableOpacity disabled={hasToggle} onPress={onPress} activeOpacity={0.76}>
       <XStack
-        paddingHorizontal="$4"
+        paddingHorizontal="$3"
         paddingVertical="$3"
         alignItems="center"
         gap="$3"
@@ -40,10 +40,11 @@ export function SettingRow({
         <YStack
           width={40}
           height={40}
-          borderRadius={10}
+          borderRadius={14}
           backgroundColor={iconBg}
           alignItems="center"
           justifyContent="center"
+          style={styles.iconShell}
         >
           <Ionicons name={iconName} size={20} color={iconColor} />
         </YStack>
@@ -80,13 +81,29 @@ export function SettingRow({
           />
         )}
         {showChevron && !hasToggle && (
-          <Ionicons
-            name="chevron-forward"
-            size={16}
-            color={ColorNeutral.neutral400}
-          />
+          <YStack
+            width={28}
+            height={28}
+            borderRadius={14}
+            alignItems="center"
+            justifyContent="center"
+            backgroundColor={ColorNeutral.neutral50}
+          >
+            <Ionicons
+              name="chevron-forward"
+              size={15}
+              color={ColorNeutral.neutral500}
+            />
+          </YStack>
         )}
       </XStack>
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  iconShell: {
+    borderWidth: 1,
+    borderColor: "rgba(15, 23, 42, 0.04)",
+  },
+});

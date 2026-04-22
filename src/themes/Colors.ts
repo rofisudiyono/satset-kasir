@@ -2,81 +2,81 @@ export const enum ColorBase {
   white = "#FFFFFF",
   black = "#000000",
   transparent = "transparent",
-  bgScreen = "#F4F8F3",
+  bgScreen = "#F7F8F6",
 }
 
 export const enum ColorSurface {
-  canvas = "#F4F8F3",
+  canvas = "#F7F8F6",
   surface = "#FFFFFF",
-  surfaceMuted = "#FBFDF9",
-  border = "#E1EADD",
-  borderStrong = "#CADBC2",
-  shadow = "#24543A",
+  surfaceMuted = "#FAFBF9",
+  border = "#E3E6E0",
+  borderStrong = "#C8CEC5",
+  shadow = "#1F2937",
 }
 
 export const enum ColorPrimary {
-  primary25 = "#F4FBF1",
-  primary50 = "#EAF8E7",
-  primary100 = "#D8F2C2",
-  primary200 = "#B9E88B",
-  primary400 = "#87D961",
-  primary600 = "#167245",
-  primary700 = "#0E5A33",
-  primary900 = "#08381F",
+  primary25 = "#F7FAF7",
+  primary50 = "#EEF4EF",
+  primary100 = "#DDE8DE",
+  primary200 = "#C3D2C5",
+  primary400 = "#6B8F71",
+  primary600 = "#2F6B4F",
+  primary700 = "#24543E",
+  primary900 = "#142B22",
 }
 
 export const enum ColorSky {
-  sky50 = "#E8FAF8",
-  indigo50 = "#EAF8E7",
+  sky50 = "#EEF7F6",
+  indigo50 = "#EEF4EF",
 }
 
 export const enum ColorSuccess {
-  success50 = "#ECFDF5",
-  success200 = "#A7F3D0",
-  success400 = "#34D399",
-  success500 = "#10B981",
-  success600 = "#059669",
-  success700 = "#047857",
-  success900 = "#064E3B",
+  success50 = "#EEF8F2",
+  success200 = "#BFDCCB",
+  success400 = "#4FA36E",
+  success500 = "#238B5A",
+  success600 = "#147A4F",
+  success700 = "#0F623F",
+  success900 = "#123526",
 }
 
 export const enum ColorGreen {
-  green50 = "#F0FDF4",
-  green75 = "#EAF5ED",
-  green100 = "#DCFCE7",
-  green125 = "#D1FADD",
-  green150 = "#D1E8DD",
-  green200 = "#BBF7D0",
-  green400 = "#4ADE80",
-  green600 = "#16A34A",
+  green50 = "#F0F6F1",
+  green75 = "#E8F0EA",
+  green100 = "#DDEBDD",
+  green125 = "#D3E4D5",
+  green150 = "#C9DCCD",
+  green200 = "#BFD6C4",
+  green400 = "#5F9C6D",
+  green600 = "#2F7A48",
 }
 
 export const enum ColorWarning {
-  warning50 = "#FFFBEB",
-  warning100 = "#FEF3C7",
-  warning200 = "#FDE68A",
-  warning400 = "#FBBF24",
-  warning500 = "#F59E0B",
-  warning600 = "#D97706",
+  warning50 = "#FBF7ED",
+  warning100 = "#F3E6C9",
+  warning200 = "#E3CA91",
+  warning400 = "#C99032",
+  warning500 = "#B97816",
+  warning600 = "#A26012",
   warning700 = "#B45309",
   warning800 = "#92400E",
   warning900 = "#78350F",
 }
 
 export const enum ColorYellow {
-  yellow100 = "#FEF9C3",
-  yellow600 = "#CA8A04",
+  yellow100 = "#F3E6C9",
+  yellow600 = "#9A6413",
 }
 
 export const enum ColorDanger {
-  danger25 = "#FFF5F5",
-  danger50 = "#FEF2F2",
-  danger75 = "#FCE8E8",
-  danger100 = "#FEE2E2",
-  danger200 = "#FECACA",
-  danger400 = "#F87171",
-  danger600 = "#DC2626",
-  danger700 = "#B91C1C",
+  danger25 = "#FFF7F6",
+  danger50 = "#FDF0EE",
+  danger75 = "#F8E3E0",
+  danger100 = "#F5D5D1",
+  danger200 = "#EAB8B2",
+  danger400 = "#D65C50",
+  danger600 = "#B42318",
+  danger700 = "#911B13",
   danger900 = "#7F1D1D",
 }
 
@@ -96,31 +96,31 @@ export const enum ColorNeutral {
 }
 
 export const enum ColorAccentPurple {
-  purple50 = "#F5F3FF",
-  purple100 = "#EDE9FE",
-  purple200 = "#DDD6FE",
-  purple400 = "#A78BFA",
-  purple600 = "#7C3AED",
-  purple700 = "#6D28D9",
-  purple900 = "#4C1D95",
+  purple50 = "#F4F2F6",
+  purple100 = "#E7E2EC",
+  purple200 = "#D2C8DC",
+  purple400 = "#9279A8",
+  purple600 = "#684A7D",
+  purple700 = "#553A68",
+  purple900 = "#33233F",
 }
 
 export const enum ColorAccentOrange {
-  orange50 = "#FFF7ED",
-  orange100 = "#FFEDD5",
-  orange200 = "#FED7AA",
-  orange400 = "#FB923C",
-  orange600 = "#EA580C",
-  orange700 = "#C2410C",
+  orange50 = "#FAF3EA",
+  orange100 = "#F0DEC8",
+  orange200 = "#E1C09A",
+  orange400 = "#C7853C",
+  orange600 = "#A65F1A",
+  orange700 = "#874914",
   orange900 = "#7C2D12",
 }
 
 export const enum ColorTeal {
-  teal700 = "#129A8F",
+  teal700 = "#327A74",
 }
 
 export const enum ColorIconGradient {
-  gradientStart = "#A9DF67",
-  gradientEnd = "#1DB5AC",
+  gradientStart = "#D6E3D6",
+  gradientEnd = "#5C8F87",
   iconBg = "#FFFFFF",
 }

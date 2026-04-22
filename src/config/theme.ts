@@ -7,11 +7,11 @@ import '@/global.css';
 import { Platform } from 'react-native';
 
 export const Colors = {
-  text: '#0A2518',
+  text: '#17211B',
   background: '#FFFFFF',
-  backgroundElement: '#EAF8E7',
-  backgroundSelected: '#D8F2C2',
-  textSecondary: '#597062',
+  backgroundElement: '#EEF4EF',
+  backgroundSelected: '#DDE8DE',
+  textSecondary: '#5B675F',
 } as const;
 
 export type ThemeColor = keyof typeof Colors;

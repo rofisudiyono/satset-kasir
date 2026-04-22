@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: "rgba(255,184,108,0.16)",
+    backgroundColor: "rgba(240,222,200,0.18)",
   },
   kicker: {
     alignSelf: "flex-start",
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 16,
-    backgroundColor: "#FFD6A1",
+    backgroundColor: ColorAccentOrange.orange100,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.12)",
   },
   statPillAccent: {
-    backgroundColor: "#FFF3E1",
+    backgroundColor: ColorAccentOrange.orange50,
   },
   catalogPanel: {
     flex: 1,

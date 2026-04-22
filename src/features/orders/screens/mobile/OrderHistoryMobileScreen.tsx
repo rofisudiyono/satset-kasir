@@ -1,4 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
+import type { ListRenderItem } from "@shopify/flash-list";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useAtomValue } from "jotai";
 import React, {
@@ -8,15 +10,12 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { FlashList } from "@shopify/flash-list";
-import type { ListRenderItem } from "@shopify/flash-list";
 import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
 import {
   AppInput,
-  PageHeader,
   TextBodyLg,
   TextBodySm,
   TextCaption,
@@ -24,8 +23,8 @@ import {
 } from "@/components";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import { useOrderHistoryQuery } from "@/hooks/api/use-kasir-api";
-import { useAuth } from "@/lib/auth";
 import type { KasirOrder } from "@/lib/api/types";
+import { useAuth } from "@/lib/auth";
 import {
   ColorBase,
   ColorDanger,
@@ -108,9 +107,7 @@ const HistoryOrderCard = memo(function HistoryOrderCard({
           </TextBodyLg>
 
           <TextBodySm color={ColorNeutral.neutral500} numberOfLines={1}>
-            {item.items
-              .map((i) => `${i.nameSnapshot} x${i.qty}`)
-              .join(" · ")}
+            {item.items.map((i) => `${i.nameSnapshot} x${i.qty}`).join(" · ")}
           </TextBodySm>
         </YStack>
 
@@ -168,9 +165,7 @@ export function OrderHistoryMobileScreen() {
     ({ item }) => (
       <HistoryOrderCard
         item={item}
-        onPress={() =>
-          router.push(`/mobile/order-detail/${item.id}` as never)
-        }
+        onPress={() => router.push(`/mobile/order-detail/${item.id}` as never)}
       />
     ),
     [router],
@@ -179,39 +174,6 @@ export function OrderHistoryMobileScreen() {
   const header = useMemo(
     () => (
       <YStack gap="$3">
-        <View style={styles.heroCard}>
-          <XStack alignItems="flex-start" justifyContent="space-between" gap="$3">
-            <YStack flex={1} gap={6}>
-              <TextCaption color="rgba(255,255,255,0.78)">
-                Arsip transaksi harian
-              </TextCaption>
-              <TextH3 fontWeight="800" color={ColorBase.white}>
-                Cari invoice dan kelola order lama tanpa ribet.
-              </TextH3>
-            </YStack>
-            <View style={styles.heroBadge}>
-              <TextCaption fontWeight="700" color={ColorBase.white}>
-                {summaryStats.total} order
-              </TextCaption>
-            </View>
-          </XStack>
-
-          <XStack gap="$2" marginTop="$3">
-            <YStack flex={1} style={styles.metricCard}>
-              <TextCaption color={ColorNeutral.neutral500}>Paid</TextCaption>
-              <TextBodyLg fontWeight="800" color={ColorNeutral.neutral900}>
-                {summaryStats.paid}
-              </TextBodyLg>
-            </YStack>
-            <YStack flex={1} style={styles.metricCard}>
-              <TextCaption color={ColorNeutral.neutral500}>Nominal</TextCaption>
-              <TextBodyLg fontWeight="800" color={ColorPrimary.primary700}>
-                {formatPrice(summaryStats.totalRevenue)}
-              </TextBodyLg>
-            </YStack>
-          </XStack>
-        </View>
-
         <AppInput
           placeholder="Cari order id, pelanggan, atau meja"
           value={searchTerm}
@@ -270,24 +232,11 @@ export function OrderHistoryMobileScreen() {
         ) : null}
       </YStack>
     ),
-    [
-      filter,
-      isLoading,
-      orders.length,
-      searchTerm,
-      summaryStats.paid,
-      summaryStats.total,
-      summaryStats.totalRevenue,
-    ],
+    [filter, isLoading, orders.length, searchTerm, summaryStats.total],
   );
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right"]}>
-      <PageHeader
-        title="Riwayat Order"
-        subtitle="Arsip transaksi cabang untuk cari, cek, dan reprint invoice."
-      />
-
       <FlashList
         data={orders}
         renderItem={renderItem}

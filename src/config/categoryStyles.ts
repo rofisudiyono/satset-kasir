@@ -11,9 +11,9 @@ export const CATEGORY_COLORS: Record<
   ProductCategory,
   { bg: string; color: string }
 > = {
-  Makanan: { bg: "#FFEDD5", color: "#EA580C" },
-  Minuman: { bg: "#E8FAF8", color: "#129A8F" },
-  Snack: { bg: "#FEF3C7", color: "#D97706" },
+  Makanan: { bg: "#F0DEC8", color: "#874914" },
+  Minuman: { bg: "#D8E9E6", color: "#327A74" },
+  Snack: { bg: "#F3E6C9", color: "#8B4F10" },
 };
 
 export const CATEGORY_ICONS: Record<
@@ -29,8 +29,8 @@ export const STOCK_BADGE: Record<
   string,
   { bg: string; color: string; label: string } | null
 > = {
-  empty: { bg: "#FEE2E2", color: "#DC2626", label: "Habis" },
-  low: { bg: "#FEF3C7", color: "#D97706", label: "Tipis" },
+  empty: { bg: "#F5D5D1", color: "#B42318", label: "Habis" },
+  low: { bg: "#F3E6C9", color: "#8B4F10", label: "Tipis" },
   inactive: { bg: "#F3F4F6", color: "#6B7280", label: "Nonaktif" },
   normal: null,
 };
