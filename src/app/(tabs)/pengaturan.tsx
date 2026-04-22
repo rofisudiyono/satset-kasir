@@ -19,6 +19,7 @@ import {
 import {
   buildPrintableReceiptOrderFromKasirOrder,
   buildReceiptHtml,
+  getReceiptPrintHeightPx,
   getKasirPaymentMethodLabel,
 } from "@/features/payment/utils/receipt.utils";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
@@ -29,6 +30,7 @@ import {
   useOrderDetailQuery,
   useOrderHistoryQuery,
   useRefundPaidOrderMutation,
+  useTenantInfoQuery,
 } from "@/hooks/api/use-kasir-api";
 import { useAuth } from "@/lib/auth";
 import type { KasirOrder } from "@/lib/api/types";
@@ -94,6 +96,7 @@ export default function RiwayatOrderTabPage() {
     isLoggedIn && isShiftStarted,
     selectedOrderId,
   );
+  const { data: tenantInfo } = useTenantInfoQuery(isLoggedIn && isShiftStarted);
 
   useEffect(() => {
     const unsubscribe = bluetoothPrinterManager.subscribe((state) => {
@@ -165,7 +168,10 @@ export default function RiwayatOrderTabPage() {
 
     try {
       const { uri } = await Print.printToFileAsync({
-        html: buildReceiptHtml(printableReceipt),
+        html: buildReceiptHtml(printableReceipt, 384, tenantInfo),
+        width: 384,
+        height: getReceiptPrintHeightPx(printableReceipt),
+        margins: { top: 0, right: 0, bottom: 0, left: 0 },
         base64: false,
       });
       const canShare = await Sharing.isAvailableAsync();
@@ -196,7 +202,7 @@ export default function RiwayatOrderTabPage() {
     try {
       const widthPx = printerState.printer?.type === "thermal_80mm" ? 576 : 384;
       const success = await bluetoothPrinterManager.printReceiptHtml(
-        buildReceiptHtml(printableReceipt, widthPx),
+        buildReceiptHtml(printableReceipt, widthPx, tenantInfo),
       );
       if (success) {
         Alert.alert("Berhasil", "Invoice berhasil dicetak via Bluetooth.");

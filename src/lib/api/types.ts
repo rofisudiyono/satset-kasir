@@ -26,6 +26,12 @@ export type KasirTenantInfo = {
   tenantName: string | null;
   logoPath: string | null;
   branchName: string | null;
+  address?: string | null;
+  phone?: string | null;
+  tenantAddress?: string | null;
+  tenantPhone?: string | null;
+  branchAddress?: string | null;
+  branchPhone?: string | null;
 };
 
 // ─── Menu (Kasir) ─────────────────────────────────────────────────────────────

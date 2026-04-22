@@ -27,6 +27,7 @@ import {
 import {
   buildPrintableReceiptOrderFromKasirOrder,
   buildReceiptHtml,
+  getReceiptPrintHeightPx,
   getKasirPaymentMethodLabel,
 } from "@/features/payment/utils/receipt.utils";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
@@ -36,6 +37,7 @@ import {
   useDeliverOrderMutation,
   useOrderDetailQuery,
   useRefundPaidOrderMutation,
+  useTenantInfoQuery,
 } from "@/hooks/api/use-kasir-api";
 import { useAuth } from "@/lib/auth";
 import type { KasirOrder } from "@/lib/api/types";
@@ -116,6 +118,7 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
     isLoggedIn && isShiftStarted,
     orderId,
   );
+  const { data: tenantInfo } = useTenantInfoQuery(isLoggedIn && isShiftStarted);
 
   const printableReceipt = order
     ? buildPrintableReceiptOrderFromKasirOrder(order)
@@ -125,7 +128,10 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
     if (!printableReceipt) return;
     try {
       const { uri } = await Print.printToFileAsync({
-        html: buildReceiptHtml(printableReceipt),
+        html: buildReceiptHtml(printableReceipt, 384, tenantInfo),
+        width: 384,
+        height: getReceiptPrintHeightPx(printableReceipt),
+        margins: { top: 0, right: 0, bottom: 0, left: 0 },
         base64: false,
       });
       const canShare = await Sharing.isAvailableAsync();
@@ -140,7 +146,7 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
     } catch {
       Alert.alert("Gagal", "Tidak dapat membuka invoice PDF.");
     }
-  }, [printableReceipt]);
+  }, [printableReceipt, tenantInfo]);
 
   const handleBluetoothPrint = useCallback(async () => {
     if (!printerState.connected) {
@@ -151,7 +157,7 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
     try {
       const widthPx = printerState.printer?.type === "thermal_80mm" ? 576 : 384;
       const success = await bluetoothPrinterManager.printReceiptHtml(
-        buildReceiptHtml(printableReceipt, widthPx),
+        buildReceiptHtml(printableReceipt, widthPx, tenantInfo),
       );
       if (success) {
         Alert.alert("Berhasil", "Invoice berhasil dicetak via Bluetooth.");
@@ -160,7 +166,7 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
       console.error("Bluetooth print error:", error);
       Alert.alert("Cetak gagal", "Terjadi kesalahan saat mencetak invoice.");
     }
-  }, [printableReceipt, printerState.connected, printerState.printer?.type, router]);
+  }, [printableReceipt, printerState.connected, printerState.printer?.type, router, tenantInfo]);
 
   const handleCancel = useCallback(() => {
     Alert.alert("Void Order", `Batalkan order #${orderId.slice(0, 8)}?`, [

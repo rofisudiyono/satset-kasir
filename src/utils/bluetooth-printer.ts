@@ -234,9 +234,9 @@ class BluetoothPrinterManager {
         model: m,
         maxHeightToBreak: 1600,
       });
-      // ESC @ (init) + raster + LF*5 (feed paper past tear bar) + GS V 1 (partial cut)
+      // ESC @ (init) + raster + LF*2 (minimal tear-bar clearance) + GS V 1 (partial cut)
       const init = new Uint8Array([0x1b, 0x40]);
-      const feed = new Uint8Array([0x0a, 0x0a, 0x0a, 0x0a, 0x0a]);
+      const feed = new Uint8Array([0x0a, 0x0a]);
       const cut = new Uint8Array([0x1d, 0x56, 0x01]);
       const payload = new Uint8Array(init.length + escPos.length + feed.length + cut.length);
       payload.set(init, 0);

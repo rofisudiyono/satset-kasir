@@ -24,14 +24,19 @@ import {
   TextH3,
 } from "@/components";
 import { cartAtom } from "@/features/cart/store/cart.store";
-import { buildReceiptHtml } from "@/features/payment/utils/receipt.utils";
+import {
+  buildReceiptHtml,
+  getReceiptPrintHeightPx,
+} from "@/features/payment/utils/receipt.utils";
 import {
   buildOrderItemsSummary,
   calculateOrderPaidAmount,
   getPaymentMethodLabel,
 } from "@/features/pos/pos.utils";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
+import { useTenantInfoQuery } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
+import { useAuth } from "@/lib/auth";
 import {
   getHistoryRoute,
   getInputManualRoute,
@@ -51,9 +56,11 @@ import { bluetoothPrinterManager } from "@/utils/bluetooth-printer";
 
 export default function PembayaranSuksesPage() {
   const router = useRouter();
+  const { isLoggedIn } = useAuth();
   const [orders] = useAtom(posOrdersAtom);
   const [, setCart] = useAtom(cartAtom);
   const { isTablet } = useResponsiveLayout();
+  const { data: tenantInfo } = useTenantInfoQuery(isLoggedIn);
   const [printerState, setPrinterState] = useState<PrinterState>({
     connected: false,
     printer: null,
@@ -162,7 +169,10 @@ export default function PembayaranSuksesPage() {
   async function handlePrintPdf() {
     try {
       const { uri } = await Print.printToFileAsync({
-        html: buildReceiptHtml(receiptPayload),
+        html: buildReceiptHtml(receiptPayload, 384, tenantInfo),
+        width: 384,
+        height: getReceiptPrintHeightPx(receiptPayload),
+        margins: { top: 0, right: 0, bottom: 0, left: 0 },
         base64: false,
       });
       const canShare = await Sharing.isAvailableAsync();
@@ -188,7 +198,7 @@ export default function PembayaranSuksesPage() {
       const widthPx =
         printerState.printer?.type === "thermal_80mm" ? 576 : 384;
       const success = await bluetoothPrinterManager.printReceiptHtml(
-        buildReceiptHtml(receiptPayload, widthPx),
+        buildReceiptHtml(receiptPayload, widthPx, tenantInfo),
       );
       if (success) {
         Alert.alert("Berhasil", "Struk berhasil dicetak via Bluetooth.");
