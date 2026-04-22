@@ -1,0 +1,16 @@
+diff --git a/android/src/main/java/expo/modules/escpos/HtmlToImage.kt b/android/src/main/java/expo/modules/escpos/HtmlToImage.kt
+index ed032e6684955bbadecc7f786f2840f0799371a3..11f2d35d58354aab3d5cdd0941a706d7647827b0 100644
+--- a/android/src/main/java/expo/modules/escpos/HtmlToImage.kt
++++ b/android/src/main/java/expo/modules/escpos/HtmlToImage.kt
+@@ -317,7 +317,10 @@ object HtmlToImageConverter {
+             val height = heightString.toFloatOrNull()
+ 
+             if (height != null) {
+-                val contentHeight = (height * density).toInt()
++                // scrollHeight is in CSS px (pre-zoom). Physical content height =
++                // CSS_height × zoom × density = CSS_height × (1/density) × density = CSS_height.
++                // Do NOT multiply by density again.
++                val contentHeight = height.toInt()
+ 
+                 try {
+                     // Resize WebView to content dimensions

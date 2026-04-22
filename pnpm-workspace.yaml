@@ -1,0 +1,2 @@
+patchedDependencies:
+  expo-escpos@1.2.0: patches/expo-escpos@1.2.0.patch

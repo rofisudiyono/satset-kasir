@@ -3,17 +3,17 @@
  * ESC/POS payload via expo-escpos (HTML → raster ESC/POS).
  */
 
-import { renderHtmlToImages } from 'expo-escpos';
-import type { PrinterModel } from 'expo-escpos';
-import { Alert, PermissionsAndroid, Platform } from 'react-native';
-import RNBluetoothClassic from 'react-native-bluetooth-classic';
-import type { BluetoothDevice } from 'react-native-bluetooth-classic';
+import type { PrinterModel } from "expo-escpos";
+import { renderHtmlToImages } from "expo-escpos";
+import { Alert, PermissionsAndroid, Platform } from "react-native";
+import type { BluetoothDevice } from "react-native-bluetooth-classic";
+import RNBluetoothClassic from "react-native-bluetooth-classic";
 
 export interface BluetoothPrinter {
   id: string;
   name: string;
   address: string;
-  type: 'thermal_58mm' | 'thermal_80mm' | 'other';
+  type: "thermal_58mm" | "thermal_80mm" | "other";
   connected?: boolean;
 }
 
@@ -26,7 +26,7 @@ export interface PrinterState {
 type ConnectionStateChangeCallback = (state: PrinterState) => void;
 
 function uint8ArrayToBase64(bytes: Uint8Array): string {
-  let binary = '';
+  let binary = "";
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]!);
   }
@@ -36,21 +36,21 @@ function uint8ArrayToBase64(bytes: Uint8Array): string {
 function looksLikePrinter(name: string): boolean {
   const n = name.toLowerCase();
   return (
-    n.includes('printer') ||
-    n.includes('print') ||
-    n.includes('xprinter') ||
-    n.includes('gainscha') ||
-    n.includes('iware') ||
-    n.includes('epson') ||
-    n.includes('rpp') ||
-    n.includes('pos') ||
-    n.includes('thermal') ||
-    n.includes('esc')
+    n.includes("printer") ||
+    n.includes("print") ||
+    n.includes("xprinter") ||
+    n.includes("gainscha") ||
+    n.includes("iware") ||
+    n.includes("epson") ||
+    n.includes("rpp") ||
+    n.includes("pos") ||
+    n.includes("thermal") ||
+    n.includes("esc")
   );
 }
 
-function printerModelFromType(type: BluetoothPrinter['type']): PrinterModel {
-  return type === 'thermal_80mm' ? '80' : '58';
+function printerModelFromType(type: BluetoothPrinter["type"]): PrinterModel {
+  return type === "thermal_80mm" ? "80" : "58";
 }
 
 class BluetoothPrinterManager {
@@ -85,7 +85,7 @@ class BluetoothPrinterManager {
   }
 
   private async requestBluetoothPermissions(): Promise<boolean> {
-    if (Platform.OS !== 'android') return true;
+    if (Platform.OS !== "android") return true;
     if (Platform.Version < 31) return true;
 
     const granted = await PermissionsAndroid.requestMultiple([
@@ -94,8 +94,10 @@ class BluetoothPrinterManager {
     ]);
 
     return (
-      granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] === PermissionsAndroid.RESULTS.GRANTED &&
-      granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] === PermissionsAndroid.RESULTS.GRANTED
+      granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] ===
+        PermissionsAndroid.RESULTS.GRANTED &&
+      granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] ===
+        PermissionsAndroid.RESULTS.GRANTED
     );
   }
 
@@ -104,16 +106,20 @@ class BluetoothPrinterManager {
       const hasPermission = await this.requestBluetoothPermissions();
       if (!hasPermission) {
         Alert.alert(
-          'Izin Bluetooth Diperlukan',
-          'Berikan izin Bluetooth untuk memindai printer.',
-          [{ text: 'OK' }],
+          "Izin Bluetooth Diperlukan",
+          "Berikan izin Bluetooth untuk memindai printer.",
+          [{ text: "OK" }],
         );
         return [];
       }
 
       const available = await RNBluetoothClassic.isBluetoothAvailable();
       if (!available) {
-        Alert.alert('Bluetooth Tidak Tersedia', 'Perangkat tidak mendukung Bluetooth Classic.', [{ text: 'OK' }]);
+        Alert.alert(
+          "Bluetooth Tidak Tersedia",
+          "Perangkat tidak mendukung Bluetooth Classic.",
+          [{ text: "OK" }],
+        );
         return [];
       }
 
@@ -121,7 +127,11 @@ class BluetoothPrinterManager {
       if (!enabled) {
         const requested = await RNBluetoothClassic.requestBluetoothEnabled();
         if (!requested) {
-          Alert.alert('Bluetooth Dinonaktifkan', 'Aktifkan Bluetooth untuk memindai printer.', [{ text: 'OK' }]);
+          Alert.alert(
+            "Bluetooth Dinonaktifkan",
+            "Aktifkan Bluetooth untuk memindai printer.",
+            [{ text: "OK" }],
+          );
           return [];
         }
       }
@@ -130,18 +140,21 @@ class BluetoothPrinterManager {
 
       const mapped = bonded.map((d) => ({
         id: d.address,
-        name: d.name || 'Unknown',
+        name: d.name || "Unknown",
         address: d.address,
-        type: 'thermal_58mm' as const,
+        type: "thermal_58mm" as const,
         connected: false,
       }));
 
       const filtered = mapped.filter((p) => looksLikePrinter(p.name));
       return filtered.length > 0 ? filtered : mapped;
     } catch (error: unknown) {
-      console.error('Error scanning printers:', error);
-      const message = error instanceof Error ? error.message : 'Tidak dapat memindai printer Bluetooth';
-      Alert.alert('Scan Gagal', message, [{ text: 'OK' }]);
+      console.error("Error scanning printers:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Tidak dapat memindai printer Bluetooth";
+      Alert.alert("Scan Gagal", message, [{ text: "OK" }]);
       return [];
     }
   }
@@ -155,9 +168,9 @@ class BluetoothPrinterManager {
 
       if (!device) {
         Alert.alert(
-          'Printer Tidak Ditemukan',
-          'Pastikan printer sudah dipasangkan (paired) di pengaturan Bluetooth.',
-          [{ text: 'OK' }],
+          "Printer Tidak Ditemukan",
+          "Pastikan printer sudah dipasangkan (paired) di pengaturan Bluetooth.",
+          [{ text: "OK" }],
         );
         this.setState({ connected: false, printer: null, printing: false });
         return false;
@@ -166,14 +179,17 @@ class BluetoothPrinterManager {
       await device.connect();
       this.connectedDevice = device;
       this.setState({ connected: true, printer, printing: false });
-      Alert.alert('Berhasil', `Printer ${printer.name} terhubung`);
+      Alert.alert("Berhasil", `Printer ${printer.name} terhubung`);
       return true;
     } catch (error: unknown) {
-      console.error('Error connecting to printer:', error);
+      console.error("Error connecting to printer:", error);
       this.connectedDevice = null;
       this.setState({ connected: false, printer: null, printing: false });
-      const message = error instanceof Error ? error.message : 'Tidak dapat menghubungkan ke printer';
-      Alert.alert('Koneksi Gagal', message, [{ text: 'OK' }]);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Tidak dapat menghubungkan ke printer";
+      Alert.alert("Koneksi Gagal", message, [{ text: "OK" }]);
       return false;
     }
   }
@@ -183,7 +199,7 @@ class BluetoothPrinterManager {
     try {
       await this.connectedDevice.disconnect();
     } catch (error) {
-      console.error('Error disconnecting:', error);
+      console.error("Error disconnecting:", error);
     } finally {
       this.connectedDevice = null;
       this.setState({ connected: false, printer: null, printing: false });
@@ -195,15 +211,19 @@ class BluetoothPrinterManager {
    */
   async printEscPosBytes(data: Uint8Array): Promise<boolean> {
     if (!this.connectedDevice) {
-      Alert.alert('Printer Tidak Tersedia', 'Modul Bluetooth printer tidak tersedia.', [{ text: 'OK' }]);
+      Alert.alert(
+        "Printer Tidak Tersedia",
+        "Modul Bluetooth printer tidak tersedia.",
+        [{ text: "OK" }],
+      );
       return false;
     }
 
     if (!this.state.connected || !this.state.printer) {
       Alert.alert(
-        'Printer Tidak Terhubung',
-        'Silakan hubungkan ke printer Bluetooth terlebih dahulu.',
-        [{ text: 'OK' }],
+        "Printer Tidak Terhubung",
+        "Silakan hubungkan ke printer Bluetooth terlebih dahulu.",
+        [{ text: "OK" }],
       );
       return false;
     }
@@ -212,14 +232,17 @@ class BluetoothPrinterManager {
       this.setState({ printing: true });
       // Encode raw bytes as base64 so the SPP socket receives the exact binary payload
       const b64 = uint8ArrayToBase64(data);
-      await this.connectedDevice.write(b64, 'base64');
+      await this.connectedDevice.write(b64, "base64");
       this.setState({ printing: false });
       return true;
     } catch (error: unknown) {
-      console.error('Error printing:', error);
+      console.error("Error printing:", error);
       this.setState({ printing: false });
-      const message = error instanceof Error ? error.message : 'Tidak dapat mencetak ke printer';
-      Alert.alert('Cetak Gagal', message, [{ text: 'OK' }]);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Tidak dapat mencetak ke printer";
+      Alert.alert("Cetak Gagal", message, [{ text: "OK" }]);
       return false;
     }
   }
@@ -228,26 +251,26 @@ class BluetoothPrinterManager {
    * Render HTML with expo-escpos then send to printer (thermal image pipeline).
    */
   async printReceiptHtml(html: string, model?: PrinterModel): Promise<boolean> {
-    const m: PrinterModel = model ?? printerModelFromType(this.state.printer?.type ?? 'thermal_58mm');
+    const m: PrinterModel =
+      model ?? printerModelFromType(this.state.printer?.type ?? "thermal_58mm");
     try {
       const escPos = await renderHtmlToImages(html, {
         model: m,
         maxHeightToBreak: 1600,
       });
-      // ESC @ (init) + raster + LF*2 (minimal tear-bar clearance) + GS V 1 (partial cut)
+      // ESC @ (init) + raster + GS V 1 (partial cut)
       const init = new Uint8Array([0x1b, 0x40]);
-      const feed = new Uint8Array([0x0a, 0x0a]);
       const cut = new Uint8Array([0x1d, 0x56, 0x01]);
-      const payload = new Uint8Array(init.length + escPos.length + feed.length + cut.length);
+      const payload = new Uint8Array(init.length + escPos.length + cut.length);
       payload.set(init, 0);
       payload.set(escPos, init.length);
-      payload.set(feed, init.length + escPos.length);
-      payload.set(cut, init.length + escPos.length + feed.length);
+      payload.set(cut, init.length + escPos.length);
       return this.printEscPosBytes(payload);
     } catch (error: unknown) {
-      console.error('renderHtmlToImages failed:', error);
-      const message = error instanceof Error ? error.message : 'Gagal merender struk';
-      Alert.alert('Cetak Gagal', message, [{ text: 'OK' }]);
+      console.error("renderHtmlToImages failed:", error);
+      const message =
+        error instanceof Error ? error.message : "Gagal merender struk";
+      Alert.alert("Cetak Gagal", message, [{ text: "OK" }]);
       return false;
     }
   }
@@ -264,8 +287,10 @@ class BluetoothPrinterManager {
   }
 
   async testPrint(): Promise<boolean> {
-    const model = printerModelFromType(this.state.printer?.type ?? 'thermal_58mm');
-    const widthPx = model === '80' ? 576 : 384;
+    const model = printerModelFromType(
+      this.state.printer?.type ?? "thermal_58mm",
+    );
+    const widthPx = model === "80" ? 576 : 384;
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><style>
       * { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; }
@@ -277,13 +302,13 @@ class BluetoothPrinterManager {
       <h2>*** TEST PRINT ***</h2>
       <p>Kasir — Koneksi OK</p>
       <hr/>
-      <p>${new Date().toLocaleString('id-ID')}</p>
+      <p>${new Date().toLocaleString("id-ID")}</p>
       <hr/>
       <p>Printer berfungsi baik!</p>
     </body></html>`;
     const ok = await this.printReceiptHtml(html);
     if (ok) {
-      Alert.alert('Berhasil', 'Test print berhasil!');
+      Alert.alert("Berhasil", "Test print berhasil!");
     }
     return ok;
   }

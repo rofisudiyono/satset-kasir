@@ -222,7 +222,7 @@ export function buildReceiptHtml(
     <style>
       * { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; }
-      body { font-family: monospace; width: ${printerWidthPx}px; padding: 4px 8px 0; font-size: 20px; color: #000; background: #fff; }
+      body { font-family: monospace; width: ${printerWidthPx}px; padding: 4px 8px 4px; font-size: 20px; color: #000; background: #fff; }
       h2 { text-align: center; margin: 2px 0; font-size: 24px; line-height: 1.15; }
       p { text-align: center; margin: 1px 0; font-size: 18px; line-height: 1.18; }
       hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
