@@ -3,20 +3,18 @@ import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IconButton, PageHeader } from "@/components";
-import { useDeviceProfile } from "@/hooks/use-device-profile";
 import {
   CartPanel,
   ProductGrid,
   VariantSheet,
 } from "@/features/transactions/components/transaksi-baru";
+import { useDeviceProfile } from "@/hooks/use-device-profile";
 import { ColorBase, ColorSurface } from "@/themes/Colors";
 
 import { useTransactionEntry } from "../shared/useTransactionEntry";
 
 export function TransactionEntryTabletScreen() {
-  const {
-    width,
-  } = useDeviceProfile();
+  const { width } = useDeviceProfile();
   const {
     products,
     categoryFilter,
@@ -43,17 +41,14 @@ export function TransactionEntryTabletScreen() {
             title="Input Manual"
             subtitle="Pilih menu, atur catatan item, lalu lanjut ke pembayaran"
             actions={
-              <>
-                <IconButton
-                  iconName="scan-outline"
-                  onPress={openScanner}
-                />
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                <IconButton iconName="scan-outline" onPress={openScanner} />
                 <IconButton
                   iconName="pause-circle-outline"
                   onPress={openHeldOrders}
                   badge={heldOrdersCount > 0 ? heldOrdersCount : undefined}
                 />
-              </>
+              </View>
             }
           />
 

@@ -4,10 +4,10 @@
  * Replaces the repeated XStack header pattern in Transaksi, Inventori,
  * and Pengaturan pages.
  */
+import { ColorBase, ColorSurface } from "@/themes/Colors";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { XStack, YStack } from "tamagui";
-import { ColorBase, ColorSurface } from "@/themes/Colors";
 
 import { IconButton } from "../atoms/IconButton";
 import { TextBodySm, TextH2, TextH3 } from "../atoms/Typography";
@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
     borderBottomColor: ColorSurface.border,
     borderTopLeftRadius: 26,
     borderTopRightRadius: 26,
+    marginBottom: 12,
   },
   header: {
     width: "100%",

@@ -1,31 +1,37 @@
 import { Ionicons } from "@expo/vector-icons";
-import { FlashList } from "@shopify/flash-list";
 import type { ListRenderItem } from "@shopify/flash-list";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
 import {
-  AppButton,
   PageHeader,
   TextBodyLg,
   TextBodySm,
   TextCaption,
   TextH3,
 } from "@/components";
-import { usePendingWebOrdersQuery } from "@/hooks/api/use-kasir-api";
-import { useAuth } from "@/lib/auth";
-import type { PendingWebOrder } from "@/lib/api/types";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
-import { ColorBase, ColorNeutral, ColorPrimary, ColorSuccess } from "@/themes/Colors";
+import { usePendingWebOrdersQuery } from "@/hooks/api/use-kasir-api";
+import type { PendingWebOrder } from "@/lib/api/types";
+import { useAuth } from "@/lib/auth";
+import {
+  ColorBase,
+  ColorNeutral,
+  ColorPrimary,
+  ColorSuccess,
+} from "@/themes/Colors";
 import { formatPrice } from "@/utils";
 
 function formatItems(order: PendingWebOrder): string {
   return order.items
-    .map((i) => `${i.qty}x ${i.name}${i.variantName ? ` (${i.variantName})` : ""}`)
+    .map(
+      (i) => `${i.qty}x ${i.name}${i.variantName ? ` (${i.variantName})` : ""}`,
+    )
     .join(", ");
 }
 
@@ -40,15 +46,25 @@ const PendingOrderCard = memo(function PendingOrderCard({
 
   return (
     <Pressable
-      style={({ pressed }) => [styles.orderCard, pressed && styles.orderCardPressed]}
+      style={({ pressed }) => [
+        styles.orderCard,
+        pressed && styles.orderCardPressed,
+      ]}
       onPress={onPress}
     >
       <XStack justifyContent="space-between" alignItems="flex-start">
         <XStack gap={8} alignItems="center" flexWrap="wrap" flex={1}>
-          <View style={[styles.badge, isOnline ? styles.badgeOnline : styles.badgeManual]}>
+          <View
+            style={[
+              styles.badge,
+              isOnline ? styles.badgeOnline : styles.badgeManual,
+            ]}
+          >
             <TextCaption
               fontWeight="700"
-              color={isOnline ? ColorSuccess.success700 : ColorPrimary.primary700}
+              color={
+                isOnline ? ColorSuccess.success700 : ColorPrimary.primary700
+              }
             >
               {isOnline ? "QRIS/VA" : "Manual"}
             </TextCaption>
@@ -61,13 +77,18 @@ const PendingOrderCard = memo(function PendingOrderCard({
           <TextBodyLg fontWeight="800" color={ColorPrimary.primary700}>
             {formatPrice(order.grandTotal)}
           </TextBodyLg>
-          <Ionicons name="chevron-forward" size={18} color={ColorNeutral.neutral400} />
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={ColorNeutral.neutral400}
+          />
         </XStack>
       </XStack>
 
       <YStack gap={2}>
         <TextBodyLg fontWeight="700">
-          {[order.tableLabel, order.customerName].filter(Boolean).join(" · ") || "Takeaway"}
+          {[order.tableLabel, order.customerName].filter(Boolean).join(" · ") ||
+            "Takeaway"}
         </TextBodyLg>
         {order.customerPhone ? (
           <TextBodySm color="$colorSecondary">{order.customerPhone}</TextBodySm>
@@ -94,9 +115,12 @@ export default function WebOrdersTabPage() {
   const { isLoggedIn } = useAuth();
   const isShiftStarted = useAtomValue(isShiftStartedAtom);
 
-  const { data = [], isLoading, isError, refetch } = usePendingWebOrdersQuery(
-    Boolean(isLoggedIn && isShiftStarted),
-  );
+  const {
+    data = [],
+    isLoading,
+    isError,
+    refetch,
+  } = usePendingWebOrdersQuery(Boolean(isLoggedIn && isShiftStarted));
 
   const onNavigate = useCallback(
     (orderId: string) => {
@@ -139,7 +163,9 @@ export default function WebOrdersTabPage() {
     () => (
       <YStack gap="$3" marginBottom="$2">
         <View style={styles.summaryCard}>
-          <TextCaption color="rgba(255,255,255,0.8)">Menunggu konfirmasi</TextCaption>
+          <TextCaption color="rgba(255,255,255,0.8)">
+            Menunggu konfirmasi
+          </TextCaption>
           <TextBodyLg fontWeight="700" color={ColorBase.white}>
             {data.length} pesanan
           </TextBodyLg>
@@ -163,9 +189,20 @@ export default function WebOrdersTabPage() {
         title="Web Orders"
         subtitle="Pesanan dari QR/Web menunggu konfirmasi pembayaran kasir"
         actions={
-          <AppButton variant="outline" size="sm" onPress={() => void refetch()}>
-            Refresh
-          </AppButton>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+            onPress={() => void refetch()}
+          >
+            <Ionicons
+              name="refresh-outline"
+              size={18}
+              color={ColorPrimary.primary600}
+            />
+            <TextBodySm fontWeight="600" color={ColorPrimary.primary600}>
+              Refresh
+            </TextBodySm>
+          </TouchableOpacity>
         }
       />
 
