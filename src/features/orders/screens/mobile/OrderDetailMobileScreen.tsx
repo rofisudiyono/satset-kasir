@@ -40,7 +40,7 @@ import {
   useTenantInfoQuery,
 } from "@/hooks/api/use-kasir-api";
 import { useAuth } from "@/lib/auth";
-import type { KasirOrder } from "@/lib/api/types";
+import type { KasirApprovalRequest, KasirOrder } from "@/lib/api/types";
 import {
   ColorBase,
   ColorDanger,
@@ -100,6 +100,8 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
   const cancelMutation = useCancelPaidOrderMutation();
   const refundMutation = useRefundPaidOrderMutation();
   const deliverMutation = useDeliverOrderMutation();
+  const [approvalStatus, setApprovalStatus] =
+    useState<KasirApprovalRequest | null>(null);
 
   const [printerState, setPrinterState] = useState<PrinterState>({
     connected: false,
@@ -186,11 +188,17 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
               orderId,
               reason: "Order dibatalkan dari aplikasi kasir.",
             })
-            .then(() => router.back())
+            .then((approval) => {
+              setApprovalStatus(approval);
+              Alert.alert(
+                "Request terkirim",
+                "Permintaan void menunggu approval owner.",
+              );
+            })
             .catch((error: unknown) => {
               Alert.alert(
-                "Gagal membatalkan",
-                getApiErrorMessage(error, "Order tidak berhasil dibatalkan."),
+                "Gagal membuat request",
+                getApiErrorMessage(error, "Request void tidak berhasil dikirim."),
               );
             });
         },
@@ -209,10 +217,17 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
               orderId,
               reason: "Refund diproses dari aplikasi kasir.",
             })
+            .then((approval) => {
+              setApprovalStatus(approval);
+              Alert.alert(
+                "Request terkirim",
+                "Permintaan refund menunggu approval owner.",
+              );
+            })
             .catch((error: unknown) => {
               Alert.alert(
-                "Gagal refund",
-                getApiErrorMessage(error, "Refund tidak berhasil diproses."),
+                "Gagal membuat request",
+                getApiErrorMessage(error, "Request refund tidak berhasil dikirim."),
               );
             });
         },
@@ -340,6 +355,24 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
             </YStack>
           </XStack>
         </View>
+
+        {approvalStatus ? (
+          <View style={styles.approvalBanner}>
+            <Ionicons
+              name="hourglass-outline"
+              size={18}
+              color={ColorWarning.warning700}
+            />
+            <View style={{ flex: 1 }}>
+              <TextBodySm fontWeight="800" color={ColorWarning.warning800}>
+                {approvalStatus.type} menunggu approval
+              </TextBodySm>
+              <TextCaption color={ColorWarning.warning700}>
+                Request #{approvalStatus.id.slice(0, 8)} sudah dikirim ke owner.
+              </TextCaption>
+            </View>
+          </View>
+        ) : null}
 
         {/* ── Items ── */}
         <View style={styles.section}>
@@ -588,18 +621,20 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
             <XStack gap="$2">
               <TouchableOpacity
                 onPress={handleCancel}
+                disabled={cancelMutation.isPending || !!approvalStatus}
                 style={[styles.actionBtn, styles.voidBtn, { flex: 1 }]}
               >
                 <TextBodySm fontWeight="700" color={ColorDanger.danger600}>
-                  Void Order
+                  {cancelMutation.isPending ? "Mengirim..." : "Request Void"}
                 </TextBodySm>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleRefund}
+                disabled={refundMutation.isPending || !!approvalStatus}
                 style={[styles.actionBtn, styles.refundBtn, { flex: 1 }]}
               >
                 <TextBodySm fontWeight="700" color={ColorWarning.warning700}>
-                  Refund Order
+                  {refundMutation.isPending ? "Mengirim..." : "Request Refund"}
                 </TextBodySm>
               </TouchableOpacity>
             </XStack>
@@ -658,6 +693,17 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: ColorNeutral.neutral200,
+  },
+  approvalBanner: {
+    marginBottom: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: ColorWarning.warning200,
+    backgroundColor: ColorWarning.warning50,
+    padding: 14,
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center",
   },
   sectionHeading: {
     marginBottom: 6,

@@ -12,6 +12,7 @@ import type {
   KasirTable,
   KasirTaxSettings,
   KasirTenantInfo,
+  KasirApprovalRequest,
   PendingWebOrder,
   ShiftSlotApi,
   ValidatePromoResponse,
@@ -127,12 +128,26 @@ export async function deliverPaidOrder(orderId: string): Promise<unknown> {
   return data.data;
 }
 
-export async function cancelPaidOrder(orderId: string, reason: string): Promise<void> {
-  await api.post(`/kasir/orders/${orderId}/cancel`, { reason });
+export async function requestCancelPaidOrder(
+  orderId: string,
+  reason: string,
+): Promise<KasirApprovalRequest> {
+  const { data } = await api.post<{ data: KasirApprovalRequest }>(
+    `/kasir/orders/${orderId}/cancel-request`,
+    { reason },
+  );
+  return data.data;
 }
 
-export async function refundPaidOrder(orderId: string, reason: string): Promise<void> {
-  await api.post(`/kasir/orders/${orderId}/refund`, { reason });
+export async function requestRefundPaidOrder(
+  orderId: string,
+  reason: string,
+): Promise<KasirApprovalRequest> {
+  const { data } = await api.post<{ data: KasirApprovalRequest }>(
+    `/kasir/orders/${orderId}/refund-request`,
+    { reason },
+  );
+  return data.data;
 }
 
 export async function getMenus(): Promise<KasirMenu[]> {

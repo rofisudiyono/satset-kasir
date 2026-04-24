@@ -12,7 +12,8 @@
         "android.permission.BLUETOOTH",
         "android.permission.BLUETOOTH_ADMIN",
         "android.permission.BLUETOOTH_CONNECT",
-        "android.permission.BLUETOOTH_SCAN"
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.POST_NOTIFICATIONS"
       ],
       "predictiveBackGestureEnabled": false
     },
@@ -21,7 +22,8 @@
       "typedRoutes": true
     },
     "extra": {
-      "apiUrl": "http://127.0.0.1:3000"
+      "apiUrl": "http://127.0.0.1:3000",
+      "oneSignalAppId": ""
     },
     "icon": "./assets/images/satset_1024.png",
     "ios": {
@@ -32,6 +34,12 @@
     "name": "Satset Kasir",
     "orientation": "default",
     "plugins": [
+      [
+        "onesignal-expo-plugin",
+        {
+          "mode": "development"
+        }
+      ],
       [
         "expo-camera",
         {

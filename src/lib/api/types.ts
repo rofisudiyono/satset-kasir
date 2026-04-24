@@ -144,6 +144,22 @@ export type GetOrderHistoryParams = {
 
 export type KasirOrderDetail = KasirOrder;
 
+export type KasirApprovalRequest = {
+  id: string;
+  tenantId: string;
+  branchId: string;
+  orderId: string;
+  requestedBy: string;
+  reviewedBy: string | null;
+  type: "VOID" | "REFUND";
+  status: "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
+  reason: string;
+  reviewNote: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+};
+
 // ─── Checkout ─────────────────────────────────────────────────────────────────
 
 export type CheckoutOrderItem = {

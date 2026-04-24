@@ -174,7 +174,7 @@ export function useCancelPaidOrderMutation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
-      kasirApi.cancelPaidOrder(orderId, reason),
+      kasirApi.requestCancelPaidOrder(orderId, reason),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: orderHistoryPrefix });
       void qc.invalidateQueries({ queryKey: orderDetailPrefix });
@@ -187,7 +187,7 @@ export function useRefundPaidOrderMutation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
-      kasirApi.refundPaidOrder(orderId, reason),
+      kasirApi.requestRefundPaidOrder(orderId, reason),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: orderHistoryPrefix });
       void qc.invalidateQueries({ queryKey: orderDetailPrefix });

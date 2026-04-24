@@ -33,7 +33,7 @@ import {
   useTenantInfoQuery,
 } from "@/hooks/api/use-kasir-api";
 import { useAuth } from "@/lib/auth";
-import type { KasirOrder } from "@/lib/api/types";
+import type { KasirApprovalRequest, KasirOrder } from "@/lib/api/types";
 import {
   ColorBase,
   ColorDanger,
@@ -71,6 +71,9 @@ export default function RiwayatOrderTabPage() {
   const [filter, setFilter] = useState<HistoryFilter>("SEMUA");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [approvalByOrderId, setApprovalByOrderId] = useState<
+    Record<string, KasirApprovalRequest>
+  >({});
   const [printerState, setPrinterState] = useState<PrinterState>({
     connected: false,
     printer: null,
@@ -118,34 +121,39 @@ export default function RiwayatOrderTabPage() {
   }, [orders, selectedOrderId]);
 
   const selectedOrder = selectedOrderDetail ?? orders.find((order) => order.id === selectedOrderId) ?? null;
+  const selectedApproval = selectedOrder ? approvalByOrderId[selectedOrder.id] : null;
   const printableReceipt = selectedOrderDetail
     ? buildPrintableReceiptOrderFromKasirOrder(selectedOrderDetail)
     : null;
 
   async function handleCancel(orderId: string) {
     try {
-      await cancelMutation.mutateAsync({
+      const approval = await cancelMutation.mutateAsync({
         orderId,
         reason: "Order dibatalkan dari aplikasi kasir.",
       });
+      setApprovalByOrderId((prev) => ({ ...prev, [orderId]: approval }));
+      Alert.alert("Request terkirim", "Permintaan void menunggu approval owner.");
     } catch (error) {
       Alert.alert(
-        "Gagal membatalkan order",
-        getApiErrorMessage(error, "Order tidak berhasil dibatalkan."),
+        "Gagal membuat request",
+        getApiErrorMessage(error, "Request void tidak berhasil dikirim."),
       );
     }
   }
 
   async function handleRefund(orderId: string) {
     try {
-      await refundMutation.mutateAsync({
+      const approval = await refundMutation.mutateAsync({
         orderId,
         reason: "Refund diproses dari aplikasi kasir.",
       });
+      setApprovalByOrderId((prev) => ({ ...prev, [orderId]: approval }));
+      Alert.alert("Request terkirim", "Permintaan refund menunggu approval owner.");
     } catch (error) {
       Alert.alert(
-        "Gagal refund order",
-        getApiErrorMessage(error, "Refund tidak berhasil diproses."),
+        "Gagal membuat request",
+        getApiErrorMessage(error, "Request refund tidak berhasil dikirim."),
       );
     }
   }
@@ -477,6 +485,16 @@ export default function RiwayatOrderTabPage() {
               </YStack>
 
               <YStack gap="$2">
+                {selectedApproval ? (
+                  <View style={styles.approvalBanner}>
+                    <TextBodySm fontWeight="800" color={ColorWarning.warning800}>
+                      {selectedApproval.type} menunggu approval
+                    </TextBodySm>
+                    <TextCaption color={ColorWarning.warning700}>
+                      Request #{selectedApproval.id.slice(0, 8)} sudah dikirim ke owner.
+                    </TextCaption>
+                  </View>
+                ) : null}
                 {selectedOrder.status === "PAID" ? (
                   <>
                     {canMarkDelivered(selectedOrder) ? (
@@ -513,10 +531,11 @@ export default function RiwayatOrderTabPage() {
                           },
                         ])
                       }
+                      disabled={cancelMutation.isPending || !!selectedApproval}
                       style={[styles.actionButton, styles.voidButton]}
                     >
                       <TextBodySm fontWeight="700" color={ColorDanger.danger600}>
-                        Void Order
+                        {cancelMutation.isPending ? "Mengirim..." : "Request Void"}
                       </TextBodySm>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -529,10 +548,11 @@ export default function RiwayatOrderTabPage() {
                           },
                         ])
                       }
+                      disabled={refundMutation.isPending || !!selectedApproval}
                       style={[styles.actionButton, styles.refundButton]}
                     >
                       <TextBodySm fontWeight="700" color={ColorWarning.warning700}>
-                        Refund Order
+                        {refundMutation.isPending ? "Mengirim..." : "Request Refund"}
                       </TextBodySm>
                     </TouchableOpacity>
                   </>
@@ -607,6 +627,14 @@ const styles = StyleSheet.create({
     gap: 8,
     borderWidth: 1,
     borderColor: ColorNeutral.neutral200,
+  },
+  approvalBanner: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: ColorWarning.warning200,
+    backgroundColor: ColorWarning.warning50,
+    padding: 12,
+    gap: 4,
   },
   actionButton: {
     paddingVertical: 12,

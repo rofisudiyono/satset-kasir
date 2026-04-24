@@ -22,6 +22,7 @@ import { appStore } from "@/store/storage";
 import { KasirShiftSync } from "@/features/kasir/components/KasirShiftSync";
 import { KdsReadyNotifications } from "@/features/pos/components/KdsReadyNotifications";
 import { KdsRealtimeBridge } from "@/features/pos/components/KdsRealtimeBridge";
+import { NotificationRuntime } from "@/features/notifications/NotificationRuntime";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { DeviceProfileProvider } from "@/providers/DeviceProfileProvider";
 import { tamaguiConfig } from "../../tamagui.config";
@@ -49,6 +50,7 @@ export default function RootLayout() {
                 <AnimatedSplashOverlay />
                 <KdsRealtimeBridge />
                 <KdsReadyNotifications />
+                <NotificationRuntime />
                 <KasirShiftSync />
                 <Slot />
               </ThemeProvider>
