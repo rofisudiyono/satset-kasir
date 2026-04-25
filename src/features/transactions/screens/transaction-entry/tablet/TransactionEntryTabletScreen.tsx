@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet, View } from "react-native";
+import React, { useState } from "react";
+import { LayoutChangeEvent, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IconButton, PageHeader } from "@/components";
@@ -8,13 +8,12 @@ import {
   ProductGrid,
   VariantSheet,
 } from "@/features/transactions/components/transaksi-baru";
-import { useDeviceProfile } from "@/hooks/use-device-profile";
 import { ColorBase, ColorSurface } from "@/themes/Colors";
 
 import { useTransactionEntry } from "../shared/useTransactionEntry";
 
 export function TransactionEntryTabletScreen() {
-  const { width } = useDeviceProfile();
+  const [catalogPanelWidth, setCatalogPanelWidth] = useState(0);
   const {
     products,
     categoryFilter,
@@ -31,12 +30,19 @@ export function TransactionEntryTabletScreen() {
     addToCart,
   } = useTransactionEntry();
 
-  const catalogPanelWidth = width * 0.65;
+  function handleCatalogLayout(event: LayoutChangeEvent) {
+    const nextWidth = event.nativeEvent.layout.width;
+    setCatalogPanelWidth((current) =>
+      Math.abs(current - nextWidth) > 1 ? nextWidth : current,
+    );
+  }
+
+  const hasMeasuredCatalogPanel = catalogPanelWidth > 0;
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
       <View style={styles.splitLayout}>
-        <View style={styles.catalogPanel}>
+        <View style={styles.catalogPanel} onLayout={handleCatalogLayout}>
           <PageHeader
             title="Input Manual"
             subtitle="Pilih menu, atur catatan item, lalu lanjut ke pembayaran"
@@ -53,16 +59,18 @@ export function TransactionEntryTabletScreen() {
           />
 
           <View style={styles.catalogScroll}>
-            <ProductGrid
-              products={products}
-              categoryFilter={categoryFilter}
-              onCategoryChange={setCategoryFilter}
-              onAddProduct={handleAddProduct}
-              availableWidth={catalogPanelWidth}
-              searchValue={searchQuery}
-              onSearchChangeText={setSearchQuery}
-              onBarcodePress={openScanner}
-            />
+            {hasMeasuredCatalogPanel ? (
+              <ProductGrid
+                products={products}
+                categoryFilter={categoryFilter}
+                onCategoryChange={setCategoryFilter}
+                onAddProduct={handleAddProduct}
+                availableWidth={catalogPanelWidth}
+                searchValue={searchQuery}
+                onSearchChangeText={setSearchQuery}
+                onBarcodePress={openScanner}
+              />
+            ) : null}
           </View>
         </View>
 

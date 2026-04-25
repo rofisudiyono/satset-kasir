@@ -122,6 +122,8 @@ export function NotificationRuntime() {
   }, [appId, session?.user?.id]);
 
   useEffect(() => {
+    if (!session?.user || !appId || !initializedRef.current) return;
+
     const handleClick = (event: NotificationClickEvent) => {
       const data = event.notification.additionalData;
       const route =
@@ -135,7 +137,7 @@ export function NotificationRuntime() {
     return () => {
       OneSignal.Notifications.removeEventListener("click", handleClick);
     };
-  }, [router]);
+  }, [appId, router, session?.user?.id]);
 
   return null;
 }
