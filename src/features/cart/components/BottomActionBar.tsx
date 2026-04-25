@@ -9,33 +9,47 @@ interface BottomActionBarProps {
   cartLength: number;
   onHoldOrder: () => void;
   onPay: () => void;
+  compact?: boolean;
 }
 
 export function BottomActionBar({
   cartLength,
   onHoldOrder,
   onPay,
+  compact = false,
 }: BottomActionBarProps) {
   return (
-    <View style={styles.bottomBar}>
-      <XStack gap={10}>
+    <View style={[styles.bottomBar, compact && styles.bottomBarCompact]}>
+      <XStack gap={compact ? 8 : 10}>
         <TouchableOpacity
           activeOpacity={0.85}
-          style={styles.holdOrderBtn}
+          style={[styles.holdOrderBtn, compact && styles.actionBtnCompact]}
           onPress={onHoldOrder}
         >
-          <TextBodyLg fontWeight="700" color="$colorSecondary">
+          <TextBodyLg
+            fontWeight="800"
+            fontSize={compact ? 13 : undefined}
+            color="$colorSecondary"
+          >
             Tahan Order
           </TextBodyLg>
         </TouchableOpacity>
 
         <TouchableOpacity
           activeOpacity={0.85}
-          style={[styles.payBtn, cartLength === 0 && { opacity: 0.5 }]}
+          style={[
+            styles.payBtn,
+            compact && styles.actionBtnCompact,
+            cartLength === 0 && { opacity: 0.5 },
+          ]}
           disabled={cartLength === 0}
           onPress={onPay}
         >
-          <TextBodyLg fontWeight="700" color={ColorBase.white}>
+          <TextBodyLg
+            fontWeight="800"
+            fontSize={compact ? 13 : undefined}
+            color={ColorBase.white}
+          >
             Lanjut Bayar
           </TextBodyLg>
         </TouchableOpacity>
@@ -57,6 +71,13 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 28,
   },
+  bottomBarCompact: {
+    backgroundColor: "rgba(251, 252, 250, 0.98)",
+    borderTopColor: "rgba(31, 41, 55, 0.06)",
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 18,
+  },
   holdOrderBtn: {
     flex: 1,
     height: 52,
@@ -73,5 +94,9 @@ const styles = StyleSheet.create({
     backgroundColor: ColorPrimary.primary600,
     alignItems: "center",
     justifyContent: "center",
+  },
+  actionBtnCompact: {
+    height: 48,
+    borderRadius: 12,
   },
 });

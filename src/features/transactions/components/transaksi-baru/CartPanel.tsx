@@ -39,7 +39,11 @@ import type { KasirTable } from "@/lib/api/types";
 import { ColorBase, ColorDanger, ColorNeutral, ColorSurface } from "@/themes/Colors";
 import type { AppliedPromo, OrderType } from "@/types";
 
-export function CartPanel() {
+type CartPanelProps = {
+  compact?: boolean;
+};
+
+export function CartPanel({ compact = false }: CartPanelProps) {
   const router = useRouter();
   const [cart, setCart] = useAtom(cartAtom);
   const [orderDraft, setOrderDraft] = useAtom(cartOrderDraftAtom);
@@ -229,13 +233,18 @@ export function CartPanel() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TextH3 fontWeight="700">Keranjang</TextH3>
+    <View style={[styles.container, compact && styles.containerCompact]}>
+      <View style={[styles.header, compact && styles.headerCompact]}>
+        <TextH3
+          fontWeight="800"
+          color={compact ? ColorNeutral.neutral900 : undefined}
+        >
+          Keranjang
+        </TextH3>
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={handleClearCart}
-          style={styles.trashBtn}
+          style={[styles.trashBtn, compact && styles.trashBtnCompact]}
         >
           <Ionicons
             name="trash-outline"
@@ -247,9 +256,13 @@ export function CartPanel() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: compact ? 92 : 100 }}
       >
-        <YStack gap={12} paddingHorizontal={16} paddingTop={12}>
+        <YStack
+          gap={compact ? 10 : 12}
+          paddingHorizontal={compact ? 12 : 16}
+          paddingTop={compact ? 10 : 12}
+        >
           <CartItemsCard
             cart={cart}
             onUpdateQty={handleUpdateQty}
@@ -291,6 +304,7 @@ export function CartPanel() {
         cartLength={cart.length}
         onHoldOrder={handleHoldOrder}
         onPay={handlePay}
+        compact={compact}
       />
     </View>
   );
@@ -300,6 +314,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: ColorSurface.surfaceMuted,
+  },
+  containerCompact: {
+    backgroundColor: "#FBFCFA",
   },
   header: {
     flexDirection: "row",
@@ -312,6 +329,13 @@ const styles = StyleSheet.create({
     borderBottomColor: ColorSurface.border,
     backgroundColor: ColorBase.white,
   },
+  headerCompact: {
+    paddingHorizontal: 14,
+    paddingTop: 14,
+    paddingBottom: 12,
+    backgroundColor: "#FBFCFA",
+    borderBottomColor: "rgba(31, 41, 55, 0.06)",
+  },
   trashBtn: {
     width: 36,
     height: 36,
@@ -319,5 +343,11 @@ const styles = StyleSheet.create({
     backgroundColor: ColorDanger.danger50,
     alignItems: "center",
     justifyContent: "center",
+  },
+  trashBtnCompact: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: ColorDanger.danger25,
   },
 });

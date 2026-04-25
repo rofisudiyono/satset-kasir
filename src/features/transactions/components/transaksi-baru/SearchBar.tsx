@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { TextInput, TouchableOpacity } from "react-native";
+import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { XStack } from "tamagui";
 
 import { ColorBase, ColorNeutral } from "@/themes/Colors";
@@ -30,6 +30,7 @@ export function SearchBar({
       gap="$2"
       borderWidth={1}
       borderColor={compact ? ColorNeutral.neutral200 : "$borderColor"}
+      style={compact ? styles.compactShadow : undefined}
     >
       <Ionicons
         name="search-outline"
@@ -62,3 +63,13 @@ export function SearchBar({
     </XStack>
   );
 }
+
+const styles = StyleSheet.create({
+  compactShadow: {
+    shadowColor: ColorNeutral.neutral900,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+});

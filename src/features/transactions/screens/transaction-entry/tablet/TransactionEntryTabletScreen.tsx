@@ -1,14 +1,20 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { LayoutChangeEvent, StyleSheet, View } from "react-native";
+import { LayoutChangeEvent, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { IconButton, PageHeader } from "@/components";
+import { TextBodySm, TextH2 } from "@/components";
 import {
   CartPanel,
   ProductGrid,
   VariantSheet,
 } from "@/features/transactions/components/transaksi-baru";
-import { ColorBase, ColorSurface } from "@/themes/Colors";
+import {
+  ColorBase,
+  ColorNeutral,
+  ColorPrimary,
+  ColorSurface,
+} from "@/themes/Colors";
 
 import { useTransactionEntry } from "../shared/useTransactionEntry";
 
@@ -43,20 +49,45 @@ export function TransactionEntryTabletScreen() {
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
       <View style={styles.splitLayout}>
         <View style={styles.catalogPanel} onLayout={handleCatalogLayout}>
-          <PageHeader
-            title="Input Manual"
-            subtitle="Pilih menu, atur catatan item, lalu lanjut ke pembayaran"
-            actions={
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                <IconButton iconName="scan-outline" onPress={openScanner} />
-                <IconButton
-                  iconName="pause-circle-outline"
-                  onPress={openHeldOrders}
-                  badge={heldOrdersCount > 0 ? heldOrdersCount : undefined}
-                />
+          <View style={styles.catalogHeader}>
+            <View style={styles.titleBlock}>
+              <View style={styles.sectionMarker} />
+              <View>
+                <TextH2 fontWeight="800" color={ColorNeutral.neutral900}>
+                  Input Manual
+                </TextH2>
+                <TextBodySm color={ColorNeutral.neutral500}>
+                  Pilih menu dan tambah item ke keranjang
+                </TextBodySm>
               </View>
-            }
-          />
+            </View>
+
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                activeOpacity={0.78}
+                onPress={openScanner}
+                style={styles.headerAction}
+              >
+                <Ionicons
+                  name="scan-outline"
+                  size={18}
+                  color={ColorPrimary.primary700}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.78}
+                onPress={openHeldOrders}
+                style={styles.headerAction}
+              >
+                <Ionicons
+                  name="pause-circle-outline"
+                  size={18}
+                  color={ColorPrimary.primary700}
+                />
+                {heldOrdersCount > 0 ? <View style={styles.actionDot} /> : null}
+              </TouchableOpacity>
+            </View>
+          </View>
 
           <View style={styles.catalogScroll}>
             {hasMeasuredCatalogPanel ? (
@@ -80,7 +111,7 @@ export function TransactionEntryTabletScreen() {
         <View style={styles.divider} />
 
         <View style={styles.cartPanel}>
-          <CartPanel />
+          <CartPanel compact />
         </View>
       </View>
 
@@ -97,33 +128,82 @@ export function TransactionEntryTabletScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ColorSurface.canvas,
+    backgroundColor: "#F2F5F1",
   },
   splitLayout: {
     flex: 1,
     flexDirection: "row",
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 16,
-    gap: 14,
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 14,
+    gap: 12,
   },
   catalogPanel: {
     flex: 0.65,
-    backgroundColor: ColorBase.white,
-    borderRadius: 26,
+    backgroundColor: "#FBFCFA",
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: ColorSurface.border,
+    borderColor: "rgba(36, 84, 62, 0.12)",
     overflow: "hidden",
     shadowColor: ColorSurface.shadow,
-    shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.06,
+    shadowRadius: 20,
+    elevation: 3,
+  },
+  catalogHeader: {
+    minHeight: 72,
+    paddingHorizontal: 18,
+    paddingTop: 14,
+    paddingBottom: 12,
+    backgroundColor: "#FBFCFA",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(31, 41, 55, 0.06)",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  titleBlock: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  sectionMarker: {
+    width: 4,
+    height: 38,
+    borderRadius: 999,
+    backgroundColor: ColorPrimary.primary600,
+  },
+  headerActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  headerAction: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: ColorBase.white,
+    borderWidth: 1,
+    borderColor: "rgba(36, 84, 62, 0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionDot: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 7,
+    height: 7,
+    borderRadius: 999,
+    backgroundColor: "#D92D20",
   },
   catalogScroll: {
     flex: 1,
     minHeight: 0,
-    backgroundColor: ColorBase.white,
+    backgroundColor: "#FBFCFA",
   },
   divider: {
     width: 1,
@@ -132,14 +212,14 @@ const styles = StyleSheet.create({
   cartPanel: {
     flex: 0.35,
     backgroundColor: ColorBase.white,
-    borderRadius: 26,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: ColorSurface.border,
+    borderColor: "rgba(36, 84, 62, 0.12)",
     overflow: "hidden",
     shadowColor: ColorSurface.shadow,
-    shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.06,
+    shadowRadius: 20,
+    elevation: 3,
   },
 });

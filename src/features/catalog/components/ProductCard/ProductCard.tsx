@@ -32,6 +32,13 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 2,
   },
+  cardCompact: {
+    borderColor: "rgba(31, 41, 55, 0.08)",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 1,
+  },
   cardEmpty: {
     opacity: 0.85,
   },
@@ -78,6 +85,11 @@ const styles = StyleSheet.create({
   addButtonEnabled: {
     backgroundColor: ColorPrimary.primary600,
   },
+  addButtonCompact: {
+    backgroundColor: ColorPrimary.primary50,
+    borderWidth: 1,
+    borderColor: ColorPrimary.primary100,
+  },
   addButtonDisabled: {
     backgroundColor: ColorNeutral.neutral200,
   },
@@ -111,6 +123,7 @@ export const ProductCard = React.memo(function ProductCard({
     () => [
       styles.card,
       { width, borderRadius: compact ? 10 : 14 },
+      compact && styles.cardCompact,
       isEmpty && styles.cardEmpty,
       isInactive && styles.cardInactive,
       style,
@@ -131,7 +144,11 @@ export const ProductCard = React.memo(function ProductCard({
     () => [
       styles.addButton,
       compact && { width: 28, height: 28, borderRadius: 14 },
-      isDisabled ? styles.addButtonDisabled : styles.addButtonEnabled,
+      isDisabled
+        ? styles.addButtonDisabled
+        : compact
+          ? styles.addButtonCompact
+          : styles.addButtonEnabled,
     ],
     [compact, isDisabled],
   );
@@ -201,7 +218,7 @@ export const ProductCard = React.memo(function ProductCard({
           numberOfLines={compact ? 1 : 2}
           fontSize={compact ? 12 : undefined}
           lineHeight={compact ? 16 : 20}
-          color={isDisabled ? "$colorTertiary" : "$color"}
+          color={isDisabled ? "$colorTertiary" : ColorNeutral.neutral900}
         >
           {name}
         </TextBodyLg>
@@ -211,7 +228,7 @@ export const ProductCard = React.memo(function ProductCard({
             fontWeight="700"
             fontSize={compact ? 11 : undefined}
             lineHeight={compact ? 14 : undefined}
-            color={isDisabled ? "$colorTertiary" : "$primary"}
+            color={isDisabled ? "$colorTertiary" : ColorPrimary.primary700}
           >
             {formatPrice(basePrice)}
           </TextBodySm>
@@ -227,7 +244,13 @@ export const ProductCard = React.memo(function ProductCard({
             <Ionicons
               name="add"
               size={compact ? 17 : 20}
-              color={isDisabled ? ColorNeutral.neutral400 : ColorBase.white}
+              color={
+                isDisabled
+                  ? ColorNeutral.neutral400
+                  : compact
+                    ? ColorPrimary.primary700
+                    : ColorBase.white
+              }
             />
           </Pressable>
         </XStack>

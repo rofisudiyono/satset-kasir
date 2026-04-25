@@ -228,9 +228,9 @@ export function TopNavHeader() {
   return (
     <View style={styles.wrapper}>
       <LinearGradient
-        colors={[ColorPrimary.primary700, ColorPrimary.primary900]}
+        colors={["#1F5E46", ColorPrimary.primary900]}
         start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
+        end={{ x: 1, y: 1 }}
         style={styles.gradientBg}
       />
       <SafeAreaView edges={["top"]} style={styles.safeArea}>
@@ -306,26 +306,29 @@ export function TopNavHeader() {
                 <IconButton
                   iconName="notifications-outline"
                   shape="square"
-                  size={42}
+                  size={38}
+                  iconSize={18}
                   iconColor={ColorBase.white}
-                  bg={ADMIN_HEADER_SURFACE}
+                  bg="rgba(255,255,255,0.12)"
                 />
                 <View style={styles.alertDot} />
               </View>
               <IconButton
                 iconName="bluetooth-outline"
                 shape="square"
-                size={42}
+                size={38}
+                iconSize={18}
                 iconColor={ColorBase.white}
-                bg={ADMIN_HEADER_SURFACE}
+                bg="rgba(255,255,255,0.12)"
                 onPress={() => router.push("/bluetooth-printer" as never)}
               />
               <IconButton
                 iconName="person-outline"
                 shape="square"
-                size={42}
+                size={38}
+                iconSize={18}
                 iconColor={ColorBase.white}
-                bg={ADMIN_HEADER_SURFACE}
+                bg="rgba(255,255,255,0.12)"
                 onPress={() => setStaffDetailVisible(true)}
               />
             </View>
@@ -575,57 +578,59 @@ const styles = StyleSheet.create({
     width: "100%",
     alignSelf: "center",
     backgroundColor: "transparent",
-    borderBottomWidth: 1,
-    borderBottomColor: ADMIN_HEADER_BORDER,
+    paddingHorizontal: 14,
+    paddingBottom: 12,
   },
   topRow: {
     alignItems: "center",
     justifyContent: "space-between",
     flexWrap: "wrap",
-    paddingHorizontal: 18,
-    paddingTop: 10,
-    paddingBottom: 14,
-    gap: 16,
+    paddingHorizontal: 0,
+    paddingTop: 8,
+    paddingBottom: 10,
+    gap: 14,
   },
   brandIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: "rgba(255,255,255,0.16)",
     borderWidth: 1,
-    borderColor: "rgba(238,244,239,0.28)",
+    borderColor: "rgba(255,255,255,0.22)",
     overflow: "hidden",
   },
   brandLogo: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
   },
   shiftPill: {
-    minWidth: 174,
-    height: 42,
+    minWidth: 166,
+    height: 38,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
     paddingHorizontal: 14,
-    borderRadius: 14,
-    backgroundColor: ADMIN_HEADER_SURFACE,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.12)",
     borderWidth: 1,
-    borderColor: ADMIN_HEADER_BORDER,
+    borderColor: "rgba(255,255,255,0.18)",
   },
   primaryAction: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 14,
+    height: 38,
+    paddingHorizontal: 14,
+    borderRadius: 12,
   },
   primaryActionNeutral: {
-    backgroundColor: ColorPrimary.primary700,
+    backgroundColor: "rgba(255,255,255,0.16)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
   },
   primaryActionDanger: {
     backgroundColor: ColorDanger.danger600,
@@ -633,67 +638,72 @@ const styles = StyleSheet.create({
   actionGroup: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
   },
   alertDot: {
     position: "absolute",
-    top: -2,
-    right: -2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    top: -1,
+    right: -1,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: ColorDanger.danger600,
     borderWidth: 2,
     borderColor: ADMIN_HEADER_BG,
   },
   navRow: {
-    gap: 10,
+    gap: 8,
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-    paddingTop: 2,
-    backgroundColor: "transparent",
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)",
+    borderRadius: 18,
   },
   navChip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: ADMIN_HEADER_SURFACE,
+    gap: 7,
+    minHeight: 38,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 12,
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: ADMIN_HEADER_BORDER,
+    borderColor: "transparent",
   },
   navChipActive: {
-    backgroundColor: ColorPrimary.primary600,
-    borderColor: "rgba(238,244,239,0.34)",
+    backgroundColor: "rgba(255,255,255,0.18)",
+    borderColor: "rgba(255,255,255,0.24)",
   },
   readyChip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: ADMIN_HEADER_SURFACE,
+    gap: 7,
+    minHeight: 38,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 12,
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: ADMIN_HEADER_BORDER,
+    borderColor: "transparent",
   },
   readyChipActive: {
-    backgroundColor: "rgba(216, 233, 230, 0.14)",
-    borderColor: "rgba(216, 233, 230, 0.32)",
+    backgroundColor: "rgba(255,255,255,0.14)",
+    borderColor: "rgba(255,255,255,0.2)",
   },
   refreshChip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: ColorPrimary.primary700,
+    gap: 7,
+    minHeight: 38,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.16)",
     borderWidth: 1,
-    borderColor: "rgba(238,244,239,0.34)",
+    borderColor: "rgba(255,255,255,0.22)",
   },
   refreshChipDisabled: {
     opacity: 0.72,
@@ -701,13 +711,14 @@ const styles = StyleSheet.create({
   comingSoonChip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: ADMIN_HEADER_SURFACE,
+    gap: 7,
+    minHeight: 38,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 12,
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: ADMIN_HEADER_BORDER,
+    borderColor: "transparent",
   },
   // Modal / Staff popup
   modalOverlay: {

@@ -3,6 +3,7 @@ import {
   FlatList,
   ListRenderItem,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   useWindowDimensions,
@@ -13,6 +14,8 @@ import { FilterChip } from "@/components";
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/config/categoryStyles";
 import { categoryFilters } from "@/features/catalog/api/category.data";
 import { ProductCard } from "@/features/catalog/components/ProductCard";
+import { TextBodySm } from "@/components/atoms/Typography";
+import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
 import type { CatalogProduct, CategoryFilter } from "@/types";
 
 import { SearchBar } from "./SearchBar";
@@ -110,15 +113,40 @@ export function ProductGrid({
         />
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <XStack gap="$2">
-            {categoryFilters.map((c) => (
-              <FilterChip
-                key={c}
-                label={c}
-                active={categoryFilter === c}
-                onPress={() => onCategoryChange(c)}
-                paddingH={14}
-              />
-            ))}
+            {categoryFilters.map((c) => {
+              const active = categoryFilter === c;
+              if (!compact) {
+                return (
+                  <FilterChip
+                    key={c}
+                    label={c}
+                    active={active}
+                    onPress={() => onCategoryChange(c)}
+                    paddingH={14}
+                  />
+                );
+              }
+
+              return (
+                <Pressable
+                  key={c}
+                  onPress={() => onCategoryChange(c)}
+                  style={[
+                    styles.compactChip,
+                    active && styles.compactChipActive,
+                  ]}
+                >
+                  <TextBodySm
+                    fontWeight="800"
+                    fontSize={12}
+                    lineHeight={14}
+                    color={active ? ColorBase.white : ColorNeutral.neutral600}
+                  >
+                    {c}
+                  </TextBodySm>
+                </Pressable>
+              );
+            })}
           </XStack>
         </ScrollView>
       </YStack>
@@ -159,4 +187,18 @@ const styles = StyleSheet.create({
   },
   listContent: {},
   columnRow: {},
+  compactChip: {
+    height: 32,
+    paddingHorizontal: 13,
+    borderRadius: 999,
+    backgroundColor: ColorBase.white,
+    borderWidth: 1,
+    borderColor: "rgba(31, 41, 55, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  compactChipActive: {
+    backgroundColor: ColorPrimary.primary600,
+    borderColor: ColorPrimary.primary600,
+  },
 });
