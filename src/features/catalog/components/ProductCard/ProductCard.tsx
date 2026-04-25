@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardCompact: {
-    borderColor: "rgba(31, 41, 55, 0.08)",
+    borderColor: "rgba(65, 184, 58, 0.14)",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
     shadowRadius: 10,
@@ -86,9 +86,9 @@ const styles = StyleSheet.create({
     backgroundColor: ColorPrimary.primary600,
   },
   addButtonCompact: {
-    backgroundColor: ColorPrimary.primary50,
+    backgroundColor: "#F1FCE5",
     borderWidth: 1,
-    borderColor: ColorPrimary.primary100,
+    borderColor: "rgba(65, 184, 58, 0.22)",
   },
   addButtonDisabled: {
     backgroundColor: ColorNeutral.neutral200,
@@ -228,7 +228,7 @@ export const ProductCard = React.memo(function ProductCard({
             fontWeight="700"
             fontSize={compact ? 11 : undefined}
             lineHeight={compact ? 14 : undefined}
-            color={isDisabled ? "$colorTertiary" : ColorPrimary.primary700}
+            color={isDisabled ? "$colorTertiary" : "#08745F"}
           >
             {formatPrice(basePrice)}
           </TextBodySm>
@@ -248,7 +248,7 @@ export const ProductCard = React.memo(function ProductCard({
                 isDisabled
                   ? ColorNeutral.neutral400
                   : compact
-                    ? ColorPrimary.primary700
+                    ? "#08745F"
                     : ColorBase.white
               }
             />

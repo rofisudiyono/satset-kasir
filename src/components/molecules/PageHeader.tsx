@@ -4,7 +4,7 @@
  * Replaces the repeated XStack header pattern in Transaksi, Inventori,
  * and Pengaturan pages.
  */
-import { ColorSurface } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { XStack, YStack } from "tamagui";
@@ -83,7 +83,7 @@ export function PageHeader({
 
 const styles = StyleSheet.create({
   shell: {
-    backgroundColor: ColorSurface.canvas,
+    backgroundColor: BrandColors.canvas,
     marginBottom: 4,
   },
   header: {

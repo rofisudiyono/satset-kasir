@@ -20,7 +20,9 @@ export type AppButtonVariant =
   | "primary"
   | "success"
   | "danger"
+  | "dangerDeep"
   | "warning"
+  | "brand"
   | "outline"
   | "outlineGray"
   | "ghost"
@@ -73,9 +75,21 @@ const variantStyles: Record<
     labelColor: ColorBase.white,
     pressOpacity: 0.85,
   },
+  dangerDeep: {
+    bg: "#8B2020",
+    border: "#8B2020",
+    labelColor: ColorBase.white,
+    pressOpacity: 0.85,
+  },
   warning: {
     bg: "$warning",
     border: "$warning",
+    labelColor: ColorBase.white,
+    pressOpacity: 0.85,
+  },
+  brand: {
+    bg: "#4FBF3E",
+    border: "#4FBF3E",
     labelColor: ColorBase.white,
     pressOpacity: 0.85,
   },

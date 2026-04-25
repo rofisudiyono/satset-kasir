@@ -31,12 +31,11 @@ import { getOpenShiftRoute } from "@/lib/routing/device-routes";
 import {
   ColorBase,
   ColorDanger,
-  ColorGreen,
   ColorNeutral,
-  ColorPrimary,
   ColorSuccess,
   ColorWarning,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import { formatPrice } from "@/utils";
 
 export default function TutupShiftPage() {
@@ -178,7 +177,7 @@ export default function TutupShiftPage() {
         >
           <YStack flex={isTablet ? 0.56 : undefined} gap={12}>
             <YStack
-              backgroundColor={ColorPrimary.primary700}
+              backgroundColor={BrandColors.deep}
               borderRadius={16}
               padding={20}
               gap={12}
@@ -216,12 +215,12 @@ export default function TutupShiftPage() {
             </YStack>
 
             <YStack
-              backgroundColor={ColorBase.white}
+              backgroundColor={BrandColors.surface}
               borderRadius={16}
               padding={20}
               gap={10}
               borderWidth={1}
-              borderColor={ColorNeutral.neutral200}
+              borderColor={BrandColors.border}
             >
               <TextH3 fontWeight="700">Rincian Metode Pembayaran</TextH3>
               <XStack justifyContent="space-between">
@@ -241,12 +240,12 @@ export default function TutupShiftPage() {
 
           <YStack flex={isTablet ? 0.44 : undefined} gap={12}>
             <YStack
-              backgroundColor={ColorBase.white}
+              backgroundColor={BrandColors.surface}
               borderRadius={16}
               padding={20}
               gap={12}
               borderWidth={1}
-              borderColor={ColorNeutral.neutral200}
+              borderColor={BrandColors.border}
             >
               <YStack gap={4}>
                 <TextH3 fontWeight="700">Hitung Kas Akhir</TextH3>
@@ -255,7 +254,7 @@ export default function TutupShiftPage() {
                 </TextBodySm>
               </YStack>
               <YStack alignItems="center" paddingVertical={4}>
-                <TextH1 fontWeight="800" color={ColorPrimary.primary600}>
+                <TextH1 fontWeight="800" color={BrandColors.text}>
                   {formatPrice(kasAkhir)}
                 </TextH1>
               </YStack>
@@ -264,12 +263,12 @@ export default function TutupShiftPage() {
             </YStack>
 
             <YStack
-              backgroundColor={ColorBase.white}
+              backgroundColor={BrandColors.surface}
               borderRadius={16}
               padding={20}
               gap={10}
               borderWidth={1}
-              borderColor={ColorNeutral.neutral200}
+              borderColor={BrandColors.border}
             >
             <TextH3 fontWeight="700">Rekonsiliasi Kas</TextH3>
             <XStack justifyContent="space-between">
@@ -280,7 +279,7 @@ export default function TutupShiftPage() {
               <TextBodySm color={ColorNeutral.neutral600}>
                 + Pendapatan Tunai
               </TextBodySm>
-              <TextBodySm fontWeight="600" color={ColorGreen.green600}>
+              <TextBodySm fontWeight="600" color={BrandColors.text}>
                 {formatPrice(salesCash)}
               </TextBodySm>
             </XStack>
@@ -300,7 +299,7 @@ export default function TutupShiftPage() {
               alignItems="center"
               backgroundColor={
                 selisih === 0
-                  ? ColorGreen.green75
+                  ? BrandColors.tintStrong
                   : selisih > 0
                     ? ColorWarning.warning100
                     : ColorDanger.danger25
@@ -322,7 +321,7 @@ export default function TutupShiftPage() {
                   size={18}
                   color={
                     selisih === 0
-                      ? ColorGreen.green600
+                      ? BrandColors.text
                       : selisih > 0
                         ? ColorWarning.warning600
                         : ColorDanger.danger600
@@ -332,7 +331,7 @@ export default function TutupShiftPage() {
                   fontWeight="800"
                   color={
                     selisih === 0
-                      ? ColorGreen.green600
+                      ? BrandColors.text
                       : selisih > 0
                         ? ColorWarning.warning600
                         : ColorDanger.danger600
@@ -360,7 +359,7 @@ export default function TutupShiftPage() {
 
       <BottomBar absolute paddingBottom={28}>
         <AppButton
-          variant="danger"
+          variant="dangerDeep"
           size="lg"
           fullWidth
           disabled={isClosingShift}
@@ -385,7 +384,7 @@ export default function TutupShiftPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: BrandColors.canvas,
   },
   shell: {
     width: "100%",

@@ -13,10 +13,9 @@ import {
 import {
   ColorBase,
   ColorNeutral,
-  ColorPrimary,
   ColorSuccess,
-  ColorWarning,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 import { ShiftCardProps } from "./ShiftCard.types";
 
@@ -30,7 +29,7 @@ export function ShiftCard({
   if (isShiftStarted) {
     return (
       <YStack
-        backgroundColor={ColorPrimary.primary600}
+        backgroundColor={BrandColors.deep}
         borderRadius={16}
         padding="$4"
         gap="$3"
@@ -47,7 +46,7 @@ export function ShiftCard({
           </TextBodyLg>
         </XStack>
 
-        <TextBodySm color={ColorPrimary.primary200}>
+        <TextBodySm color="rgba(240,253,232,0.78)">
           Mulai: {shiftData?.startTime ?? "08:00 WIB"}
         </TextBodySm>
 
@@ -59,7 +58,7 @@ export function ShiftCard({
             padding="$3"
             gap={4}
           >
-            <TextBodySm color={ColorPrimary.primary200}>
+            <TextBodySm color="rgba(240,253,232,0.78)">
               Total Transaksi
             </TextBodySm>
             <TextBodyLg fontWeight="700" color={ColorBase.white}>
@@ -73,7 +72,7 @@ export function ShiftCard({
             padding="$3"
             gap={4}
           >
-            <TextBodySm color={ColorPrimary.primary200}>Pendapatan</TextBodySm>
+            <TextBodySm color="rgba(240,253,232,0.78)">Pendapatan</TextBodySm>
             <TextBodyLg
               fontWeight="700"
               color={ColorBase.white}
@@ -97,7 +96,7 @@ export function ShiftCard({
 
   return (
     <YStack
-      backgroundColor={ColorPrimary.primary600}
+      backgroundColor={BrandColors.deep}
       borderRadius={16}
       padding="$4"
       gap="$3"
@@ -126,7 +125,7 @@ export function ShiftCard({
         </YStack>
       </XStack>
 
-      <TextBodySm color={ColorPrimary.primary200}>
+      <TextBodySm color="rgba(240,253,232,0.78)">
         Siapkan modal awal dan cek perangkat kasir sebelum mulai menerima
         transaksi.
       </TextBodySm>
@@ -139,7 +138,7 @@ export function ShiftCard({
           padding="$3"
           gap={4}
         >
-          <TextBodySm color={ColorPrimary.primary200}>Jadwal Shift</TextBodySm>
+          <TextBodySm color="rgba(240,253,232,0.78)">Jadwal Shift</TextBodySm>
           <TextBodyLg fontWeight="700" color={ColorBase.white}>
             08:00 WIB
           </TextBodyLg>
@@ -151,7 +150,7 @@ export function ShiftCard({
           padding="$3"
           gap={4}
         >
-          <TextBodySm color={ColorPrimary.primary200}>
+          <TextBodySm color="rgba(240,253,232,0.78)">
             Kasir Bertugas
           </TextBodySm>
           <TextBodyLg
@@ -176,14 +175,14 @@ export function ShiftCard({
           <Ionicons
             name="card-outline"
             size={18}
-            color={ColorWarning.warning400}
+            color={BrandColors.lime}
             style={{ marginTop: 1 }}
           />
           <YStack flex={1} gap={2}>
             <TextBodySm fontWeight="600" color={ColorBase.white}>
               Modal awal direkomendasikan Rp 500.000
             </TextBodySm>
-            <TextCaption color={ColorPrimary.primary200}>
+            <TextCaption color="rgba(240,253,232,0.78)">
               Jumlah ini akan dipakai sebagai saldo awal laci kasir saat shift
               dibuka.
             </TextCaption>
@@ -192,7 +191,7 @@ export function ShiftCard({
       </YStack>
 
       <AppButton
-        variant="success"
+        variant="brand"
         size="lg"
         fullWidth
         title="Mulai Shift Sekarang"

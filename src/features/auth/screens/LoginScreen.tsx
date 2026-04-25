@@ -6,12 +6,14 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { XStack, YStack } from "tamagui";
 
 import {
@@ -37,14 +39,19 @@ import { kasirKeys } from "@/hooks/api/query-keys";
 import { queryClient } from "@/providers/query-client";
 import {
   ColorBase,
-  ColorGreen,
   ColorNeutral,
-  ColorPrimary,
-  ColorTeal,
-  ColorWarning,
 } from "@/themes/Colors";
 
 const KASIR_ROLES = new Set(["kasir", "admin_coffee"]);
+const BRAND_DEEP = "#075F55";
+const BRAND_GREEN = "#4FBF3E";
+const BRAND_MID = "#13985B";
+const BRAND_LIME = "#8FCF50";  // softer than neon #BFEA3A
+const BRAND_CANVAS = "#F4F8F1";
+const BRAND_SURFACE = "#FDFFFA";
+const BRAND_TINT = "#F3FCEB";
+const BRAND_TEXT = "#08745F";
+const BRAND_BORDER = "rgba(65, 184, 58, 0.16)";
 
 type LoginScreenVariant = "mobile" | "tablet";
 
@@ -117,7 +124,12 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
     return (
       <View style={{ flex: 1 }}>
         <SafeAreaView style={styles.tabletScreen} edges={["top", "bottom"]}>
-          <View style={styles.brandPanel}>
+          <LinearGradient
+            colors={[BRAND_GREEN, BRAND_MID, BRAND_DEEP]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.brandPanel}
+          >
             <View style={styles.decorCircle1} />
             <View style={styles.decorCircle2} />
             <View style={styles.decorCircle3} />
@@ -128,81 +140,82 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
               padding={isLargeTablet ? 48 : 36}
               gap="$6"
             >
-              <YStack
-                width={68}
-                height={68}
-                borderRadius={18}
-                backgroundColor="rgba(255,255,255,0.12)"
-                alignItems="center"
-                justifyContent="center"
-                borderWidth={1.5}
-                borderColor="rgba(255,255,255,0.25)"
-              >
-                <Ionicons
-                  name="storefront-outline"
-                  size={34}
-                  color={ColorBase.white}
-                />
-              </YStack>
+              <XStack alignItems="center" gap="$3">
+                <View style={styles.tabletLogoFrame}>
+                  <Image
+                    source={require("../../../../assets/images/satset_1024.png")}
+                    style={styles.tabletLogo}
+                    resizeMode="contain"
+                  />
+                </View>
+                <YStack gap={2}>
+                  <TextH2 color={ColorBase.white} fontWeight="900">
+                    SATSET
+                  </TextH2>
+                  <TextCaption color={BRAND_LIME} fontWeight="700">
+                    Akselerasi Bisnis Tanpa Batas
+                  </TextCaption>
+                </YStack>
+              </XStack>
 
               <YStack gap="$2">
                 <TextH1 color={ColorBase.white} fontWeight="700" lineHeight={32}>
-                  Kasir Toko{"\n"}Makmur
+                  Satset POS{"\n"}Kasir
                 </TextH1>
-                <TextBodyLg color="rgba(255,255,255,0.65)" lineHeight={22}>
-                  Sistem kasir pintar untuk operasional toko yang efisien dan
-                  akurat.
+                <TextBodyLg color="rgba(240,253,232,0.72)" lineHeight={22}>
+                  Kelola transaksi outlet dengan cepat dan efisien. Satset POS
+                  membantu shift, pesanan, dan pembayaran tetap real-time.
                 </TextBodyLg>
               </YStack>
 
               <YStack gap="$3" marginTop="$2">
                 <XStack
-                  backgroundColor="rgba(255,255,255,0.08)"
+                  backgroundColor="rgba(240,253,232,0.12)"
                   borderRadius="$4"
                   padding="$3"
                   gap="$3"
                   alignItems="center"
                   borderWidth={1}
-                  borderColor="rgba(255,255,255,0.12)"
+                  borderColor="rgba(218,247,166,0.22)"
                 >
                   <YStack
                     width={38}
                     height={38}
                     borderRadius={19}
-                    backgroundColor="rgba(255,255,255,0.12)"
+                    backgroundColor="rgba(240,253,232,0.16)"
                     alignItems="center"
                     justifyContent="center"
                   >
                     <Ionicons
                       name="sunny-outline"
                       size={18}
-                      color={ColorWarning.warning400}
+                      color={BRAND_LIME}
                     />
                   </YStack>
                   <YStack flex={1} gap={2}>
                     <TextBodySm fontWeight="700" color={ColorBase.white}>
                       Buka shift
                     </TextBodySm>
-                    <TextCaption color="rgba(255,255,255,0.6)" lineHeight={16}>
-                      Masuk untuk mulai shift dan catat modal awal kas.
+                    <TextCaption color="rgba(240,253,232,0.68)" lineHeight={16}>
+                      Login untuk mulai shift dan catat modal awal kas.
                     </TextCaption>
                   </YStack>
                 </XStack>
 
                 <XStack
-                  backgroundColor="rgba(255,255,255,0.08)"
+                  backgroundColor="rgba(240,253,232,0.12)"
                   borderRadius="$4"
                   padding="$3"
                   gap="$3"
                   alignItems="center"
                   borderWidth={1}
-                  borderColor="rgba(255,255,255,0.12)"
+                  borderColor="rgba(218,247,166,0.22)"
                 >
                   <YStack
                     width={38}
                     height={38}
                     borderRadius={19}
-                    backgroundColor="rgba(255,255,255,0.12)"
+                    backgroundColor="rgba(240,253,232,0.16)"
                     alignItems="center"
                     justifyContent="center"
                   >
@@ -216,7 +229,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                     <TextBodySm fontWeight="700" color={ColorBase.white}>
                       Butuh bantuan?
                     </TextBodySm>
-                    <TextCaption color="rgba(255,255,255,0.6)" lineHeight={16}>
+                    <TextCaption color="rgba(240,253,232,0.68)" lineHeight={16}>
                       Hubungi supervisor jika akun tidak bisa diakses.
                     </TextCaption>
                   </YStack>
@@ -225,11 +238,11 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
             </YStack>
 
             <YStack padding={isLargeTablet ? 48 : 36} paddingTop={0}>
-              <TextCaption color="rgba(255,255,255,0.3)">
-                © 2025 Kasirin Aja
+              <TextCaption color="rgba(240,253,232,0.38)">
+                Est. 2026 • Modern POS Ecosystem
               </TextCaption>
             </YStack>
-          </View>
+          </LinearGradient>
 
           <KeyboardAvoidingView
             style={styles.formPanelWrapper}
@@ -250,26 +263,26 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                 gap="$5"
               >
                 <XStack
-                  backgroundColor={ColorGreen.green50}
+                  backgroundColor={BRAND_TINT}
                   borderRadius="$4"
                   padding="$3"
                   alignItems="center"
                   gap="$3"
                   borderWidth={1}
-                  borderColor={ColorGreen.green100}
+                  borderColor={BRAND_BORDER}
                 >
                   <YStack
                     width={38}
                     height={38}
                     borderRadius={19}
-                    backgroundColor={ColorGreen.green100}
+                    backgroundColor="#E7F8D8"
                     alignItems="center"
                     justifyContent="center"
                   >
                     <Ionicons
                       name="person-outline"
                       size={18}
-                      color={ColorGreen.green600}
+                      color={BRAND_TEXT}
                     />
                   </YStack>
                   <YStack flex={1}>
@@ -284,10 +297,10 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                 </XStack>
 
                 <YStack gap="$1.5">
-                  <TextH2 fontWeight="700">Masuk ke akun kasir</TextH2>
+                  <TextH2 fontWeight="700">Login Satset POS Kasir</TextH2>
                   <TextBodySm color="$colorSecondary" lineHeight={20}>
-                    Gunakan akun yang sudah terdaftar untuk membuka shift dan
-                    memproses transaksi pelanggan.
+                    Login untuk mengelola transaksi outlet Satset dan membuka
+                    shift kasir.
                   </TextBodySm>
                 </YStack>
 
@@ -345,10 +358,10 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                       height={20}
                       borderRadius={4}
                       backgroundColor={
-                        rememberMe ? "$primary" : ColorBase.transparent
+                        rememberMe ? BRAND_GREEN : ColorBase.transparent
                       }
                       borderWidth={2}
-                      borderColor={rememberMe ? "$primary" : "$borderColor"}
+                      borderColor={rememberMe ? BRAND_GREEN : "$borderColor"}
                       alignItems="center"
                       justifyContent="center"
                     >
@@ -361,7 +374,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                     </TextBodySm>
                   </TouchableOpacity>
                   <TouchableOpacity>
-                    <TextBodySm fontWeight="600" color="$primary">
+                    <TextBodySm fontWeight="600" color={BRAND_TEXT}>
                       Lupa password?
                     </TextBodySm>
                   </TouchableOpacity>
@@ -369,7 +382,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
 
                 <AppButton
                   onPress={() => void handleLogin()}
-                  variant="primary"
+                  variant="brand"
                   size="lg"
                   fullWidth
                   disabled={isLoginPending}
@@ -435,21 +448,23 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
               width={56}
               height={56}
               borderRadius="$4"
-              backgroundColor={ColorTeal.teal700}
+              backgroundColor={BRAND_SURFACE}
               alignItems="center"
               justifyContent="center"
+              borderWidth={1}
+              borderColor={BRAND_BORDER}
             >
-              <Ionicons
-                name="storefront-outline"
-                size={28}
-                color={ColorBase.white}
+              <Image
+                source={require("../../../../assets/images/satset_1024.png")}
+                style={styles.mobileLogo}
+                resizeMode="contain"
               />
             </YStack>
             <TextH3 fontWeight="700" marginTop="$2">
-              Kasir Toko Makmur
+              Satset POS Kasir
             </TextH3>
             <TextBodySm color="$colorSecondary">
-              Masuk untuk mulai transaksi hari ini
+              Login untuk mulai transaksi Satset hari ini
             </TextBodySm>
           </YStack>
 
@@ -469,10 +484,10 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
               shadowOffset={{ width: 0, height: 4 }}
               elevation={3}
               borderWidth={1}
-              borderColor={ColorNeutral.neutral100}
+              borderColor={BRAND_BORDER}
             >
               <XStack
-                backgroundColor={ColorNeutral.neutral50}
+                backgroundColor={BRAND_TINT}
                 borderRadius="$4"
                 padding="$3"
                 alignItems="center"
@@ -482,14 +497,14 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                   width={36}
                   height={36}
                   borderRadius={18}
-                  backgroundColor={ColorGreen.green100}
+                  backgroundColor="#E7F8D8"
                   alignItems="center"
                   justifyContent="center"
                 >
                   <Ionicons
                     name="person-outline"
                     size={18}
-                    color={ColorGreen.green600}
+                    color={BRAND_TEXT}
                   />
                 </YStack>
                 <YStack flex={1}>
@@ -504,10 +519,10 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
               </XStack>
 
               <YStack gap="$1">
-                <TextH3 fontWeight="700">Masuk ke akun kasir</TextH3>
+                <TextH3 fontWeight="700">Login Satset POS Kasir</TextH3>
                 <TextBodySm color="$colorSecondary" lineHeight={18}>
-                  Gunakan akun yang sudah terdaftar untuk membuka shift dan
-                  memproses transaksi pelanggan.
+                  Login untuk mengelola transaksi outlet Satset dan membuka
+                  shift kasir.
                 </TextBodySm>
               </YStack>
 
@@ -565,10 +580,10 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                     height={20}
                     borderRadius={4}
                     backgroundColor={
-                      rememberMe ? "$primary" : ColorBase.transparent
+                      rememberMe ? BRAND_GREEN : ColorBase.transparent
                     }
                     borderWidth={2}
-                    borderColor={rememberMe ? "$primary" : "$borderColor"}
+                    borderColor={rememberMe ? BRAND_GREEN : "$borderColor"}
                     alignItems="center"
                     justifyContent="center"
                   >
@@ -581,7 +596,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                   </TextBodySm>
                 </TouchableOpacity>
                 <TouchableOpacity>
-                  <TextBodySm fontWeight="600" color="$primary">
+                  <TextBodySm fontWeight="600" color={BRAND_TEXT}>
                     Lupa password?
                   </TextBodySm>
                 </TouchableOpacity>
@@ -589,7 +604,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
 
               <AppButton
                 onPress={() => void handleLogin()}
-                variant="primary"
+                variant="brand"
                 size="lg"
                 fullWidth
                 disabled={isLoginPending}
@@ -653,7 +668,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                 <Ionicons
                   name="sunny-outline"
                   size={20}
-                  color={ColorWarning.warning500}
+                  color={BRAND_LIME}
                 />
                 <TextBodySm fontWeight="600" textAlign="center">
                   Buka Shift
@@ -678,21 +693,21 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: BRAND_CANVAS,
   },
   tabletScreen: {
     flex: 1,
     flexDirection: "row",
-    backgroundColor: ColorBase.white,
+    backgroundColor: BRAND_SURFACE,
   },
   brandPanel: {
     flex: 1,
-    backgroundColor: ColorPrimary.primary700,
+    backgroundColor: BRAND_DEEP,
     overflow: "hidden",
   },
   formPanelWrapper: {
     flex: 1,
-    backgroundColor: ColorBase.white,
+    backgroundColor: BRAND_SURFACE,
   },
   formPanelScroll: {
     flexGrow: 1,
@@ -705,12 +720,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 999,
   },
+  tabletLogoFrame: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    backgroundColor: "rgba(253,255,250,0.92)",
+    borderWidth: 1,
+    borderColor: "rgba(218,247,166,0.34)",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  tabletLogo: {
+    width: 62,
+    height: 62,
+  },
+  mobileLogo: {
+    width: 46,
+    height: 46,
+  },
   decorCircle1: {
     position: "absolute",
     width: 260,
     height: 260,
     borderRadius: 130,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: "rgba(218,247,166,0.12)",
     top: -70,
     right: -50,
   },
@@ -719,7 +753,7 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "rgba(240,253,232,0.1)",
     bottom: 80,
     left: -40,
   },
@@ -728,7 +762,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "rgba(218,247,166,0.1)",
     bottom: -10,
     right: 90,
   },

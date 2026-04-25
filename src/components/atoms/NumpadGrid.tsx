@@ -1,7 +1,8 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 
-import { ColorDanger, ColorPrimary, ColorSky } from "@/themes/Colors";
+import { ColorDanger } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 import { NumpadButton } from "./NumpadButton/index";
 
@@ -45,8 +46,8 @@ export function NumpadGrid({
               <NumpadButton
                 key="000"
                 label="000"
-                bgColor={ColorSky.indigo50}
-                textColor={ColorPrimary.primary600}
+                bgColor={BrandColors.tint}
+                textColor={BrandColors.text}
                 onPress={() => onPress("000")}
                 compact={compact}
               />

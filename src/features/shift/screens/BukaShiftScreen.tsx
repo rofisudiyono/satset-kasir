@@ -27,12 +27,10 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth";
 import { getHomeRoute } from "@/lib/routing/device-routes";
 import {
-  ColorBase,
   ColorNeutral,
-  ColorPrimary,
   ColorSuccess,
-  ColorWarning,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import { formatPrice } from "@/utils";
 import type { ShiftSlot } from "@/types";
 
@@ -187,11 +185,11 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
                       <Ionicons
                         name={slot === "MALAM" ? "moon-outline" : "sunny-outline"}
                         size={14}
-                        color={ColorPrimary.primary700}
+                        color={BrandColors.text}
                       />
                       <TextCaption
                         fontWeight="700"
-                        color={ColorPrimary.primary700}
+                        color={BrandColors.text}
                       >
                         {slotLabel}
                       </TextCaption>
@@ -204,14 +202,14 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
                         width={isTablet ? 64 : 72}
                         height={isTablet ? 64 : 72}
                         borderRadius={999}
-                        backgroundColor={ColorWarning.warning100}
+                        backgroundColor={BrandColors.tintStrong}
                         alignItems="center"
                         justifyContent="center"
                       >
                         <Ionicons
                           name="sunny-outline"
                           size={isTablet ? 26 : 30}
-                          color={ColorWarning.warning600}
+                          color={BrandColors.green}
                         />
                       </YStack>
                     </YStack>
@@ -222,7 +220,7 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
                       </TextH1>
                       <TextH3
                         fontWeight="700"
-                        color={ColorPrimary.primary700}
+                        color={BrandColors.text}
                         numberOfLines={1}
                       >
                         {cashierLabel}
@@ -289,7 +287,7 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
                   <TextCaption color={ColorNeutral.neutral500}>Modal target</TextCaption>
                   <TextH3
                     fontWeight="800"
-                    color={ColorPrimary.primary700}
+                    color={BrandColors.text}
                     numberOfLines={1}
                     marginTop={6}
                   >
@@ -322,7 +320,7 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
                   <TextCaption color={ColorNeutral.neutral500}>
                     Modal saat ini
                   </TextCaption>
-                  <TextH1 fontWeight="800" color={ColorPrimary.primary600}>
+                  <TextH1 fontWeight="800" color={BrandColors.green}>
                     {formatPrice(amount)}
                   </TextH1>
                 </YStack>
@@ -349,13 +347,13 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
                           name={s.icon}
                           size={15}
                           color={
-                            active ? ColorBase.white : ColorNeutral.neutral600
+                            active ? BrandColors.surface : ColorNeutral.neutral600
                           }
                           style={{ marginRight: 6 }}
                         />
                         <TextBodySm
                           fontWeight="700"
-                          color={active ? ColorBase.white : ColorNeutral.neutral700}
+                          color={active ? BrandColors.surface : ColorNeutral.neutral700}
                         >
                           {s.label}
                         </TextBodySm>
@@ -382,7 +380,7 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
                         fontWeight="600"
                         color={
                           amount === preset
-                            ? ColorBase.white
+                            ? BrandColors.surface
                             : ColorNeutral.neutral700
                         }
                       >
@@ -408,7 +406,7 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
               {isTablet ? (
                 <YStack gap={6} paddingTop="$2">
                   <AppButton
-                    variant="success"
+                    variant="brand"
                     size="lg"
                     fullWidth
                     disabled={isOpeningShift}
@@ -417,7 +415,7 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
                       <Ionicons
                         name="sunny-outline"
                         size={18}
-                        color={ColorBase.white}
+                        color={BrandColors.surface}
                       />
                     }
                     onPress={() => void handleMulaiShift()}
@@ -451,13 +449,13 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
       {!isTablet ? (
         <BottomBar paddingBottom={18}>
           <AppButton
-            variant="success"
+            variant="brand"
             size="lg"
             fullWidth
             disabled={isOpeningShift}
             title={isOpeningShift ? "Memproses…" : "Mulai Shift Sekarang"}
             icon={
-              <Ionicons name="sunny-outline" size={18} color={ColorBase.white} />
+              <Ionicons name="sunny-outline" size={18} color={BrandColors.surface} />
             }
             onPress={() => void handleMulaiShift()}
           />
@@ -477,7 +475,7 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: BrandColors.canvas,
   },
   shell: {
     width: "100%",
@@ -486,11 +484,11 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
   },
   heroCard: {
-    backgroundColor: ColorBase.white,
+    backgroundColor: BrandColors.surface,
     borderRadius: 24,
     padding: 18,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
+    borderColor: BrandColors.border,
     shadowColor: ColorNeutral.neutralShadow,
     shadowOpacity: 0.08,
     shadowRadius: 18,
@@ -504,11 +502,11 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 28,
-    backgroundColor: ColorPrimary.primary25,
+    backgroundColor: BrandColors.tint,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: ColorPrimary.primary100,
+    borderColor: BrandColors.border,
   },
   heroAside: {
     alignSelf: "stretch",
@@ -522,23 +520,23 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: ColorNeutral.neutral50,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
+    borderColor: BrandColors.border,
   },
   heroInfoCardCompact: {
     minWidth: 140,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 18,
-    backgroundColor: ColorPrimary.primary50,
+    backgroundColor: BrandColors.tint,
     borderWidth: 1,
-    borderColor: ColorPrimary.primary100,
+    borderColor: BrandColors.border,
   },
   metaPill: {
     paddingHorizontal: 10,
     paddingVertical: 7,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
+    borderColor: BrandColors.border,
     backgroundColor: ColorNeutral.neutral100,
   },
   statusChip: {
@@ -560,31 +558,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: ColorPrimary.primary50,
+    backgroundColor: BrandColors.tint,
     borderWidth: 1,
-    borderColor: ColorPrimary.primary100,
+    borderColor: BrandColors.border,
   },
   formCard: {
-    backgroundColor: ColorBase.white,
+    backgroundColor: BrandColors.surface,
     borderRadius: 20,
     padding: 16,
     gap: 14,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
+    borderColor: BrandColors.border,
   },
   formCardTablet: {
     gap: 12,
   },
   numpadCard: {
-    backgroundColor: ColorBase.white,
+    backgroundColor: BrandColors.surface,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
+    borderColor: BrandColors.border,
   },
   numpadDivider: {
     height: 1,
-    backgroundColor: ColorNeutral.neutral200,
+    backgroundColor: BrandColors.border,
     marginVertical: 12,
   },
   presetChip: {
@@ -592,18 +590,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
-    backgroundColor: ColorBase.white,
+    borderColor: BrandColors.border,
+    backgroundColor: BrandColors.surface,
   },
   presetChipActive: {
-    backgroundColor: ColorPrimary.primary600,
-    borderColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.green,
+    borderColor: BrandColors.green,
   },
   noteInput: {
     height: 40,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
+    borderColor: BrandColors.border,
     backgroundColor: ColorNeutral.neutral50,
     paddingHorizontal: 14,
     fontFamily: "System",
@@ -614,9 +612,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 14,
-    backgroundColor: ColorPrimary.primary50,
+    backgroundColor: BrandColors.tint,
     borderWidth: 1,
-    borderColor: ColorPrimary.primary100,
+    borderColor: BrandColors.border,
     minWidth: 210,
   },
   amountSummaryMobile: {
@@ -630,15 +628,15 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
-    backgroundColor: ColorBase.white,
+    borderColor: BrandColors.border,
+    backgroundColor: BrandColors.surface,
   },
   slotChipActive: {
-    backgroundColor: ColorPrimary.primary600,
-    borderColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.green,
+    borderColor: BrandColors.green,
   },
   sectionDivider: {
     height: 1,
-    backgroundColor: ColorNeutral.neutral200,
+    backgroundColor: BrandColors.border,
   },
 });

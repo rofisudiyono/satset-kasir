@@ -5,7 +5,8 @@ import { StyleSheet, View } from "react-native";
 import { TopNavHeader } from "@/components/layout/TopNavHeader";
 import { Colors } from "@/config/theme";
 import { useAuth } from "@/lib/auth";
-import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
+import { ColorNeutral } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 export default function TabletTabsLayout() {
   const { isLoggedIn } = useAuth();
@@ -16,7 +17,7 @@ export default function TabletTabsLayout() {
       tabBarIcon: () => null,
       tabBarLabel: () => null,
       tabBarStyle: { display: "none" as const },
-      tabBarActiveTintColor: ColorPrimary.primary600,
+      tabBarActiveTintColor: BrandColors.green,
       tabBarInactiveTintColor: ColorNeutral.neutral500,
     }),
     [],
@@ -46,6 +47,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: BrandColors.canvas,
   },
 });

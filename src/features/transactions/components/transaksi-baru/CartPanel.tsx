@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     backgroundColor: ColorSurface.surfaceMuted,
   },
   containerCompact: {
-    backgroundColor: "#FBFCFA",
+    backgroundColor: "#FDFFFA",
   },
   header: {
     flexDirection: "row",
@@ -333,8 +333,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 14,
     paddingBottom: 12,
-    backgroundColor: "#FBFCFA",
-    borderBottomColor: "rgba(31, 41, 55, 0.06)",
+    backgroundColor: "#FDFFFA",
+    borderBottomColor: "rgba(65, 184, 58, 0.1)",
   },
   trashBtn: {
     width: 36,
@@ -348,6 +348,6 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 12,
-    backgroundColor: ColorDanger.danger25,
+    backgroundColor: "#FFF1EE",
   },
 });

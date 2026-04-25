@@ -191,14 +191,14 @@ const styles = StyleSheet.create({
     height: 32,
     paddingHorizontal: 13,
     borderRadius: 999,
-    backgroundColor: ColorBase.white,
+    backgroundColor: "#FAFFF6",
     borderWidth: 1,
-    borderColor: "rgba(31, 41, 55, 0.08)",
+    borderColor: "rgba(65, 184, 58, 0.14)",
     alignItems: "center",
     justifyContent: "center",
   },
   compactChipActive: {
-    backgroundColor: ColorPrimary.primary600,
-    borderColor: ColorPrimary.primary600,
+    backgroundColor: "#4FBF3E",
+    borderColor: "#4FBF3E",
   },
 });

@@ -2,7 +2,7 @@ import React from "react";
 import { YStack } from "tamagui";
 
 import { TextBodyLg, TextBodySm } from "@/components";
-import { ColorBase, ColorPrimary } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 interface ShiftInfoBoxProps {
   label: string;
@@ -22,10 +22,10 @@ export function ShiftInfoBox({ label, value, valueColor }: ShiftInfoBoxProps) {
       padding={12}
       gap={4}
     >
-      <TextBodySm color={ColorPrimary.primary200}>{label}</TextBodySm>
+      <TextBodySm color="rgba(240,253,232,0.78)">{label}</TextBodySm>
       <TextBodyLg
         fontWeight="700"
-        color={(valueColor as string) ?? ColorBase.white}
+        color={(valueColor as string) ?? BrandColors.surface}
         numberOfLines={1}
       >
         {value}

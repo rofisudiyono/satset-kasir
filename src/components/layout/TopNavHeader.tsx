@@ -55,11 +55,9 @@ type NavItem = {
 
 type RefreshTarget = "web-orders" | "input-manual" | "history" | "ready-orders";
 
-const ADMIN_HEADER_BG = ColorPrimary.primary900;
-const ADMIN_HEADER_SURFACE = "rgba(238,244,239,0.1)";
-const ADMIN_HEADER_BORDER = "rgba(238,244,239,0.18)";
-const ADMIN_HEADER_TEXT_SECONDARY = "rgba(247,250,247,0.78)";
-const ADMIN_HEADER_TEXT_MUTED = "rgba(247,250,247,0.54)";
+const ADMIN_HEADER_BG = "#075F55";
+const ADMIN_HEADER_TEXT_SECONDARY = "rgba(240,253,232,0.84)";
+const ADMIN_HEADER_TEXT_MUTED = "rgba(218,247,166,0.64)";
 
 export function TopNavHeader() {
   const router = useRouter();
@@ -228,7 +226,7 @@ export function TopNavHeader() {
   return (
     <View style={styles.wrapper}>
       <LinearGradient
-        colors={["#1F5E46", ColorPrimary.primary900]}
+        colors={["#1A9168", "#0E7A58", ADMIN_HEADER_BG]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientBg}
@@ -309,7 +307,7 @@ export function TopNavHeader() {
                   size={38}
                   iconSize={18}
                   iconColor={ColorBase.white}
-                  bg="rgba(255,255,255,0.12)"
+                  bg="rgba(240,253,232,0.14)"
                 />
                 <View style={styles.alertDot} />
               </View>
@@ -319,7 +317,7 @@ export function TopNavHeader() {
                 size={38}
                 iconSize={18}
                 iconColor={ColorBase.white}
-                bg="rgba(255,255,255,0.12)"
+                bg="rgba(240,253,232,0.14)"
                 onPress={() => router.push("/bluetooth-printer" as never)}
               />
               <IconButton
@@ -328,7 +326,7 @@ export function TopNavHeader() {
                 size={38}
                 iconSize={18}
                 iconColor={ColorBase.white}
-                bg="rgba(255,255,255,0.12)"
+                bg="rgba(240,253,232,0.14)"
                 onPress={() => setStaffDetailVisible(true)}
               />
             </View>
@@ -596,9 +594,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(240,253,232,0.18)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.22)",
+    borderColor: "rgba(218,247,166,0.3)",
     overflow: "hidden",
   },
   brandLogo: {
@@ -615,9 +613,9 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 14,
     borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.12)",
+    backgroundColor: "rgba(240,253,232,0.14)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
+    borderColor: "rgba(218,247,166,0.26)",
   },
   primaryAction: {
     flexDirection: "row",
@@ -628,12 +626,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   primaryActionNeutral: {
-    backgroundColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(240,253,232,0.16)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderColor: "rgba(218,247,166,0.26)",
   },
   primaryActionDanger: {
-    backgroundColor: ColorDanger.danger600,
+    backgroundColor: "#FF6B5F",
   },
   actionGroup: {
     flexDirection: "row",
@@ -647,7 +645,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: ColorDanger.danger600,
+    backgroundColor: "#FF6B5F",
     borderWidth: 2,
     borderColor: ADMIN_HEADER_BG,
   },
@@ -656,9 +654,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 8,
     paddingVertical: 8,
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(240,253,232,0.13)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
+    borderColor: "rgba(218,247,166,0.24)",
     borderRadius: 18,
   },
   navChip: {
@@ -674,8 +672,8 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   navChipActive: {
-    backgroundColor: "rgba(255,255,255,0.18)",
-    borderColor: "rgba(255,255,255,0.24)",
+    backgroundColor: "rgba(255,255,255,0.22)",
+    borderColor: "rgba(218,247,166,0.36)",
   },
   readyChip: {
     flexDirection: "row",
@@ -690,8 +688,8 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   readyChipActive: {
-    backgroundColor: "rgba(255,255,255,0.14)",
-    borderColor: "rgba(255,255,255,0.2)",
+    backgroundColor: "rgba(190,242,100,0.18)",
+    borderColor: "rgba(163,230,53,0.3)",
   },
   refreshChip: {
     flexDirection: "row",
@@ -701,9 +699,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
     borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(190,242,100,0.18)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.22)",
+    borderColor: "rgba(163,230,53,0.3)",
   },
   refreshChipDisabled: {
     opacity: 0.72,
