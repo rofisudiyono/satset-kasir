@@ -2,12 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { Redirect, Tabs, useFocusEffect, usePathname, useRouter } from "expo-router";
 import React from "react";
-import { BackHandler } from "react-native";
+import { BackHandler, View, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuth } from "@/lib/auth";
 import { getHomeRoute } from "@/lib/routing/device-routes";
-import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
+import { ColorNeutral } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 function getTabIcon(
   routeName: string,
@@ -27,6 +28,22 @@ function getTabIcon(
     default:
       return focused ? "ellipse" : "ellipse-outline";
   }
+}
+
+function TabIcon({
+  routeName,
+  focused,
+  color,
+}: {
+  routeName: string;
+  focused: boolean;
+  color: string;
+}) {
+  return (
+    <View style={[styles.tabIconPill, focused && styles.tabIconPillActive]}>
+      <Ionicons name={getTabIcon(routeName, focused)} size={22} color={color} />
+    </View>
+  );
 }
 
 export default function MobileTabsLayout() {
@@ -57,63 +74,61 @@ export default function MobileTabsLayout() {
 
   if (!isLoggedIn) return <Redirect href="/mobile/login" />;
 
+  const tabBarHeight = 64 + Math.max(insets.bottom, 12);
+
   return (
     <>
-      <StatusBar
-        style="dark"
-        translucent
-        backgroundColor={ColorSurface.canvas}
-      />
+      <StatusBar style="dark" translucent backgroundColor="transparent" />
       <Tabs
         screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarActiveTintColor: ColorPrimary.primary600,
-          tabBarInactiveTintColor: ColorNeutral.neutral500,
+          tabBarActiveTintColor: BrandColors.green,
+          tabBarInactiveTintColor: ColorNeutral.neutral400,
           sceneStyle: {
             paddingTop: insets.top,
-            backgroundColor: ColorSurface.canvas,
+            backgroundColor: BrandColors.canvas,
           },
           tabBarStyle: {
-            backgroundColor: ColorBase.white,
-            borderTopColor: ColorSurface.border,
-            height: 62 + Math.max(insets.bottom, 10),
-            paddingTop: 8,
-            paddingBottom: Math.max(insets.bottom, 10),
+            backgroundColor: BrandColors.surface,
+            borderTopWidth: 0,
+            height: tabBarHeight,
+            paddingTop: 6,
+            paddingBottom: Math.max(insets.bottom, 12),
+            elevation: 16,
+            shadowColor: BrandColors.deep,
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 18,
           },
           tabBarLabelStyle: {
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: "700",
+            marginTop: 2,
           },
-          tabBarIcon: ({ color, focused, size }) => (
-            <Ionicons
-              name={getTabIcon(route.name, focused)}
-              size={size}
-              color={color}
-            />
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon routeName={route.name} focused={focused} color={color} />
           ),
         })}
       >
-        <Tabs.Screen
-          name="pesanan-web"
-          options={{ title: "Pesanan Web" }}
-        />
-        <Tabs.Screen
-          name="input-manual"
-          options={{ title: "Input Manual" }}
-        />
-        <Tabs.Screen
-          name="siap-antar"
-          options={{ title: "Siap Antar" }}
-        />
-        <Tabs.Screen
-          name="riwayat"
-          options={{ title: "Riwayat" }}
-        />
-        <Tabs.Screen
-          name="setting"
-          options={{ title: "Setting" }}
-        />
+        <Tabs.Screen name="pesanan-web" options={{ title: "Pesanan Web" }} />
+        <Tabs.Screen name="input-manual" options={{ title: "Input Manual" }} />
+        <Tabs.Screen name="siap-antar" options={{ title: "Siap Antar" }} />
+        <Tabs.Screen name="riwayat" options={{ title: "Riwayat" }} />
+        <Tabs.Screen name="setting" options={{ title: "Setting" }} />
       </Tabs>
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  tabIconPill: {
+    width: 48,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabIconPillActive: {
+    backgroundColor: BrandColors.tint,
+  },
+});

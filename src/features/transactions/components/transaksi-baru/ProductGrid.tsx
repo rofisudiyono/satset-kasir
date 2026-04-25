@@ -11,11 +11,11 @@ import {
 import { XStack, YStack } from "tamagui";
 
 import { FilterChip } from "@/components";
+import { TextBodySm } from "@/components/atoms/Typography";
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/config/categoryStyles";
 import { categoryFilters } from "@/features/catalog/api/category.data";
 import { ProductCard } from "@/features/catalog/components/ProductCard";
-import { TextBodySm } from "@/components/atoms/Typography";
-import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
+import { ColorBase, ColorNeutral } from "@/themes/Colors";
 import type { CatalogProduct, CategoryFilter } from "@/types";
 
 import { SearchBar } from "./SearchBar";
@@ -184,6 +184,7 @@ export function ProductGrid({
 const styles = StyleSheet.create({
   list: {
     flex: 1,
+    backgroundColor: "transparent",
   },
   listContent: {},
   columnRow: {},

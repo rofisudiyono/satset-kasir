@@ -1,9 +1,3 @@
-/**
- * PageHeader — Top bar with optional back button, title, and action slot
- *
- * Replaces the repeated XStack header pattern in Transaksi, Inventori,
- * and Pengaturan pages.
- */
 import { BrandColors } from "@/themes/brand";
 import React from "react";
 import { StyleSheet, View } from "react-native";
@@ -37,6 +31,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <View style={styles.shell}>
+      <View style={styles.accent} />
       <XStack
         paddingHorizontal="$4"
         paddingTop="$3"
@@ -84,7 +79,19 @@ export function PageHeader({
 const styles = StyleSheet.create({
   shell: {
     backgroundColor: BrandColors.canvas,
-    marginBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: BrandColors.border,
+    marginBottom: 0,
+  },
+  accent: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
+    backgroundColor: BrandColors.green,
+    borderTopRightRadius: 3,
+    borderBottomRightRadius: 3,
   },
   header: {
     width: "100%",

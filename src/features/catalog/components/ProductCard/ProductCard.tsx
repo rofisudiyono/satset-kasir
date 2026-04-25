@@ -8,45 +8,42 @@ import {
   TextBodySm,
   TextCaption,
 } from "@/components/atoms/Typography";
-import {
-  ColorBase,
-  ColorNeutral,
-  ColorPrimary,
-  ColorSurface,
-  ColorWarning,
-} from "@/themes/Colors";
+import { ColorBase, ColorNeutral } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import { formatPrice } from "@/utils";
 
 import type { ProductCardProps } from "./ProductCard.types";
 
+const COMPACT_IMG_H = 92;
+const DEFAULT_IMG_H = 110;
+
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: ColorBase.white,
-    borderRadius: 14,
+    backgroundColor: BrandColors.surface,
+    borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: ColorSurface.border,
-    shadowColor: ColorSurface.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
+    borderColor: BrandColors.border,
+    shadowColor: BrandColors.deep,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.07,
+    shadowRadius: 14,
     elevation: 2,
   },
   cardCompact: {
-    borderColor: "rgba(65, 184, 58, 0.14)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
+    borderRadius: 14,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
     elevation: 1,
   },
   cardEmpty: {
-    opacity: 0.85,
+    opacity: 0.8,
   },
   cardInactive: {
-    opacity: 0.72,
+    opacity: 0.68,
   },
   cardImageArea: {
-    height: 110,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -56,7 +53,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   cardImageAreaEmpty: {
-    opacity: 0.5,
+    opacity: 0.45,
   },
   stockBadge: {
     position: "absolute",
@@ -67,31 +64,37 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   stockBadgeLow: {
-    backgroundColor: ColorWarning.warning500,
+    backgroundColor: "rgba(180, 83, 9, 0.88)",
   },
   stockBadgeEmpty: {
-    backgroundColor: ColorNeutral.neutral400,
+    backgroundColor: "rgba(75, 85, 99, 0.82)",
   },
   stockBadgeInactive: {
-    backgroundColor: ColorNeutral.neutral700,
+    backgroundColor: "rgba(55, 65, 81, 0.78)",
   },
   addButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
   },
   addButtonEnabled: {
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.green,
+    borderRadius: 17,
+    width: 34,
+    height: 34,
   },
   addButtonCompact: {
-    backgroundColor: "#F1FCE5",
+    backgroundColor: BrandColors.tint,
     borderWidth: 1,
-    borderColor: "rgba(65, 184, 58, 0.22)",
+    borderColor: BrandColors.borderStrong,
+    borderRadius: 14,
+    width: 30,
+    height: 30,
   },
   addButtonDisabled: {
     backgroundColor: ColorNeutral.neutral200,
+    borderRadius: 14,
+    width: 30,
+    height: 30,
   },
 });
 
@@ -122,7 +125,7 @@ export const ProductCard = React.memo(function ProductCard({
   const cardStyle = useMemo(
     () => [
       styles.card,
-      { width, borderRadius: compact ? 10 : 14 },
+      { width },
       compact && styles.cardCompact,
       isEmpty && styles.cardEmpty,
       isInactive && styles.cardInactive,
@@ -131,19 +134,20 @@ export const ProductCard = React.memo(function ProductCard({
     [width, compact, isEmpty, isInactive, style],
   );
 
+  const imageHeight = compact ? COMPACT_IMG_H : DEFAULT_IMG_H;
+
   const imageAreaStyle = useMemo(
     () => [
       styles.cardImageArea,
-      { backgroundColor: categoryIconBg, height: compact ? 76 : 110 },
+      { backgroundColor: categoryIconBg, height: imageHeight },
       isDisabled && styles.cardImageAreaEmpty,
     ],
-    [categoryIconBg, compact, isDisabled],
+    [categoryIconBg, imageHeight, isDisabled],
   );
 
   const addButtonStyle = useMemo(
     () => [
       styles.addButton,
-      compact && { width: 28, height: 28, borderRadius: 14 },
       isDisabled
         ? styles.addButtonDisabled
         : compact
@@ -152,6 +156,7 @@ export const ProductCard = React.memo(function ProductCard({
     ],
     [compact, isDisabled],
   );
+
   const shouldShowImage = Boolean(imageUrl && !imageFailed);
 
   return (
@@ -167,7 +172,7 @@ export const ProductCard = React.memo(function ProductCard({
         ) : (
           <Ionicons
             name={categoryIcon}
-            size={compact ? 32 : 42}
+            size={compact ? 34 : 42}
             color={categoryIconColor}
           />
         )}
@@ -212,12 +217,15 @@ export const ProductCard = React.memo(function ProductCard({
         )}
       </View>
 
-      <YStack padding={compact ? 9 : 12} gap={compact ? 5 : 8}>
+      <YStack
+        padding={compact ? 10 : 12}
+        gap={compact ? 6 : 8}
+      >
         <TextBodyLg
           fontWeight="700"
           numberOfLines={compact ? 1 : 2}
-          fontSize={compact ? 12 : undefined}
-          lineHeight={compact ? 16 : 20}
+          fontSize={compact ? 13 : undefined}
+          lineHeight={compact ? 17 : 20}
           color={isDisabled ? "$colorTertiary" : ColorNeutral.neutral900}
         >
           {name}
@@ -225,10 +233,10 @@ export const ProductCard = React.memo(function ProductCard({
 
         <XStack alignItems="center" justifyContent="space-between">
           <TextBodySm
-            fontWeight="700"
-            fontSize={compact ? 11 : undefined}
-            lineHeight={compact ? 14 : undefined}
-            color={isDisabled ? "$colorTertiary" : "#08745F"}
+            fontWeight="800"
+            fontSize={compact ? 12 : undefined}
+            lineHeight={compact ? 15 : undefined}
+            color={isDisabled ? "$colorTertiary" : BrandColors.text}
           >
             {formatPrice(basePrice)}
           </TextBodySm>
@@ -238,7 +246,7 @@ export const ProductCard = React.memo(function ProductCard({
             disabled={isDisabled}
             style={({ pressed }) => [
               addButtonStyle,
-              !isDisabled && pressed && { opacity: 0.72 },
+              !isDisabled && pressed && { opacity: 0.7 },
             ]}
           >
             <Ionicons
@@ -248,7 +256,7 @@ export const ProductCard = React.memo(function ProductCard({
                 isDisabled
                   ? ColorNeutral.neutral400
                   : compact
-                    ? "#08745F"
+                    ? BrandColors.text
                     : ColorBase.white
               }
             />

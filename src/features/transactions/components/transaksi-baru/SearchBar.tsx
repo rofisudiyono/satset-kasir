@@ -4,6 +4,7 @@ import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { XStack } from "tamagui";
 
 import { ColorBase, ColorNeutral } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 type SearchBarProps = {
   value?: string;
@@ -23,13 +24,13 @@ export function SearchBar({
   return (
     <XStack
       backgroundColor={ColorBase.white}
-      borderRadius={compact ? 10 : 12}
+      borderRadius={compact ? 12 : 12}
       height={compact ? 42 : 48}
       alignItems="center"
       paddingHorizontal={compact ? "$2" : "$3"}
       gap="$2"
       borderWidth={1}
-      borderColor={compact ? ColorNeutral.neutral200 : "$borderColor"}
+      borderColor={compact ? BrandColors.border : "$borderColor"}
       style={compact ? styles.compactShadow : undefined}
     >
       <Ionicons
@@ -66,10 +67,10 @@ export function SearchBar({
 
 const styles = StyleSheet.create({
   compactShadow: {
-    shadowColor: ColorNeutral.neutral900,
+    shadowColor: BrandColors.deep,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
     elevation: 1,
   },
 });

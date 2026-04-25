@@ -12,14 +12,12 @@ import { ProfileCard, SettingRow } from "@/features/settings";
 import { useAuth } from "@/lib/auth";
 import { getLoginRoute, getOpenShiftRoute } from "@/lib/routing/device-routes";
 import {
-  ColorAccentOrange,
-  ColorBase,
   ColorDanger,
   ColorNeutral,
-  ColorPrimary,
   ColorSuccess,
   ColorWarning,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 function formatRole(role?: string | null) {
   if (!role) return "Kasir";
@@ -64,8 +62,8 @@ export default function MobileSettingsPage() {
         <View style={styles.section}>
           <SettingRow
             iconName={isShiftStarted ? "moon-outline" : "sunny-outline"}
-            iconBg={isShiftStarted ? ColorWarning.warning100 : ColorSuccess.success50}
-            iconColor={isShiftStarted ? ColorWarning.warning700 : ColorSuccess.success600}
+            iconBg={isShiftStarted ? BrandColors.tintStrong : BrandColors.tint}
+            iconColor={isShiftStarted ? BrandColors.text : BrandColors.green}
             title={isShiftStarted ? "Tutup Shift" : "Buka Shift"}
             subtitle={
               isShiftStarted
@@ -73,8 +71,8 @@ export default function MobileSettingsPage() {
                 : "Mulai operasional kasir dan catat modal awal"
             }
             badge={isShiftStarted ? "Aktif" : "Belum aktif"}
-            badgeBg={isShiftStarted ? ColorSuccess.success50 : ColorNeutral.neutral100}
-            badgeColor={isShiftStarted ? ColorSuccess.success600 : ColorNeutral.neutral600}
+            badgeBg={isShiftStarted ? BrandColors.tintStrong : ColorNeutral.neutral100}
+            badgeColor={isShiftStarted ? BrandColors.text : ColorNeutral.neutral500}
             onPress={() =>
               router.push(
                 (isShiftStarted ? "/tutup-shift" : getOpenShiftRoute(false)) as never,
@@ -84,8 +82,8 @@ export default function MobileSettingsPage() {
           <View style={styles.divider} />
           <SettingRow
             iconName="storefront-outline"
-            iconBg={ColorPrimary.primary50}
-            iconColor={ColorPrimary.primary600}
+            iconBg={BrandColors.tint}
+            iconColor={BrandColors.mid}
             title="Informasi Toko"
             subtitle="Nama toko, alamat, dan jam operasional"
             onPress={() => router.push("/informasi-toko" as never)}
@@ -102,8 +100,8 @@ export default function MobileSettingsPage() {
           <View style={styles.divider} />
           <SettingRow
             iconName="settings-outline"
-            iconBg={ColorAccentOrange.orange50}
-            iconColor={ColorAccentOrange.orange600}
+            iconBg={ColorNeutral.neutral100}
+            iconColor={ColorNeutral.neutral600}
             title="Tentang Perangkat"
             subtitle="Konfigurasi dasar perangkat kasir"
             value={user?.branchId ? `Outlet ${user.branchId.slice(0, 6)}` : "Belum diatur"}
@@ -116,11 +114,7 @@ export default function MobileSettingsPage() {
           onPress={() => void handleLogout()}
           style={styles.logoutButton}
         >
-          <Ionicons
-            name="log-out-outline"
-            size={18}
-            color={ColorDanger.danger600}
-          />
+          <Ionicons name="log-out-outline" size={18} color={ColorDanger.danger600} />
           <YStack gap={2}>
             <TextBodySm fontWeight="700" color={ColorDanger.danger600}>
               Keluar
@@ -138,7 +132,7 @@ export default function MobileSettingsPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: BrandColors.canvas,
   },
   content: {
     padding: 16,
@@ -147,36 +141,36 @@ const styles = StyleSheet.create({
     paddingBottom: 112,
   },
   section: {
-    backgroundColor: ColorBase.white,
-    borderRadius: 24,
+    backgroundColor: BrandColors.surface,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral100,
+    borderColor: BrandColors.border,
     overflow: "hidden",
-    shadowColor: ColorPrimary.primary900,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.05,
-    shadowRadius: 18,
+    shadowColor: BrandColors.deep,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
     elevation: 3,
   },
   divider: {
     height: 1,
-    backgroundColor: ColorNeutral.neutral200,
+    backgroundColor: BrandColors.border,
     marginHorizontal: 16,
   },
   logoutButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: ColorBase.white,
-    borderRadius: 24,
+    backgroundColor: BrandColors.surface,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: ColorDanger.danger100,
+    borderColor: "rgba(185, 28, 28, 0.12)",
     paddingHorizontal: 16,
     paddingVertical: 15,
     shadowColor: ColorDanger.danger900,
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.04,
-    shadowRadius: 14,
+    shadowRadius: 12,
     elevation: 2,
   },
 });
