@@ -66,9 +66,12 @@ export function TransactionEntryTabletScreen() {
                 onCategoryChange={setCategoryFilter}
                 onAddProduct={handleAddProduct}
                 availableWidth={catalogPanelWidth}
+                numColumns={4}
                 searchValue={searchQuery}
                 onSearchChangeText={setSearchQuery}
                 onBarcodePress={openScanner}
+                contentBottomInset={24}
+                compact
               />
             ) : null}
           </View>

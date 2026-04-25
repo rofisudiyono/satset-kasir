@@ -53,11 +53,11 @@ const styles = StyleSheet.create({
   },
   stockBadge: {
     position: "absolute",
-    top: 8,
-    left: 8,
+    top: 7,
+    left: 7,
     borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
   stockBadgeLow: {
     backgroundColor: ColorWarning.warning500,
@@ -94,6 +94,7 @@ export const ProductCard = React.memo(function ProductCard({
   availabilityReason,
   onAdd,
   width,
+  compact = false,
   style,
 }: ProductCardProps) {
   const isEmpty = stockStatus === "empty";
@@ -107,25 +108,32 @@ export const ProductCard = React.memo(function ProductCard({
   }, [imageUrl]);
 
   const cardStyle = useMemo(
-    () => [styles.card, { width }, isEmpty && styles.cardEmpty, isInactive && styles.cardInactive, style],
-    [width, isEmpty, isInactive, style],
+    () => [
+      styles.card,
+      { width, borderRadius: compact ? 10 : 14 },
+      isEmpty && styles.cardEmpty,
+      isInactive && styles.cardInactive,
+      style,
+    ],
+    [width, compact, isEmpty, isInactive, style],
   );
 
   const imageAreaStyle = useMemo(
     () => [
       styles.cardImageArea,
-      { backgroundColor: categoryIconBg },
+      { backgroundColor: categoryIconBg, height: compact ? 76 : 110 },
       isDisabled && styles.cardImageAreaEmpty,
     ],
-    [categoryIconBg, isDisabled],
+    [categoryIconBg, compact, isDisabled],
   );
 
   const addButtonStyle = useMemo(
     () => [
       styles.addButton,
+      compact && { width: 28, height: 28, borderRadius: 14 },
       isDisabled ? styles.addButtonDisabled : styles.addButtonEnabled,
     ],
-    [isDisabled],
+    [compact, isDisabled],
   );
   const shouldShowImage = Boolean(imageUrl && !imageFailed);
 
@@ -140,12 +148,21 @@ export const ProductCard = React.memo(function ProductCard({
             onError={() => setImageFailed(true)}
           />
         ) : (
-          <Ionicons name={categoryIcon} size={42} color={categoryIconColor} />
+          <Ionicons
+            name={categoryIcon}
+            size={compact ? 32 : 42}
+            color={categoryIconColor}
+          />
         )}
 
         {isLow && (
           <View style={[styles.stockBadge, styles.stockBadgeLow]}>
-            <TextCaption fontWeight="700" color={ColorBase.white} fontSize={11}>
+            <TextCaption
+              fontWeight="700"
+              color={ColorBase.white}
+              fontSize={compact ? 9 : 11}
+              lineHeight={compact ? 11 : undefined}
+            >
               Stok Tipis
             </TextCaption>
           </View>
@@ -153,7 +170,12 @@ export const ProductCard = React.memo(function ProductCard({
 
         {isEmpty && (
           <View style={[styles.stockBadge, styles.stockBadgeEmpty]}>
-            <TextCaption fontWeight="700" color={ColorBase.white} fontSize={11}>
+            <TextCaption
+              fontWeight="700"
+              color={ColorBase.white}
+              fontSize={compact ? 9 : 11}
+              lineHeight={compact ? 11 : undefined}
+            >
               {availabilityReason === "NO_RECIPE" ? "Belum Ada Resep" : "Habis"}
             </TextCaption>
           </View>
@@ -161,18 +183,24 @@ export const ProductCard = React.memo(function ProductCard({
 
         {isInactive && (
           <View style={[styles.stockBadge, styles.stockBadgeInactive]}>
-            <TextCaption fontWeight="700" color={ColorBase.white} fontSize={11}>
+            <TextCaption
+              fontWeight="700"
+              color={ColorBase.white}
+              fontSize={compact ? 9 : 11}
+              lineHeight={compact ? 11 : undefined}
+            >
               {availabilityReason === "NO_RECIPE" ? "Belum Ada Resep" : "Tidak Aktif"}
             </TextCaption>
           </View>
         )}
       </View>
 
-      <YStack padding={12} gap={8}>
+      <YStack padding={compact ? 9 : 12} gap={compact ? 5 : 8}>
         <TextBodyLg
           fontWeight="700"
-          numberOfLines={2}
-          lineHeight={20}
+          numberOfLines={compact ? 1 : 2}
+          fontSize={compact ? 12 : undefined}
+          lineHeight={compact ? 16 : 20}
           color={isDisabled ? "$colorTertiary" : "$color"}
         >
           {name}
@@ -181,6 +209,8 @@ export const ProductCard = React.memo(function ProductCard({
         <XStack alignItems="center" justifyContent="space-between">
           <TextBodySm
             fontWeight="700"
+            fontSize={compact ? 11 : undefined}
+            lineHeight={compact ? 14 : undefined}
             color={isDisabled ? "$colorTertiary" : "$primary"}
           >
             {formatPrice(basePrice)}
@@ -196,7 +226,7 @@ export const ProductCard = React.memo(function ProductCard({
           >
             <Ionicons
               name="add"
-              size={20}
+              size={compact ? 17 : 20}
               color={isDisabled ? ColorNeutral.neutral400 : ColorBase.white}
             />
           </Pressable>

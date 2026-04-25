@@ -19,8 +19,11 @@ import { SearchBar } from "./SearchBar";
 
 const PADDING = 16 * 2;
 const GAP = 12;
+const COMPACT_PADDING = 12 * 2;
+const COMPACT_GAP = 8;
 const TABLET_COLS = 3;
 const H_PAD = 16;
+const COMPACT_H_PAD = 12;
 
 type Props = {
   products: CatalogProduct[];
@@ -52,8 +55,11 @@ export function ProductGrid({
   const { width: screenWidth } = useWindowDimensions();
 
   const containerWidth = availableWidth ?? screenWidth;
+  const horizontalPadding = compact ? COMPACT_PADDING : PADDING;
+  const itemGap = compact ? COMPACT_GAP : GAP;
   const cardWidth =
-    (containerWidth - PADDING - GAP * (numColumns - 1)) / numColumns;
+    (containerWidth - horizontalPadding - itemGap * (numColumns - 1)) /
+    numColumns;
 
   const renderItem = useCallback<ListRenderItem<CatalogProduct>>(
     ({ item }) => (
@@ -67,27 +73,35 @@ export function ProductGrid({
         stockStatus={item.stockStatus}
         availabilityReason={item.availabilityReason}
         width={cardWidth}
+        compact={compact}
         onAdd={() => onAddProduct(item)}
       />
     ),
-    [onAddProduct, cardWidth],
+    [cardWidth, compact, onAddProduct],
   );
 
   const keyExtractor = useCallback((item: CatalogProduct) => item.id, []);
 
   const columnWrapperStyle = useMemo(
-    () => (numColumns > 1 ? styles.columnRow : undefined),
-    [numColumns],
+    () => (numColumns > 1 ? [styles.columnRow, { gap: itemGap }] : undefined),
+    [itemGap, numColumns],
   );
 
   const contentContainerStyle = useMemo(
-    () => [styles.listContent, { gap: GAP, paddingBottom: contentBottomInset }],
-    [contentBottomInset],
+    () => [
+      styles.listContent,
+      {
+        gap: itemGap,
+        paddingBottom: contentBottomInset,
+        paddingHorizontal: compact ? COMPACT_H_PAD : H_PAD,
+      },
+    ],
+    [compact, contentBottomInset, itemGap],
   );
 
   const ListHeaderComponent = useCallback(
     () => (
-      <YStack gap="$3" paddingBottom="$3">
+      <YStack gap={compact ? "$2" : "$3"} paddingBottom={compact ? "$2" : "$3"}>
         <SearchBar
           value={searchValue}
           onChangeText={onSearchChangeText}
@@ -143,10 +157,6 @@ const styles = StyleSheet.create({
   list: {
     flex: 1,
   },
-  listContent: {
-    paddingHorizontal: H_PAD,
-  },
-  columnRow: {
-    gap: GAP,
-  },
+  listContent: {},
+  columnRow: {},
 });

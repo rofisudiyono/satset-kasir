@@ -23,21 +23,26 @@ export function SearchBar({
   return (
     <XStack
       backgroundColor={ColorBase.white}
-      borderRadius={compact ? 16 : 12}
-      height={compact ? 52 : 48}
+      borderRadius={compact ? 10 : 12}
+      height={compact ? 42 : 48}
       alignItems="center"
-      paddingHorizontal="$3"
+      paddingHorizontal={compact ? "$2" : "$3"}
       gap="$2"
       borderWidth={1}
       borderColor={compact ? ColorNeutral.neutral200 : "$borderColor"}
     >
       <Ionicons
         name="search-outline"
-        size={18}
+        size={compact ? 16 : 18}
         color={ColorNeutral.neutral400}
       />
       <TextInput
-        style={{ flex: 1, fontSize: 15, color: ColorNeutral.neutral900, padding: 0 }}
+        style={{
+          flex: 1,
+          fontSize: compact ? 13 : 15,
+          color: ColorNeutral.neutral900,
+          padding: 0,
+        }}
         placeholder={placeholder}
         placeholderTextColor={ColorNeutral.neutral400}
         value={value}
@@ -49,7 +54,7 @@ export function SearchBar({
         <TouchableOpacity activeOpacity={0.75} onPress={onBarcodePress}>
           <Ionicons
             name="barcode-outline"
-            size={20}
+            size={compact ? 18 : 20}
             color={ColorNeutral.neutral500}
           />
         </TouchableOpacity>

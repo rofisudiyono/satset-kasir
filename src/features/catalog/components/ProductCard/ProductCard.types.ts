@@ -14,6 +14,7 @@ export interface ProductCardProps {
   availabilityReason?: "ACTIVE" | "INACTIVE" | "OUT_OF_STOCK" | "NO_RECIPE" | "HIDDEN";
   onAdd: () => void;
   width?: number;
+  compact?: boolean;
   className?: string;
   style?: StyleProp<ViewStyle>;
 }
