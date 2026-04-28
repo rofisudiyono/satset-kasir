@@ -131,8 +131,11 @@ export default function PembayaranTunaiPage() {
           orderType: currentOrder.serviceMode ?? "DINE_IN",
           tableId: currentOrder.tableId,
           customerName: currentOrder.customerName,
+          customerPhone: currentOrder.customerPhone,
+          orderNote: currentOrder.orderNote,
           tableLabel: currentOrder.tableLabel,
           promoCode: currentOrder.promoCode,
+          promoId: currentOrder.promoId,
           payment: {
             method: "tunai",
             amountPaid: amountToPay,

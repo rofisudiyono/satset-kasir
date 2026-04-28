@@ -46,7 +46,10 @@ export default function PesananDitahanPage() {
         onPress: () => {
           setCart(order.items);
           setOrderDraft({
-            customerName: order.customerName,
+            customerName: order.customerName ?? "",
+            customerPhone: order.customerPhone ?? "",
+            orderNote: order.orderNote ?? "",
+            customerVisitStatus: order.customerVisitStatus ?? "returning",
             orderType: order.orderType,
             tableId: order.tableId,
             tableLabel: order.tableLabel ?? order.tableNumber,

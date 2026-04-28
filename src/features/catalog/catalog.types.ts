@@ -28,5 +28,6 @@ export interface CatalogProduct {
   isAvailable?: boolean;
   availabilityReason?: "ACTIVE" | "INACTIVE" | "OUT_OF_STOCK" | "NO_RECIPE" | "HIDDEN";
   variants?: VariantGroup[];
+  sku?: string;
   barcode?: string;
 }

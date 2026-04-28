@@ -22,6 +22,8 @@ export function buildPosOrderFromCart(params: {
   cart: CartItem[];
   tableId?: string;
   customerName?: string;
+  customerPhone?: string;
+  orderNote?: string;
   tableLabel?: string;
   orderType: string;
   discountAmount: number;
@@ -45,6 +47,8 @@ export function buildPosOrderFromCart(params: {
     fulfillment: "QUEUED" as PosFulfillmentStatus,
     tableId: params.tableId,
     customerName: params.customerName?.trim() || undefined,
+    customerPhone: params.customerPhone?.trim() || undefined,
+    orderNote: params.orderNote?.trim() || undefined,
     tableLabel: params.tableLabel?.trim() || undefined,
     serviceMode: mapOrderTypeToServiceMode(params.orderType),
     items: params.cart.map((item) => ({
@@ -190,6 +194,8 @@ export function buildCheckoutOrderBody(params: {
   orderType: "DINE_IN" | "TAKEAWAY" | "DELIVERY";
   tableId?: string;
   customerName?: string;
+  customerPhone?: string;
+  orderNote?: string;
   tableLabel?: string;
   promoCode?: string;
   promoId?: string;
@@ -201,6 +207,8 @@ export function buildCheckoutOrderBody(params: {
   };
 }): CheckoutOrderBody {
   const customerName = params.customerName?.trim();
+  const customerPhone = params.customerPhone?.trim();
+  const orderNote = params.orderNote?.trim();
   const tableLabel = params.tableLabel?.trim();
   const promoCode = params.promoCode?.trim();
 
@@ -209,6 +217,8 @@ export function buildCheckoutOrderBody(params: {
     orderType: params.orderType,
     tableId: params.tableId,
     customerName: customerName || undefined,
+    customerPhone: customerPhone || undefined,
+    orderNote: orderNote || undefined,
     tableLabel: tableLabel || undefined,
     promoCode: promoCode || undefined,
     promoId: params.promoId || undefined,

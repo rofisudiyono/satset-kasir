@@ -251,7 +251,7 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
     const delivery: KasirReadyOrder[] = [];
     const pending: KasirReadyOrder[] = [];
     for (const r of data) {
-      if (r.canMarkDelivered) delivery.push(r);
+      if (r.canMarkDelivered || r.paymentStatus === 'PAID') delivery.push(r);
       else if (needsManualApproval(r)) manual.push(r);
       else pending.push(r);
     }
@@ -280,9 +280,8 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
 
   const handleDeliver = useCallback(
     async (row: KasirReadyOrder) => {
-      if (!row.orderId) return;
       try {
-        await deliverMutation.mutateAsync(row.orderId);
+        await deliverMutation.mutateAsync(row.id);
       } catch (error) {
         Alert.alert(
           "Gagal",

@@ -28,6 +28,9 @@ export interface HeldOrder {
   id: string;
   items: CartItem[];
   customerName: string;
+  customerPhone: string;
+  orderNote: string;
+  customerVisitStatus: CustomerVisitStatus;
   tableId?: string;
   tableLabel?: string;
   tableNumber: string;
@@ -38,8 +41,13 @@ export interface HeldOrder {
 
 export const heldOrdersAtom = atomWithMMKV<HeldOrder[]>("heldOrders", []);
 
+export type CustomerVisitStatus = "returning" | "new";
+
 export interface CartOrderDraft {
   customerName: string;
+  customerPhone: string;
+  orderNote: string;
+  customerVisitStatus: CustomerVisitStatus;
   orderType: OrderType;
   tableId?: string;
   tableLabel?: string;
@@ -47,6 +55,9 @@ export interface CartOrderDraft {
 
 export const cartOrderDraftAtom = atomWithMMKV<CartOrderDraft>("cartOrderDraft", {
   customerName: "",
+  customerPhone: "",
+  orderNote: "",
+  customerVisitStatus: "returning",
   orderType: "Dine In",
   tableId: undefined,
   tableLabel: undefined,

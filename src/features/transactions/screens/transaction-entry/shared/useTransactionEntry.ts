@@ -86,8 +86,21 @@ function mapMenuToCatalogProduct(menu: KasirMenu): CatalogProduct {
     isAvailable: menu.isAvailable,
     availabilityReason: menu.availabilityReason,
     variants,
+    sku: menu.sku ?? undefined,
     barcode: menuWithBarcode.barcode ?? undefined,
   };
+}
+
+function compareProductsByCashierPriority(
+  a: CatalogProduct,
+  b: CatalogProduct,
+) {
+  const aAvailable = a.isAvailable === true;
+  const bAvailable = b.isAvailable === true;
+
+  if (aAvailable !== bAvailable) return aAvailable ? -1 : 1;
+
+  return a.name.localeCompare(b.name, "id");
 }
 
 export function useTransactionEntry() {
@@ -110,7 +123,10 @@ export function useTransactionEntry() {
     useMenusQuery(isShiftStarted);
 
   const catalogProducts = useMemo<CatalogProduct[]>(
-    () => (apiMenus ?? []).map(mapMenuToCatalogProduct),
+    () =>
+      (apiMenus ?? [])
+        .map(mapMenuToCatalogProduct)
+        .sort(compareProductsByCashierPriority),
     [apiMenus],
   );
 
@@ -187,6 +203,8 @@ export function useTransactionEntry() {
       const matchesSearch =
         deferredSearchQuery.length === 0 ||
         product.name.toLowerCase().includes(deferredSearchQuery) ||
+        product.sku?.toLowerCase().includes(deferredSearchQuery) ||
+        product.barcode?.toLowerCase().includes(deferredSearchQuery) ||
         product.category.toLowerCase().includes(deferredSearchQuery);
 
       return matchesCategory && matchesSearch;

@@ -58,6 +58,8 @@ export interface PosOrder {
   tableId?: string;
   tableLabel?: string;
   customerName?: string;
+  customerPhone?: string;
+  orderNote?: string;
   serviceMode?: "DINE_IN" | "TAKEAWAY" | "DELIVERY";
 
   items: PosOrderItem[];

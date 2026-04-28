@@ -14,10 +14,17 @@ import { TextBodySm, TextCaption } from "@/components";
 import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
 import type { KasirTable } from "@/lib/api/types";
 import type { OrderType } from "@/types";
+import type { CustomerVisitStatus } from "../store/cart.store";
 
 interface CustomerInfoCardProps {
   customerName: string;
   onCustomerNameChange: (v: string) => void;
+  customerPhone: string;
+  onCustomerPhoneChange: (v: string) => void;
+  orderNote: string;
+  onOrderNoteChange: (v: string) => void;
+  customerVisitStatus: CustomerVisitStatus;
+  onCustomerVisitStatusChange: (v: CustomerVisitStatus) => void;
   orderType: OrderType;
   onOrderTypeChange: (v: OrderType) => void;
   selectedTableId?: string;
@@ -30,6 +37,12 @@ interface CustomerInfoCardProps {
 export function CustomerInfoCard({
   customerName,
   onCustomerNameChange,
+  customerPhone,
+  onCustomerPhoneChange,
+  orderNote,
+  onOrderNoteChange,
+  customerVisitStatus,
+  onCustomerVisitStatusChange,
   orderType,
   onOrderTypeChange,
   selectedTableId,
@@ -48,15 +61,81 @@ export function CustomerInfoCard({
 
   return (
     <View style={styles.card}>
-      <TextCaption color="$colorSecondary" marginBottom={6}>
-        Nama Pelanggan
+      <TextBodySm fontWeight="800" color="$colorPrimary">
+        Data pemesan
+      </TextBodySm>
+      <TextCaption color="$colorSecondary" marginTop={14} marginBottom={8}>
+        Pernah mengunjungi kami sebelumnya?
+      </TextCaption>
+      <View style={styles.visitSegmentControl}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={[
+            styles.visitSegmentBtn,
+            customerVisitStatus === "returning" && styles.visitSegmentBtnActive,
+          ]}
+          onPress={() => onCustomerVisitStatusChange("returning")}
+        >
+          <TextBodySm
+            fontWeight="700"
+            color={
+              customerVisitStatus === "returning"
+                ? ColorPrimary.primary700
+                : "$colorPrimary"
+            }
+          >
+            Pernah
+          </TextBodySm>
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={[
+            styles.visitSegmentBtn,
+            customerVisitStatus === "new" && styles.visitSegmentBtnActive,
+          ]}
+          onPress={() => onCustomerVisitStatusChange("new")}
+        >
+          <TextBodySm
+            fontWeight="700"
+            color={
+              customerVisitStatus === "new"
+                ? ColorPrimary.primary700
+                : "$colorPrimary"
+            }
+          >
+            Belum pernah
+          </TextBodySm>
+        </TouchableOpacity>
+      </View>
+
+      {customerVisitStatus === "new" ? (
+        <TextInput
+          value={customerName}
+          onChangeText={onCustomerNameChange}
+          placeholder="Nama lengkap"
+          placeholderTextColor={ColorNeutral.neutral400}
+          style={[styles.inputField, styles.inputSpacing]}
+        />
+      ) : null}
+      <TextInput
+        value={customerPhone}
+        onChangeText={onCustomerPhoneChange}
+        placeholder="Nomor HP"
+        placeholderTextColor={ColorNeutral.neutral400}
+        keyboardType="phone-pad"
+        style={[styles.inputField, styles.inputSpacing]}
+      />
+      <TextCaption color="$colorSecondary" marginTop={6}>
+        Gunakan nomor WhatsApp aktif untuk memudahkan konfirmasi pesanan.
       </TextCaption>
       <TextInput
-        value={customerName}
-        onChangeText={onCustomerNameChange}
-        placeholder="Opsional"
+        value={orderNote}
+        onChangeText={onOrderNoteChange}
+        placeholder="Catatan pesanan"
         placeholderTextColor={ColorNeutral.neutral400}
-        style={styles.inputField}
+        multiline
+        textAlignVertical="top"
+        style={[styles.inputField, styles.noteField]}
       />
 
       <TextCaption color="$colorSecondary" marginBottom={8} marginTop={12}>
@@ -232,6 +311,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: ColorNeutral.neutral900,
     fontFamily: "Poppins_400Regular",
+  },
+  inputSpacing: {
+    marginTop: 12,
+  },
+  noteField: {
+    minHeight: 78,
+    marginTop: 12,
+  },
+  visitSegmentControl: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  visitSegmentBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+    backgroundColor: ColorNeutral.neutral50,
+  },
+  visitSegmentBtnActive: {
+    borderColor: ColorPrimary.primary600,
+    backgroundColor: ColorPrimary.primary50,
   },
   segmentControl: {
     flexDirection: "row",

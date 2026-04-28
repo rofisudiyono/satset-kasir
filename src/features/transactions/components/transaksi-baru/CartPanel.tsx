@@ -52,7 +52,12 @@ export function CartPanel({ compact = false }: CartPanelProps) {
   const [posOrders, setPosOrders] = useAtom(posOrdersAtom);
   const [shiftData] = useAtom(shiftDataAtom);
 
-  const [customerName, setCustomerName] = useState(orderDraft.customerName);
+  const [customerName, setCustomerName] = useState(orderDraft.customerName ?? "");
+  const [customerPhone, setCustomerPhone] = useState(orderDraft.customerPhone ?? "");
+  const [orderNote, setOrderNote] = useState(orderDraft.orderNote ?? "");
+  const [customerVisitStatus, setCustomerVisitStatus] = useState(
+    orderDraft.customerVisitStatus ?? "returning",
+  );
   const [selectedTable, setSelectedTable] = useState<KasirTable | null>(null);
   const [orderType, setOrderType] = useState<OrderType>(orderDraft.orderType);
   const [promoCode, setPromoCode] = useState("");
@@ -83,13 +88,30 @@ export function CartPanel({ compact = false }: CartPanelProps) {
   }, [orderType]);
 
   React.useEffect(() => {
+    if (customerVisitStatus === "returning" && customerName) {
+      setCustomerName("");
+    }
+  }, [customerName, customerVisitStatus]);
+
+  React.useEffect(() => {
     setOrderDraft({
       customerName,
+      customerPhone,
+      orderNote,
+      customerVisitStatus,
       orderType,
       tableId: selectedTable?.id,
       tableLabel: selectedTable?.label,
     });
-  }, [customerName, orderType, selectedTable, setOrderDraft]);
+  }, [
+    customerName,
+    customerPhone,
+    customerVisitStatus,
+    orderNote,
+    orderType,
+    selectedTable,
+    setOrderDraft,
+  ]);
 
   function handleUpdateQty(cartId: string, qty: number) {
     setCart((prev) =>
@@ -149,14 +171,29 @@ export function CartPanel({ compact = false }: CartPanelProps) {
     }
   }
 
+  function validateCustomerInfo() {
+    if (!customerPhone.trim()) {
+      Alert.alert("Nomor HP wajib diisi", "Masukkan nomor HP pemesan terlebih dahulu.");
+      return false;
+    }
+
+    if (customerVisitStatus === "new" && !customerName.trim()) {
+      Alert.alert("Nama wajib diisi", "Pemesan baru wajib mengisi nama lengkap.");
+      return false;
+    }
+
+    return true;
+  }
+
   function handleHoldOrder() {
     if (cart.length === 0) return;
+    if (!validateCustomerInfo()) return;
     if (orderType === "Dine In" && !selectedTable) {
       Alert.alert("Pilih meja dulu", "Order dine-in wajib memilih meja aktif sebelum ditahan.");
       return;
     }
 
-    const label = customerName || selectedTable?.label || orderType;
+    const label = customerName || customerPhone || selectedTable?.label || orderType;
     const now = new Date();
     const timeStr = now.toLocaleTimeString("id-ID", {
       hour: "2-digit",
@@ -166,6 +203,9 @@ export function CartPanel({ compact = false }: CartPanelProps) {
       id: `hold-${Date.now()}`,
       items: [...cart],
       customerName,
+      customerPhone,
+      orderNote,
+      customerVisitStatus,
       tableId: selectedTable?.id,
       tableLabel: selectedTable?.label,
       tableNumber: selectedTable?.label ?? "",
@@ -177,6 +217,9 @@ export function CartPanel({ compact = false }: CartPanelProps) {
     setCart([]);
     setOrderDraft({
       customerName: "",
+      customerPhone: "",
+      orderNote: "",
+      customerVisitStatus: "returning",
       orderType: "Dine In",
       tableId: undefined,
       tableLabel: undefined,
@@ -186,6 +229,7 @@ export function CartPanel({ compact = false }: CartPanelProps) {
 
   function handlePay() {
     if (cart.length === 0) return;
+    if (!validateCustomerInfo()) return;
     if (orderType === "Dine In" && !selectedTable) {
       Alert.alert("Pilih meja dulu", "Order dine-in wajib memilih meja aktif sebelum pembayaran.");
       return;
@@ -207,6 +251,8 @@ export function CartPanel({ compact = false }: CartPanelProps) {
       cart,
       tableId: selectedTable?.id,
       customerName,
+      customerPhone,
+      orderNote,
       tableLabel,
       orderType,
       discountAmount: discount,
@@ -219,6 +265,9 @@ export function CartPanel({ compact = false }: CartPanelProps) {
     setPosOrders((prev) => [order, ...prev]);
     setOrderDraft({
       customerName,
+      customerPhone,
+      orderNote,
+      customerVisitStatus,
       orderType,
       tableId: selectedTable?.id,
       tableLabel: selectedTable?.label,
@@ -272,6 +321,12 @@ export function CartPanel({ compact = false }: CartPanelProps) {
           <CustomerInfoCard
             customerName={customerName}
             onCustomerNameChange={setCustomerName}
+            customerPhone={customerPhone}
+            onCustomerPhoneChange={setCustomerPhone}
+            orderNote={orderNote}
+            onOrderNoteChange={setOrderNote}
+            customerVisitStatus={customerVisitStatus}
+            onCustomerVisitStatusChange={setCustomerVisitStatus}
             orderType={orderType}
             onOrderTypeChange={setOrderType}
             selectedTableId={selectedTable?.id}

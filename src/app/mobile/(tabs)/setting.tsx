@@ -34,6 +34,11 @@ export default function MobileSettingsPage() {
   const shiftData = useAtomValue(shiftDataAtom);
 
   async function handleLogout() {
+    if (isShiftStarted) {
+      router.push("/tutup-shift" as never);
+      return;
+    }
+
     try {
       await logout();
       router.replace(getLoginRoute(false) as never);
@@ -120,7 +125,9 @@ export default function MobileSettingsPage() {
               Keluar
             </TextBodySm>
             <TextBodySm color={ColorNeutral.neutral500}>
-              Akhiri sesi kasir di perangkat ini
+              {isShiftStarted
+                ? "Tutup kas terlebih dahulu sebelum keluar"
+                : "Akhiri sesi kasir di perangkat ini"}
             </TextBodySm>
           </YStack>
         </TouchableOpacity>

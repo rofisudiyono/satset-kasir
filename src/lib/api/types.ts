@@ -46,6 +46,7 @@ export type KasirMenuVariant = {
 
 export type KasirMenu = {
   id: string;
+  sku?: string | null;
   name: string;
   imageUrl?: string | null;
   price: number;
@@ -183,6 +184,7 @@ export type CheckoutOrderBody = {
   tableId?: string;
   tableLabel?: string;
   customerName?: string;
+  customerPhone?: string;
   orderNote?: string;
   promoCode?: string;
   promoId?: string;
