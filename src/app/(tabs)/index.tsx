@@ -4,7 +4,13 @@ import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo } from "react";
-import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
@@ -119,6 +125,7 @@ export default function WebOrdersTabPage() {
   const {
     data = [],
     isLoading,
+    isFetching,
     isError,
     refetch,
   } = usePendingWebOrdersQuery(Boolean(isLoggedIn && isShiftStarted));
@@ -240,7 +247,7 @@ export default function WebOrdersTabPage() {
         ) : null}
       </YStack>
     ),
-    [data.length, isError, refetch],
+    [isError, refetch],
   );
 
   return (
@@ -255,6 +262,16 @@ export default function WebOrdersTabPage() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         drawDistance={400}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching}
+            onRefresh={() => {
+              void refetch();
+            }}
+            tintColor={ColorPrimary.primary600}
+            colors={[ColorPrimary.primary600]}
+          />
+        }
       />
     </SafeAreaView>
   );

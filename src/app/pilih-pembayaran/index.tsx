@@ -87,6 +87,11 @@ export default function PilihPembayaranPage() {
     }
   }, [isDirectCheckoutFlow, mode]);
 
+  useEffect(() => {
+    if (isTablet || !order) return;
+    setMobileStep("summary");
+  }, [isTablet, order]);
+
   if (!order) {
     return (
       <SafeAreaView
@@ -119,11 +124,6 @@ export default function PilihPembayaranPage() {
   }
 
   const currentOrder = order;
-
-  useEffect(() => {
-    if (isTablet) return;
-    setMobileStep("summary");
-  }, [isTablet, currentOrder.id]);
 
   const paidAmount = calculateOrderPaidAmount(currentOrder);
   const remaining = calculateOrderRemainingAmount(currentOrder);

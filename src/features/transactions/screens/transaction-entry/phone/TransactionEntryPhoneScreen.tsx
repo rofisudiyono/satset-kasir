@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import { TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components";
+import { TextBodySm, TextCaption, TextH3 } from "@/components";
 import {
   CartBar,
   CartPanel,
@@ -36,6 +36,8 @@ export function TransactionEntryPhoneScreen() {
     cartTotalPrice,
     searchQuery,
     setSearchQuery,
+    menusRefreshing,
+    refetchMenus,
     variantProduct,
     isVariantSheetVisible,
     closeVariantSheet,
@@ -81,6 +83,10 @@ export function TransactionEntryPhoneScreen() {
             onBarcodePress={openScanner}
             contentBottomInset={cartTotalItems > 0 ? 88 : 0}
             compact
+            refreshing={menusRefreshing}
+            onRefresh={() => {
+              void refetchMenus();
+            }}
           />
         )}
       </View>

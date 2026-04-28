@@ -72,7 +72,7 @@ export default function MobileTabsLayout() {
     }, [isLoggedIn, pathname, router]),
   );
 
-  if (!isLoggedIn) return <Redirect href="/mobile/login" />;
+  if (!isLoggedIn) return <Redirect href={"/mobile/login" as never} />;
 
   const tabBarHeight = 64 + Math.max(insets.bottom, 12);
 

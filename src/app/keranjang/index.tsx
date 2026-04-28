@@ -23,6 +23,7 @@ import {
 } from "@/features/cart";
 import {
   cartSnapshotAtom,
+  type CustomerVisitStatus,
   heldOrdersAtom,
 } from "@/features/cart/store/cart.store";
 import { buildPosOrderFromCart } from "@/features/pos/pos.utils";
@@ -55,12 +56,11 @@ export default function KeranjangPage() {
   const [posOrders, setPosOrders] = useAtom(posOrdersAtom);
   const { isTablet, contentMaxWidth, horizontalPadding } = useResponsiveLayout();
 
-  const [customerName, setCustomerName] = useState(orderDraft.customerName ?? "");
+  const [customerName, setCustomerName] = useState(orderDraft.customerName);
   const [customerPhone, setCustomerPhone] = useState(orderDraft.customerPhone ?? "");
   const [orderNote, setOrderNote] = useState(orderDraft.orderNote ?? "");
-  const [customerVisitStatus, setCustomerVisitStatus] = useState(
-    orderDraft.customerVisitStatus ?? "returning",
-  );
+  const [customerVisitStatus, setCustomerVisitStatus] =
+    useState<CustomerVisitStatus | null>(orderDraft.customerVisitStatus ?? null);
   const [selectedTable, setSelectedTable] = useState<KasirTable | null>(null);
   const [orderType, setOrderType] = useState<OrderType>(orderDraft.orderType);
   const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(isShiftStarted);
@@ -122,7 +122,7 @@ export default function KeranjangPage() {
 
   useEffect(() => {
     if (!orderDraft.tableId) return;
-    const restored = tables.find((table) => table.id === orderDraft.tableId);
+    const restored = tables.find((table: KasirTable) => table.id === orderDraft.tableId);
     if (restored) setSelectedTable(restored);
   }, [orderDraft.tableId, tables]);
 
@@ -140,7 +140,7 @@ export default function KeranjangPage() {
 
   useEffect(() => {
     setOrderDraft({
-      customerName,
+      customerName: customerVisitStatus === "new" ? customerName : "",
       customerPhone,
       orderNote,
       customerVisitStatus,
@@ -197,6 +197,22 @@ export default function KeranjangPage() {
     );
   }
 
+  function validateCustomerInfo() {
+    if (!customerVisitStatus) {
+      Alert.alert("Lengkapi data pemesan", "Pilih apakah pelanggan sudah pernah mengunjungi atau belum.");
+      return false;
+    }
+    if (!customerPhone.trim()) {
+      Alert.alert("Nomor HP wajib diisi", "Masukkan nomor HP pelanggan sebelum melanjutkan.");
+      return false;
+    }
+    if (customerVisitStatus === "new" && !customerName.trim()) {
+      Alert.alert("Nama wajib diisi", "Masukkan nama pelanggan baru sebelum melanjutkan.");
+      return false;
+    }
+    return true;
+  }
+
   async function handleApplyPromo() {
     const code = promoCode.trim().toUpperCase();
     if (!code) return;
@@ -234,20 +250,6 @@ export default function KeranjangPage() {
     }
   }
 
-  function validateCustomerInfo() {
-    if (!customerPhone.trim()) {
-      Alert.alert("Nomor HP wajib diisi", "Masukkan nomor HP pemesan terlebih dahulu.");
-      return false;
-    }
-
-    if (customerVisitStatus === "new" && !customerName.trim()) {
-      Alert.alert("Nama wajib diisi", "Pemesan baru wajib mengisi nama lengkap.");
-      return false;
-    }
-
-    return true;
-  }
-
   function handleHoldOrder() {
     if (cart.length === 0) return;
     if (!validateCustomerInfo()) return;
@@ -256,7 +258,9 @@ export default function KeranjangPage() {
       return;
     }
 
-    const label = customerName || customerPhone || selectedTable?.label || orderType;
+    const resolvedCustomerName = customerVisitStatus === "new" ? customerName : "";
+    const resolvedCustomerVisitStatus = customerVisitStatus ?? "returning";
+    const label = resolvedCustomerName || customerPhone || selectedTable?.label || orderType;
     const now = new Date();
     const timeStr = now.toLocaleTimeString("id-ID", {
       hour: "2-digit",
@@ -265,10 +269,10 @@ export default function KeranjangPage() {
     const held = {
       id: `hold-${Date.now()}`,
       items: [...cart],
-      customerName,
+      customerName: resolvedCustomerName,
       customerPhone,
       orderNote,
-      customerVisitStatus,
+      customerVisitStatus: resolvedCustomerVisitStatus,
       tableId: selectedTable?.id,
       tableLabel: selectedTable?.label,
       tableNumber: selectedTable?.label ?? "",
@@ -278,11 +282,17 @@ export default function KeranjangPage() {
     };
     setHeldOrders((prev) => [held, ...prev]);
     setCart([]);
+    setCustomerName("");
+    setCustomerPhone("");
+    setOrderNote("");
+    setCustomerVisitStatus(null);
+    setOrderType("Dine In");
+    setSelectedTable(null);
     setOrderDraft({
       customerName: "",
       customerPhone: "",
       orderNote: "",
-      customerVisitStatus: "returning",
+      customerVisitStatus: null,
       orderType: "Dine In",
       tableId: undefined,
       tableLabel: undefined,
@@ -309,13 +319,14 @@ export default function KeranjangPage() {
         : orderType === "Take Away"
           ? "Takeaway"
           : "Delivery");
+    const resolvedCustomerName = customerVisitStatus === "new" ? customerName : "";
 
     const order = buildPosOrderFromCart({
       orderId,
       shiftId: shiftData?.shiftId,
       cart,
       tableId: selectedTable?.id,
-      customerName,
+      customerName: resolvedCustomerName,
       customerPhone,
       orderNote,
       tableLabel,
@@ -329,7 +340,7 @@ export default function KeranjangPage() {
 
     setPosOrders((prev) => [order, ...prev]);
     setOrderDraft({
-      customerName,
+      customerName: resolvedCustomerName,
       customerPhone,
       orderNote,
       customerVisitStatus,
@@ -403,14 +414,14 @@ export default function KeranjangPage() {
         >
           <YStack gap={12}>
             <CustomerInfoCard
+              customerVisitStatus={customerVisitStatus}
+              onCustomerVisitStatusChange={setCustomerVisitStatus}
               customerName={customerName}
               onCustomerNameChange={setCustomerName}
               customerPhone={customerPhone}
               onCustomerPhoneChange={setCustomerPhone}
               orderNote={orderNote}
               onOrderNoteChange={setOrderNote}
-              customerVisitStatus={customerVisitStatus}
-              onCustomerVisitStatusChange={setCustomerVisitStatus}
               orderType={orderType}
               onOrderTypeChange={setOrderType}
               selectedTableId={selectedTable?.id}

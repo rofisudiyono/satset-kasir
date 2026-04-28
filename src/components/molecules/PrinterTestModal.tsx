@@ -495,8 +495,8 @@ export function PrinterTestModal({ visible, onClose }: PrinterTestModalProps) {
                   Tips Test Printer
                 </TextBodySm>
                 <TextCaption color="$colorSecondary" lineHeight={16}>
-                  • Gunakan "Cetak Test (PDF)" untuk printer WiFi atau USB
-                  {"\n"}• Gunakan "Pindai Printer" untuk thermal Bluetooth
+                  • Gunakan tombol Cetak Test (PDF) untuk printer WiFi atau USB
+                  {"\n"}• Gunakan tombol Pindai Printer untuk thermal Bluetooth
                   {"\n"}• Pastikan printer sudah dinyalakan dan kertas tersedia
                 </TextCaption>
               </YStack>

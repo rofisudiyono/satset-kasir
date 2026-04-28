@@ -183,6 +183,7 @@ export type CheckoutOrderBody = {
   orderType: "DINE_IN" | "TAKEAWAY" | "DELIVERY";
   tableId?: string;
   tableLabel?: string;
+  customerId?: string;
   customerName?: string;
   customerPhone?: string;
   orderNote?: string;

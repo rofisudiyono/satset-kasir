@@ -1,20 +1,29 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useAtomValue } from "jotai";
-import React from "react";
-import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useState } from "react";
+import {
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { YStack } from "tamagui";
 
 import { PageHeader, TextBodySm } from "@/components";
 import { isShiftStartedAtom, shiftDataAtom } from "@/features/shift/store/shift.store";
+import { kasirKeys } from "@/hooks/api/query-keys";
 import { ProfileCard, SettingRow } from "@/features/settings";
 import { useAuth } from "@/lib/auth";
 import { getLoginRoute, getOpenShiftRoute } from "@/lib/routing/device-routes";
 import {
   ColorDanger,
   ColorNeutral,
-  ColorSuccess,
+  ColorPrimary,
   ColorWarning,
 } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
@@ -29,9 +38,23 @@ function formatRole(role?: string | null) {
 
 export default function MobileSettingsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user, session, logout } = useAuth();
   const isShiftStarted = useAtomValue(isShiftStartedAtom);
   const shiftData = useAtomValue(shiftDataAtom);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: kasirKeys.activeShift() }),
+        queryClient.invalidateQueries({ queryKey: kasirKeys.tenantInfo() }),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [queryClient]);
 
   async function handleLogout() {
     if (isShiftStarted) {
@@ -57,6 +80,16 @@ export default function MobileSettingsPage() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              void handleRefresh();
+            }}
+            tintColor={ColorPrimary.primary600}
+            colors={[ColorPrimary.primary600]}
+          />
+        }
       >
         <ProfileCard
           name={session?.email ?? "Kasir"}

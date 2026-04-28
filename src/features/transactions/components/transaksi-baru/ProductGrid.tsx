@@ -40,6 +40,8 @@ type Props = {
   onBarcodePress?: () => void;
   contentBottomInset?: number;
   compact?: boolean;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 };
 
 export function ProductGrid({
@@ -54,6 +56,8 @@ export function ProductGrid({
   onBarcodePress,
   contentBottomInset = 32,
   compact = false,
+  refreshing = false,
+  onRefresh,
 }: Props) {
   const { width: screenWidth } = useWindowDimensions();
 
@@ -172,6 +176,8 @@ export function ProductGrid({
       columnWrapperStyle={columnWrapperStyle}
       contentContainerStyle={contentContainerStyle}
       ListHeaderComponent={ListHeaderComponent}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
       showsVerticalScrollIndicator={false}
       initialNumToRender={12}
       maxToRenderPerBatch={12}

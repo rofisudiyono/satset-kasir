@@ -49,7 +49,7 @@ export default function PesananDitahanPage() {
             customerName: order.customerName ?? "",
             customerPhone: order.customerPhone ?? "",
             orderNote: order.orderNote ?? "",
-            customerVisitStatus: order.customerVisitStatus ?? "returning",
+            customerVisitStatus: order.customerVisitStatus ?? null,
             orderType: order.orderType,
             tableId: order.tableId,
             tableLabel: order.tableLabel ?? order.tableNumber,
@@ -175,6 +175,11 @@ const HeldOrderCard = memo(function HeldOrderCard({
           <TextCaption color={ColorNeutral.neutral500}>
             {order.orderType} · Ditahan {order.createdAt}
           </TextCaption>
+          {order.customerPhone ? (
+            <TextCaption color={ColorNeutral.neutral500}>
+              {order.customerPhone}
+            </TextCaption>
+          ) : null}
           {order.tableLabel ? (
             <TextCaption color={ColorNeutral.neutral500}>
               {order.tableLabel}

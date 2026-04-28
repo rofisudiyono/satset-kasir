@@ -119,7 +119,12 @@ export function useTransactionEntry() {
   const [isVariantSheetVisible, setVariantSheetVisible] = useState(false);
   const [isCartVisible, setCartVisible] = useState(false);
 
-  const { data: apiMenus, isLoading: menusLoading } =
+  const {
+    data: apiMenus,
+    isFetching: menusFetching,
+    isLoading: menusLoading,
+    refetch: refetchMenus,
+  } =
     useMenusQuery(isShiftStarted);
 
   const catalogProducts = useMemo<CatalogProduct[]>(
@@ -228,6 +233,8 @@ export function useTransactionEntry() {
 
   return {
     menusLoading,
+    menusRefreshing: menusFetching,
+    refetchMenus,
     searchQuery,
     setSearchQuery,
     categoryFilter: categoryFilterState,

@@ -19,7 +19,7 @@ export const cartAtom = atom<CartItem[]>([]);
 // Signals the transaksi-baru page that a barcode was scanned
 export const scannedBarcodeAtom = atom<string | null>(null);
 
-// Snapshot of the cart at payment time — used by pembayaran-sukses for stock deduction
+// Snapshot of the cart at payment time — used to build the checkout payload and success receipt.
 export const cartSnapshotAtom = atom<CartItem[]>([]);
 
 // ─── Hold Order ───────────────────────────────────────────────────────────────
@@ -47,7 +47,7 @@ export interface CartOrderDraft {
   customerName: string;
   customerPhone: string;
   orderNote: string;
-  customerVisitStatus: CustomerVisitStatus;
+  customerVisitStatus: CustomerVisitStatus | null;
   orderType: OrderType;
   tableId?: string;
   tableLabel?: string;
@@ -57,7 +57,7 @@ export const cartOrderDraftAtom = atomWithMMKV<CartOrderDraft>("cartOrderDraft",
   customerName: "",
   customerPhone: "",
   orderNote: "",
-  customerVisitStatus: "returning",
+  customerVisitStatus: null,
   orderType: "Dine In",
   tableId: undefined,
   tableLabel: undefined,

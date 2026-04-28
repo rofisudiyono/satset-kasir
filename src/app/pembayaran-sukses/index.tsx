@@ -68,7 +68,7 @@ export default function PembayaranSuksesPage() {
     reconnecting: false,
   });
 
-  const params = useLocalSearchParams<{ orderId: string; paymentId?: string }>();
+  const params = useLocalSearchParams<{ orderId: string; paymentId?: string; serverOrderId?: string }>();
 
   useEffect(() => {
     const unsubscribe = bluetoothPrinterManager.subscribe((state) => {
@@ -117,33 +117,29 @@ export default function PembayaranSuksesPage() {
     ? getPaymentMethodLabel(payment.method)
     : "Pembayaran";
 
-  const receiptPayload = React.useMemo(
-    () => ({
-      orderNumber: order.id,
-      dateTime: new Intl.DateTimeFormat("id-ID", {
-        weekday: "long",
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "Asia/Jakarta",
-      }).format(new Date(payment?.paidAt ?? order.createdAt)),
-      items: receiptItems,
-      subtotal,
-      discount,
-      tax: ppn,
-      grandTotal: order.grandTotal,
-      paymentMethod: methodLabel,
-      amountPaid: paymentAmount,
-      totalPaid,
-      remaining,
-      cashReceived: payment?.method === "tunai" ? received : undefined,
-      change: payment?.method === "tunai" ? change : undefined,
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [order.id],
-  );
+  const receiptPayload = {
+    orderNumber: params.serverOrderId ?? order.id,
+    dateTime: new Intl.DateTimeFormat("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Asia/Jakarta",
+    }).format(new Date(payment?.paidAt ?? order.createdAt)),
+    items: receiptItems,
+    subtotal,
+    discount,
+    tax: ppn,
+    grandTotal: order.grandTotal,
+    paymentMethod: methodLabel,
+    amountPaid: paymentAmount,
+    totalPaid,
+    remaining,
+    cashReceived: payment?.method === "tunai" ? received : undefined,
+    change: payment?.method === "tunai" ? change : undefined,
+  };
 
   const dateStr = new Date(
     payment?.paidAt ?? order.createdAt,

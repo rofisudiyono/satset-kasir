@@ -1,7 +1,8 @@
 /**
  * Catalog stock tracking
  * Maps productId -> current stock count (persisted)
- * Initialized from catalog default stock values; decremented after each transaction.
+ * Initialized from catalog default stock values for local/demo availability hints.
+ * Server inventory is authoritative and is deducted by satset-api when KDS takes an order.
  */
 
 import { atomWithMMKV } from "@/store/storage";

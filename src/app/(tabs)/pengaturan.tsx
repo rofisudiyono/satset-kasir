@@ -228,9 +228,7 @@ export default function RiwayatOrderTabPage() {
   }
 
   function canMarkDelivered(order: KasirOrder) {
-    if (order.status !== "PAID") return false;
-    const fulfillmentStatus = order.fulfillmentStatus ?? "READY";
-    return fulfillmentStatus !== "DELIVERED";
+    return order.status === "PAID" && order.fulfillmentStatus === "READY";
   }
 
   return (

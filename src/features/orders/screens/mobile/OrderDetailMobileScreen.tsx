@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -117,7 +118,7 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
     return unsubscribe;
   }, []);
 
-  const { data: order, isLoading } = useOrderDetailQuery(
+  const { data: order, isFetching, isLoading, refetch } = useOrderDetailQuery(
     isLoggedIn && isShiftStarted,
     orderId,
   );
@@ -174,7 +175,7 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
       console.error("Bluetooth print error:", error);
       Alert.alert("Cetak gagal", "Terjadi kesalahan saat mencetak invoice.");
     }
-  }, [printableReceipt, printerState.connected, printerState.printer?.type, router, tenantInfo]);
+  }, [printableReceipt, printerState.connected, router, tenantInfo]);
 
   const handleCancel = useCallback(() => {
     Alert.alert("Void Order", `Batalkan order #${orderId.slice(0, 8)}?`, [
@@ -204,7 +205,7 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
         },
       },
     ]);
-  }, [cancelMutation, orderId, router]);
+  }, [cancelMutation, orderId]);
 
   const handleRefund = useCallback(() => {
     Alert.alert("Refund Order", `Proses refund untuk #${orderId.slice(0, 8)}?`, [
@@ -260,8 +261,7 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
   }, [deliverMutation, orderId]);
 
   const canMarkDelivered =
-    order?.status === "PAID" &&
-    (order.fulfillmentStatus ?? "READY") !== "DELIVERED";
+    order?.status === "PAID" && order?.fulfillmentStatus === "READY";
 
   // Bottom bar height — 2 print buttons + optional action rows
   const bottomBarPaddingBottom = insets.bottom + 16;
@@ -308,6 +308,16 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching}
+            onRefresh={() => {
+              void refetch();
+            }}
+            tintColor={ColorPrimary.primary600}
+            colors={[ColorPrimary.primary600]}
+          />
+        }
       >
         {/* ── Status Hero ── */}
         <View
@@ -408,7 +418,7 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
                       color={ColorNeutral.neutral500}
                       style={{ fontStyle: "italic" }}
                     >
-                      "{item.note}"
+                      Catatan: {item.note}
                     </TextCaption>
                   ) : null}
                   <TextCaption color={ColorNeutral.neutral400}>

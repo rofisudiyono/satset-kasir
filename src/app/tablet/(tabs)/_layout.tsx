@@ -23,7 +23,7 @@ export default function TabletTabsLayout() {
     [],
   );
 
-  if (!isLoggedIn) return <Redirect href="/tablet/login" />;
+  if (!isLoggedIn) return <Redirect href={"/tablet/login" as never} />;
 
   return (
     <View style={styles.container}>

@@ -96,30 +96,7 @@ export type PaymentEntry = {
   label?: string;
 };
 
-export async function payReadyOrder(
-  readyOrderId: string,
-  payments: PaymentEntry[],
-): Promise<unknown> {
-  const { data } = await api.post<{ data: unknown }>(
-    `/kasir/orders/${readyOrderId}/pay`,
-    { payments },
-  );
-  return data.data;
-}
-
-/** Order WEB mode manual: dapur selesai → menunggu kasir mencatat pembayaran (sama payload dengan `/pay`). */
-export async function manualApproveReadyOrder(
-  readyOrderId: string,
-  payments: PaymentEntry[],
-): Promise<unknown> {
-  const { data } = await api.post<{ data: unknown }>(
-    `/kasir/orders/${readyOrderId}/manual-approve`,
-    { payments },
-  );
-  return data.data;
-}
-
-/** Tandai order final sudah diserahkan ke pelanggan (`orders.id`, bukan id temp siap bayar). */
+/** Tandai order final sudah diserahkan ke pelanggan (`orders.id`). */
 export async function deliverPaidOrder(orderId: string): Promise<unknown> {
   const { data } = await api.post<{ data: unknown }>(
     `/kasir/orders/${orderId}/deliver`,

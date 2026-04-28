@@ -351,8 +351,11 @@ FR-10: [P3] Sistem dapat menyimpan audit log saat invoice direprint.
 | Method | Endpoint | Deskripsi | Auth |
 |--------|----------|-----------|------|
 | GET | `/api/kasir/orders` | Riwayat order kasir | ✅ |
-| POST | `/api/kasir/orders/:id/pay` | Finalisasi pembayaran | ✅ |
+| POST | `/api/kasir/orders/checkout` | Checkout walk-in: buat order `PAID + QUEUED`, catat pembayaran awal, kirim ke KDS | ✅ |
+| GET | `/api/kasir/orders/ready` | List order final `PAID + READY` yang siap diantar | ✅ |
 | POST | `/api/kasir/orders/:id/deliver` | Tandai delivered | ✅ |
+| GET | `/api/kasir/orders/pending-web` | List order web yang menunggu konfirmasi pembayaran kasir | ✅ |
+| POST | `/api/kasir/orders/pending-web/:id/confirm` | Konfirmasi pembayaran order web dan kirim ke KDS | ✅ |
 | GET | `/api/admin/reports/transactions` | Laporan transaksi tenant | ✅ |
 
 ### Proposed

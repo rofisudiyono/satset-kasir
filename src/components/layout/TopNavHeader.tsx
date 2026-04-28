@@ -407,7 +407,7 @@ export function TopNavHeader() {
               fontWeight={displayReadyCount > 0 ? "700" : "500"}
             >
               {displayReadyCount > 0
-                ? `${displayReadyCount} READY dari KDA`
+                ? `${displayReadyCount} READY dari KDS`
                 : "Belum ada READY"}
             </TextCaption>
           </TouchableOpacity>

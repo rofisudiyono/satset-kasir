@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -12,19 +13,19 @@ import {
 import { orderTypeOptions } from "@/features/payment/api/payment.data";
 import { TextBodySm, TextCaption } from "@/components";
 import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
+import type { CustomerVisitStatus } from "@/features/cart/store/cart.store";
 import type { KasirTable } from "@/lib/api/types";
 import type { OrderType } from "@/types";
-import type { CustomerVisitStatus } from "../store/cart.store";
 
 interface CustomerInfoCardProps {
+  customerVisitStatus: CustomerVisitStatus | null;
+  onCustomerVisitStatusChange: (v: CustomerVisitStatus) => void;
   customerName: string;
   onCustomerNameChange: (v: string) => void;
   customerPhone: string;
   onCustomerPhoneChange: (v: string) => void;
   orderNote: string;
   onOrderNoteChange: (v: string) => void;
-  customerVisitStatus: CustomerVisitStatus;
-  onCustomerVisitStatusChange: (v: CustomerVisitStatus) => void;
   orderType: OrderType;
   onOrderTypeChange: (v: OrderType) => void;
   selectedTableId?: string;
@@ -35,14 +36,14 @@ interface CustomerInfoCardProps {
 }
 
 export function CustomerInfoCard({
+  customerVisitStatus,
+  onCustomerVisitStatusChange,
   customerName,
   onCustomerNameChange,
   customerPhone,
   onCustomerPhoneChange,
   orderNote,
   onOrderNoteChange,
-  customerVisitStatus,
-  onCustomerVisitStatusChange,
   orderType,
   onOrderTypeChange,
   selectedTableId,
@@ -61,46 +62,61 @@ export function CustomerInfoCard({
 
   return (
     <View style={styles.card}>
-      <TextBodySm fontWeight="800" color="$colorPrimary">
-        Data pemesan
-      </TextBodySm>
-      <TextCaption color="$colorSecondary" marginTop={14} marginBottom={8}>
+      <TextCaption color="$colorSecondary" marginBottom={8}>
         Pernah mengunjungi kami sebelumnya?
       </TextCaption>
-      <View style={styles.visitSegmentControl}>
+      <View style={styles.visitControl}>
         <TouchableOpacity
-          activeOpacity={0.85}
+          activeOpacity={0.82}
           style={[
-            styles.visitSegmentBtn,
-            customerVisitStatus === "returning" && styles.visitSegmentBtnActive,
+            styles.visitOption,
+            customerVisitStatus === "returning" && styles.visitOptionActive,
           ]}
           onPress={() => onCustomerVisitStatusChange("returning")}
         >
+          <Ionicons
+            name="repeat-outline"
+            size={16}
+            color={
+              customerVisitStatus === "returning"
+                ? ColorPrimary.primary700
+                : ColorNeutral.neutral500
+            }
+          />
           <TextBodySm
             fontWeight="700"
             color={
               customerVisitStatus === "returning"
                 ? ColorPrimary.primary700
-                : "$colorPrimary"
+                : "$colorSecondary"
             }
           >
             Pernah
           </TextBodySm>
         </TouchableOpacity>
         <TouchableOpacity
-          activeOpacity={0.85}
+          activeOpacity={0.82}
           style={[
-            styles.visitSegmentBtn,
-            customerVisitStatus === "new" && styles.visitSegmentBtnActive,
+            styles.visitOption,
+            customerVisitStatus === "new" && styles.visitOptionActive,
           ]}
           onPress={() => onCustomerVisitStatusChange("new")}
         >
+          <Ionicons
+            name="person-add-outline"
+            size={16}
+            color={
+              customerVisitStatus === "new"
+                ? ColorPrimary.primary700
+                : ColorNeutral.neutral500
+            }
+          />
           <TextBodySm
             fontWeight="700"
             color={
               customerVisitStatus === "new"
                 ? ColorPrimary.primary700
-                : "$colorPrimary"
+                : "$colorSecondary"
             }
           >
             Belum pernah
@@ -108,35 +124,56 @@ export function CustomerInfoCard({
         </TouchableOpacity>
       </View>
 
-      {customerVisitStatus === "new" ? (
-        <TextInput
-          value={customerName}
-          onChangeText={onCustomerNameChange}
-          placeholder="Nama lengkap"
-          placeholderTextColor={ColorNeutral.neutral400}
-          style={[styles.inputField, styles.inputSpacing]}
-        />
+      {customerVisitStatus ? (
+        <View style={styles.customerFields}>
+          {customerVisitStatus === "new" ? (
+            <View>
+              <TextCaption color="$colorSecondary" marginBottom={6}>
+                Nama Pelanggan
+              </TextCaption>
+              <TextInput
+                value={customerName}
+                onChangeText={onCustomerNameChange}
+                placeholder="Nama lengkap"
+                placeholderTextColor={ColorNeutral.neutral400}
+                style={styles.inputField}
+              />
+            </View>
+          ) : null}
+
+          <View>
+            <TextCaption color="$colorSecondary" marginBottom={6}>
+              Nomor HP
+            </TextCaption>
+            <TextInput
+              value={customerPhone}
+              onChangeText={onCustomerPhoneChange}
+              placeholder="Nomor HP"
+              placeholderTextColor={ColorNeutral.neutral400}
+              style={styles.inputField}
+              keyboardType="phone-pad"
+            />
+            <TextCaption color={ColorNeutral.neutral500} marginTop={6}>
+              Gunakan nomor WhatsApp aktif untuk memudahkan konfirmasi pesanan.
+            </TextCaption>
+          </View>
+
+          <View>
+            <TextCaption color="$colorSecondary" marginBottom={6}>
+              Catatan Pesanan
+            </TextCaption>
+            <TextInput
+              value={orderNote}
+              onChangeText={onOrderNoteChange}
+              placeholder="Catatan pesanan"
+              placeholderTextColor={ColorNeutral.neutral400}
+              multiline
+              textAlignVertical="top"
+              style={[styles.inputField, styles.noteField]}
+            />
+          </View>
+        </View>
       ) : null}
-      <TextInput
-        value={customerPhone}
-        onChangeText={onCustomerPhoneChange}
-        placeholder="Nomor HP"
-        placeholderTextColor={ColorNeutral.neutral400}
-        keyboardType="phone-pad"
-        style={[styles.inputField, styles.inputSpacing]}
-      />
-      <TextCaption color="$colorSecondary" marginTop={6}>
-        Gunakan nomor WhatsApp aktif untuk memudahkan konfirmasi pesanan.
-      </TextCaption>
-      <TextInput
-        value={orderNote}
-        onChangeText={onOrderNoteChange}
-        placeholder="Catatan pesanan"
-        placeholderTextColor={ColorNeutral.neutral400}
-        multiline
-        textAlignVertical="top"
-        style={[styles.inputField, styles.noteField]}
-      />
 
       <TextCaption color="$colorSecondary" marginBottom={8} marginTop={12}>
         Mode Layanan
@@ -312,29 +349,33 @@ const styles = StyleSheet.create({
     color: ColorNeutral.neutral900,
     fontFamily: "Poppins_400Regular",
   },
-  inputSpacing: {
+  visitControl: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  visitOption: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+    backgroundColor: ColorNeutral.neutral50,
+    paddingHorizontal: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  visitOptionActive: {
+    borderColor: "rgba(65, 184, 58, 0.45)",
+    backgroundColor: "#F3FCEB",
+  },
+  customerFields: {
+    gap: 12,
     marginTop: 12,
   },
   noteField: {
     minHeight: 78,
-    marginTop: 12,
-  },
-  visitSegmentControl: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  visitSegmentBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: "center",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
-    backgroundColor: ColorNeutral.neutral50,
-  },
-  visitSegmentBtnActive: {
-    borderColor: ColorPrimary.primary600,
-    backgroundColor: ColorPrimary.primary50,
   },
   segmentControl: {
     flexDirection: "row",

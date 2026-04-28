@@ -10,7 +10,13 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
@@ -147,7 +153,7 @@ export function OrderHistoryMobileScreen() {
     [deferredSearchTerm, filter],
   );
 
-  const { data: orders = [], isLoading } = useOrderHistoryQuery(
+  const { data: orders = [], isFetching, isLoading, refetch } = useOrderHistoryQuery(
     isLoggedIn && isShiftStarted,
     historyParams,
   );
@@ -247,6 +253,16 @@ export function OrderHistoryMobileScreen() {
         ListFooterComponent={<View style={styles.listFooterSpacer} />}
         ItemSeparatorComponent={HistoryListItemSeparator}
         drawDistance={400}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching}
+            onRefresh={() => {
+              void refetch();
+            }}
+            tintColor={ColorPrimary.primary600}
+            colors={[ColorPrimary.primary600]}
+          />
+        }
       />
     </SafeAreaView>
   );
