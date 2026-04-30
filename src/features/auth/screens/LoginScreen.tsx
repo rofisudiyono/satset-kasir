@@ -41,17 +41,9 @@ import {
   ColorBase,
   ColorNeutral,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 const KASIR_ROLES = new Set(["kasir", "admin_coffee"]);
-const BRAND_DEEP = "#075F55";
-const BRAND_GREEN = "#4FBF3E";
-const BRAND_MID = "#13985B";
-const BRAND_LIME = "#8FCF50";  // softer than neon #BFEA3A
-const BRAND_CANVAS = "#F4F8F1";
-const BRAND_SURFACE = "#FDFFFA";
-const BRAND_TINT = "#F3FCEB";
-const BRAND_TEXT = "#08745F";
-const BRAND_BORDER = "rgba(65, 184, 58, 0.16)";
 
 type LoginScreenVariant = "mobile" | "tablet";
 
@@ -125,7 +117,11 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
       <View style={{ flex: 1 }}>
         <SafeAreaView style={styles.tabletScreen} edges={["top", "bottom"]}>
           <LinearGradient
-            colors={[BRAND_GREEN, BRAND_MID, BRAND_DEEP]}
+            colors={[
+              BrandColors.sageLight,
+              BrandColors.mid,
+              BrandColors.deep,
+            ]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.brandPanel}
@@ -152,7 +148,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                   <TextH2 color={ColorBase.white} fontWeight="900">
                     SATSET
                   </TextH2>
-                  <TextCaption color={BRAND_LIME} fontWeight="700">
+                  <TextCaption color={BrandColors.accentOnDark} fontWeight="700">
                     Akselerasi Bisnis Tanpa Batas
                   </TextCaption>
                 </YStack>
@@ -189,7 +185,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                     <Ionicons
                       name="sunny-outline"
                       size={18}
-                      color={BRAND_LIME}
+                      color={BrandColors.accentOnDark}
                     />
                   </YStack>
                   <YStack flex={1} gap={2}>
@@ -263,26 +259,26 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                 gap="$5"
               >
                 <XStack
-                  backgroundColor={BRAND_TINT}
+                  backgroundColor={BrandColors.tint}
                   borderRadius="$4"
                   padding="$3"
                   alignItems="center"
                   gap="$3"
                   borderWidth={1}
-                  borderColor={BRAND_BORDER}
+                  borderColor={BrandColors.border}
                 >
                   <YStack
                     width={38}
                     height={38}
                     borderRadius={19}
-                    backgroundColor="#E7F8D8"
+                    backgroundColor={BrandColors.tintStrong}
                     alignItems="center"
                     justifyContent="center"
                   >
                     <Ionicons
                       name="person-outline"
                       size={18}
-                      color={BRAND_TEXT}
+                      color={BrandColors.text}
                     />
                   </YStack>
                   <YStack flex={1}>
@@ -358,10 +354,10 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                       height={20}
                       borderRadius={4}
                       backgroundColor={
-                        rememberMe ? BRAND_GREEN : ColorBase.transparent
+                        rememberMe ? BrandColors.sage : ColorBase.transparent
                       }
                       borderWidth={2}
-                      borderColor={rememberMe ? BRAND_GREEN : "$borderColor"}
+                      borderColor={rememberMe ? BrandColors.sage : "$borderColor"}
                       alignItems="center"
                       justifyContent="center"
                     >
@@ -374,7 +370,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                     </TextBodySm>
                   </TouchableOpacity>
                   <TouchableOpacity>
-                    <TextBodySm fontWeight="600" color={BRAND_TEXT}>
+                    <TextBodySm fontWeight="600" color={BrandColors.text}>
                       Lupa password?
                     </TextBodySm>
                   </TouchableOpacity>
@@ -448,11 +444,11 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
               width={56}
               height={56}
               borderRadius="$4"
-              backgroundColor={BRAND_SURFACE}
+              backgroundColor={BrandColors.surface}
               alignItems="center"
               justifyContent="center"
               borderWidth={1}
-              borderColor={BRAND_BORDER}
+              borderColor={BrandColors.border}
             >
               <Image
                 source={require("../../../../assets/images/satset_1024.png")}
@@ -484,10 +480,10 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
               shadowOffset={{ width: 0, height: 4 }}
               elevation={3}
               borderWidth={1}
-              borderColor={BRAND_BORDER}
+              borderColor={BrandColors.border}
             >
               <XStack
-                backgroundColor={BRAND_TINT}
+                backgroundColor={BrandColors.tint}
                 borderRadius="$4"
                 padding="$3"
                 alignItems="center"
@@ -497,14 +493,14 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                   width={36}
                   height={36}
                   borderRadius={18}
-                  backgroundColor="#E7F8D8"
+                  backgroundColor={BrandColors.tintStrong}
                   alignItems="center"
                   justifyContent="center"
                 >
                   <Ionicons
                     name="person-outline"
                     size={18}
-                    color={BRAND_TEXT}
+                    color={BrandColors.text}
                   />
                 </YStack>
                 <YStack flex={1}>
@@ -580,10 +576,10 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                     height={20}
                     borderRadius={4}
                     backgroundColor={
-                      rememberMe ? BRAND_GREEN : ColorBase.transparent
+                      rememberMe ? BrandColors.sage : ColorBase.transparent
                     }
                     borderWidth={2}
-                    borderColor={rememberMe ? BRAND_GREEN : "$borderColor"}
+                    borderColor={rememberMe ? BrandColors.sage : "$borderColor"}
                     alignItems="center"
                     justifyContent="center"
                   >
@@ -596,7 +592,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                   </TextBodySm>
                 </TouchableOpacity>
                 <TouchableOpacity>
-                  <TextBodySm fontWeight="600" color={BRAND_TEXT}>
+                  <TextBodySm fontWeight="600" color={BrandColors.text}>
                     Lupa password?
                   </TextBodySm>
                 </TouchableOpacity>
@@ -668,7 +664,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                 <Ionicons
                   name="sunny-outline"
                   size={20}
-                  color={BRAND_LIME}
+                  color={BrandColors.lime}
                 />
                 <TextBodySm fontWeight="600" textAlign="center">
                   Buka Shift
@@ -693,21 +689,21 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: BRAND_CANVAS,
+    backgroundColor: BrandColors.canvas,
   },
   tabletScreen: {
     flex: 1,
     flexDirection: "row",
-    backgroundColor: BRAND_SURFACE,
+    backgroundColor: BrandColors.surface,
   },
   brandPanel: {
     flex: 1,
-    backgroundColor: BRAND_DEEP,
+    backgroundColor: BrandColors.deep,
     overflow: "hidden",
   },
   formPanelWrapper: {
     flex: 1,
-    backgroundColor: BRAND_SURFACE,
+    backgroundColor: BrandColors.surface,
   },
   formPanelScroll: {
     flexGrow: 1,

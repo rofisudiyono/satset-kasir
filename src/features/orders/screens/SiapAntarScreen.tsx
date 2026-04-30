@@ -26,10 +26,10 @@ import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import {
   ColorBase,
   ColorNeutral,
-  ColorPrimary,
   ColorSuccess,
   ColorWarning,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import { formatPrice } from "@/utils";
 
 function needsManualApproval(row: KasirReadyOrder) {
@@ -69,7 +69,7 @@ const ReadyRow = memo(function ReadyRow({
             </TextBodyLg>
             {row.source === "WEB" ? (
               <View style={styles.badgeWeb}>
-                <TextCaption fontWeight="700" color={ColorPrimary.primary700}>
+                <TextCaption fontWeight="700" color={BrandColors.text}>
                   WEB
                 </TextCaption>
               </View>
@@ -366,7 +366,7 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
 
       return (
         <Pressable onPress={() => void refetch()} style={styles.refreshBtn}>
-          <TextBodySm fontWeight="600" color={ColorPrimary.primary600}>
+          <TextBodySm fontWeight="600" color={BrandColors.text}>
             Muat ulang
           </TextBodySm>
         </Pressable>
@@ -404,7 +404,7 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: BrandColors.canvas,
   },
   listContent: {
     paddingHorizontal: 16,
@@ -436,13 +436,13 @@ const styles = StyleSheet.create({
     backgroundColor: ColorSuccess.success500,
   },
   cardAccentPayment: {
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.deep,
   },
   cardPressed: {
     opacity: 0.88,
   },
   badgeWeb: {
-    backgroundColor: ColorPrimary.primary50,
+    backgroundColor: BrandColors.tint,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,

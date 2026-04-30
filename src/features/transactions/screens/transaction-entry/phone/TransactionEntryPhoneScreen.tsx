@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import { TextBodySm, TextCaption, TextH3 } from "@/components";
+import { TextBodySm, TextCaption, TextH2 } from "@/components";
 import {
   CartBar,
   CartPanel,
@@ -56,15 +56,17 @@ export function TransactionEntryPhoneScreen() {
     <SafeAreaView style={styles.container} edges={["left", "right"]}>
       <View style={styles.catalogPanel} onLayout={handlePanelLayout}>
         <View style={styles.catalogPanelHeader}>
-          <YStack gap={2}>
-            <TextH3 fontWeight="700">Katalog Aktif</TextH3>
-            <TextBodySm color="$colorSecondary">
+          <YStack gap={6} flex={1} paddingRight="$2">
+            <TextH2 fontWeight="800" color={BrandColors.text}>
+              Katalog Aktif
+            </TextH2>
+            <TextBodySm color={BrandColors.textMuted} fontWeight="500">
               {products.length} menu tersedia
             </TextBodySm>
           </YStack>
 
           <View style={styles.catalogBadge}>
-            <TextCaption fontWeight="700" color={BrandColors.text}>
+            <TextCaption fontWeight="700" color={BrandColors.deep}>
               {products.length} menu
             </TextCaption>
           </View>
@@ -119,7 +121,9 @@ export function TransactionEntryPhoneScreen() {
                 <TextCaption color={BrandColors.text} fontWeight="700">
                   KERANJANG
                 </TextCaption>
-                <TextH3 fontWeight="700">Ringkasan Pesanan</TextH3>
+                <TextH2 fontWeight="800" color={BrandColors.text}>
+                  Ringkasan Pesanan
+                </TextH2>
               </YStack>
 
               <TouchableOpacity
@@ -164,22 +168,20 @@ const styles = StyleSheet.create({
   },
   catalogPanelHeader: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 10,
-    backgroundColor: BrandColors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: BrandColors.border,
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 14,
+    backgroundColor: BrandColors.canvas,
   },
   catalogBadge: {
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: BrandColors.tint,
+    paddingHorizontal: 13,
+    paddingVertical: 7,
+    backgroundColor: BrandColors.surface,
     borderWidth: 1,
-    borderColor: BrandColors.borderStrong,
+    borderColor: BrandColors.sage,
   },
   modalOverlay: {
     flex: 1,

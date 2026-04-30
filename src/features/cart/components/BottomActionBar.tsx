@@ -3,7 +3,8 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { XStack } from "tamagui";
 
 import { TextBodyLg } from "@/components";
-import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
+import { ColorBase, ColorNeutral, ColorSurface } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 interface BottomActionBarProps {
   cartLength: number;
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
   },
   bottomBarCompact: {
     backgroundColor: "rgba(253, 255, 250, 0.98)",
-    borderTopColor: "rgba(65, 184, 58, 0.1)",
+    borderTopColor: BrandColors.border,
     paddingHorizontal: 12,
     paddingTop: 10,
     paddingBottom: 18,
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
     flex: 2,
     height: 52,
     borderRadius: 14,
-    backgroundColor: "#4FBF3E",
+    backgroundColor: BrandColors.buttonSolid,
     alignItems: "center",
     justifyContent: "center",
   },

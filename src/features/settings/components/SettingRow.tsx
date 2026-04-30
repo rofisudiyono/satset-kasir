@@ -10,7 +10,8 @@ import { StyleSheet, Switch, TouchableOpacity } from "react-native";
 import { XStack, YStack } from "tamagui";
 
 import { TextBodyLg, TextBodySm } from "@/components/atoms/Typography";
-import { ColorGreen, ColorNeutral, ColorPrimary } from "@/themes/Colors";
+import { ColorGreen, ColorNeutral } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import type { SettingRowProps } from "@/types";
 
 export function SettingRow({
@@ -75,7 +76,7 @@ export function SettingRow({
             value={toggleValue}
             onValueChange={onToggle}
             trackColor={{
-              true: ColorPrimary.primary600,
+              true: BrandColors.green,
               false: ColorNeutral.neutral300,
             }}
           />

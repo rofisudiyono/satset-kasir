@@ -8,6 +8,7 @@ import { TouchableOpacity } from "react-native";
 import { YStack } from "tamagui";
 
 import { ColorBase } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 import { TextBodySm } from "../atoms/Typography";
 
@@ -28,15 +29,15 @@ export function FilterChip({
   return (
     <TouchableOpacity onPress={onPress}>
       <YStack
-        backgroundColor={active ? "$primary" : "$background"}
-        borderRadius={20}
+        backgroundColor={active ? BrandColors.buttonSolid : ColorBase.white}
+        borderRadius={999}
         paddingHorizontal={paddingH}
-        paddingVertical={8}
+        paddingVertical={9}
         borderWidth={1}
-        borderColor={active ? "$primary" : "$borderColor"}
+        borderColor={active ? BrandColors.buttonSolid : "$borderColor"}
       >
         <TextBodySm
-          fontWeight="600"
+          fontWeight="700"
           color={active ? ColorBase.white : "$colorSecondary"}
         >
           {label}

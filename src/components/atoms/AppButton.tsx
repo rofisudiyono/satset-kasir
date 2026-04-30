@@ -14,6 +14,7 @@ import { ActivityIndicator } from "react-native";
 import { Button, Text } from "tamagui";
 
 import { ColorBase } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type AppButtonVariant =
@@ -88,8 +89,8 @@ const variantStyles: Record<
     pressOpacity: 0.85,
   },
   brand: {
-    bg: "#4FBF3E",
-    border: "#4FBF3E",
+    bg: BrandColors.buttonSolid,
+    border: BrandColors.buttonSolid,
     labelColor: ColorBase.white,
     pressOpacity: 0.85,
   },

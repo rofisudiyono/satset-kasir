@@ -16,6 +16,7 @@ import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/config/categoryStyles";
 import { categoryFilters } from "@/features/catalog/api/category.data";
 import { ProductCard } from "@/features/catalog/components/ProductCard";
 import { ColorBase, ColorNeutral } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import type { CatalogProduct, CategoryFilter } from "@/types";
 
 import { SearchBar } from "./SearchBar";
@@ -23,7 +24,7 @@ import { SearchBar } from "./SearchBar";
 const PADDING = 16 * 2;
 const GAP = 12;
 const COMPACT_PADDING = 12 * 2;
-const COMPACT_GAP = 8;
+const COMPACT_GAP = 10;
 const TABLET_COLS = 3;
 const H_PAD = 16;
 const COMPACT_H_PAD = 12;
@@ -108,7 +109,7 @@ export function ProductGrid({
 
   const ListHeaderComponent = useCallback(
     () => (
-      <YStack gap={compact ? "$2" : "$3"} paddingBottom={compact ? "$2" : "$3"}>
+      <YStack gap={compact ? "$3" : "$3"} paddingBottom={compact ? "$3" : "$3"}>
         <SearchBar
           value={searchValue}
           onChangeText={onSearchChangeText}
@@ -141,10 +142,12 @@ export function ProductGrid({
                   ]}
                 >
                   <TextBodySm
-                    fontWeight="800"
-                    fontSize={12}
-                    lineHeight={14}
-                    color={active ? ColorBase.white : ColorNeutral.neutral600}
+                    fontWeight="700"
+                    fontSize={13}
+                    lineHeight={16}
+                    color={
+                      active ? ColorBase.white : ColorNeutral.neutral700
+                    }
                   >
                     {c}
                   </TextBodySm>
@@ -195,17 +198,17 @@ const styles = StyleSheet.create({
   listContent: {},
   columnRow: {},
   compactChip: {
-    height: 32,
-    paddingHorizontal: 13,
+    height: 36,
+    paddingHorizontal: 16,
     borderRadius: 999,
-    backgroundColor: "#FAFFF6",
+    backgroundColor: ColorBase.white,
     borderWidth: 1,
-    borderColor: "rgba(65, 184, 58, 0.14)",
+    borderColor: ColorNeutral.neutral200,
     alignItems: "center",
     justifyContent: "center",
   },
   compactChipActive: {
-    backgroundColor: "#4FBF3E",
-    borderColor: "#4FBF3E",
+    backgroundColor: BrandColors.buttonSolid,
+    borderColor: BrandColors.buttonSolid,
   },
 });

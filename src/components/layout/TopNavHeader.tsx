@@ -5,6 +5,7 @@ import { useAtom, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Image,
+  Alert,
   Modal,
   StyleSheet,
   TouchableOpacity,
@@ -25,6 +26,7 @@ import {
   getHistoryRoute,
   getHomeRoute,
   getInputManualRoute,
+  getLoginRoute,
   getNamespaceFromPathname,
   getOpenShiftRoute,
   getSiapAntarRoute,
@@ -44,6 +46,7 @@ import {
   ColorPrimary,
   ColorSuccess,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 type NavItem = {
   label: string;
@@ -55,9 +58,8 @@ type NavItem = {
 
 type RefreshTarget = "web-orders" | "input-manual" | "history" | "ready-orders";
 
-const ADMIN_HEADER_BG = "#075F55";
-const ADMIN_HEADER_TEXT_SECONDARY = "rgba(240,253,232,0.84)";
-const ADMIN_HEADER_TEXT_MUTED = "rgba(218,247,166,0.64)";
+const HEADER_TEXT_SECONDARY = "rgba(255,255,255,0.88)";
+const HEADER_TEXT_MUTED = "rgba(255,255,255,0.58)";
 
 export function TopNavHeader() {
   const router = useRouter();
@@ -174,6 +176,48 @@ export function TopNavHeader() {
   }, [isSiapAntarTabActive, isTabletNamespace, pathname]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const handleSwitchUser = useCallback(() => {
+    setStaffDetailVisible(false);
+
+    if (isShiftStarted) {
+      Alert.alert(
+        "Ganti user?",
+        "Shift aktif harus ditutup dulu sebelum akun kasir diganti.",
+        [
+          { text: "Batal", style: "cancel" },
+          {
+            text: "Tutup Shift",
+            style: "destructive",
+            onPress: () => {
+              router.push({
+                pathname: "/tutup-shift",
+              } as never);
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    Alert.alert(
+      "Keluar dari akun ini?",
+      "Sesi kasir di perangkat ini akan diakhiri dan layar login akan ditampilkan.",
+      [
+        { text: "Batal", style: "cancel" },
+        {
+          text: "Keluar",
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              await logout();
+              router.replace(getLoginRoute(isTabletNamespace) as never);
+            })();
+          },
+        },
+      ],
+    );
+  }, [isShiftStarted, isTabletNamespace, logout, router]);
+
   const handleRefresh = useCallback(async () => {
     if (!refreshTarget || isRefreshing) return;
 
@@ -226,7 +270,11 @@ export function TopNavHeader() {
   return (
     <View style={styles.wrapper}>
       <LinearGradient
-        colors={["#1A9168", "#0E7A58", ADMIN_HEADER_BG]}
+        colors={[
+          BrandColors.headerGradientTop,
+          BrandColors.headerGradientMid,
+          BrandColors.headerGradientBottom,
+        ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientBg}
@@ -251,7 +299,7 @@ export function TopNavHeader() {
               <TextH3 fontWeight="700" color={ColorBase.white}>
                 {tenantName ?? branchName ?? "—"}
               </TextH3>
-              <TextCaption color={ADMIN_HEADER_TEXT_SECONDARY}>
+              <TextCaption color={HEADER_TEXT_SECONDARY}>
                 {branchName && tenantName ? `${branchName} • ` : ""}{cashierLabel}
               </TextCaption>
             </YStack>
@@ -264,7 +312,7 @@ export function TopNavHeader() {
             justifyContent="flex-end"
           >
             <View style={styles.shiftPill}>
-              <TextCaption color={ADMIN_HEADER_TEXT_SECONDARY} fontWeight="700">
+              <TextCaption color={HEADER_TEXT_SECONDARY} fontWeight="700">
                 Shift
               </TextCaption>
               <TextBodySm fontWeight="700" color={ColorBase.white}>
@@ -307,7 +355,7 @@ export function TopNavHeader() {
                   size={38}
                   iconSize={18}
                   iconColor={ColorBase.white}
-                  bg="rgba(240,253,232,0.14)"
+                  bg="rgba(255,255,255,0.14)"
                 />
                 <View style={styles.alertDot} />
               </View>
@@ -317,7 +365,7 @@ export function TopNavHeader() {
                 size={38}
                 iconSize={18}
                 iconColor={ColorBase.white}
-                bg="rgba(240,253,232,0.14)"
+                bg="rgba(255,255,255,0.14)"
                 onPress={() => router.push("/bluetooth-printer" as never)}
               />
               <IconButton
@@ -326,7 +374,7 @@ export function TopNavHeader() {
                 size={38}
                 iconSize={18}
                 iconColor={ColorBase.white}
-                bg="rgba(240,253,232,0.14)"
+                bg="rgba(255,255,255,0.14)"
                 onPress={() => setStaffDetailVisible(true)}
               />
             </View>
@@ -347,14 +395,12 @@ export function TopNavHeader() {
                   name={active ? item.iconActive : item.icon}
                   size={16}
                   color={
-                    active ? ColorBase.white : ADMIN_HEADER_TEXT_SECONDARY
+                    active ? ColorBase.white : HEADER_TEXT_SECONDARY
                   }
                 />
                 <TextBodySm
                   fontWeight="700"
-                  color={
-                    active ? ColorBase.white : ADMIN_HEADER_TEXT_SECONDARY
-                  }
+                  color={active ? ColorBase.white : HEADER_TEXT_SECONDARY}
                 >
                   {item.label}
                 </TextBodySm>
@@ -381,7 +427,7 @@ export function TopNavHeader() {
                   ? ColorBase.white
                   : displayReadyCount > 0
                     ? ColorSuccess.success600
-                    : ADMIN_HEADER_TEXT_MUTED
+                    : HEADER_TEXT_MUTED
               }
             />
             <TextBodySm
@@ -391,7 +437,7 @@ export function TopNavHeader() {
                   ? ColorBase.white
                   : displayReadyCount > 0
                     ? ColorSuccess.success600
-                    : ADMIN_HEADER_TEXT_SECONDARY
+                    : HEADER_TEXT_SECONDARY
               }
             >
               Siap Diantar
@@ -402,7 +448,7 @@ export function TopNavHeader() {
                   ? ColorBase.white
                   : displayReadyCount > 0
                     ? ColorSuccess.success600
-                    : ADMIN_HEADER_TEXT_MUTED
+                    : HEADER_TEXT_MUTED
               }
               fontWeight={displayReadyCount > 0 ? "700" : "500"}
             >
@@ -444,7 +490,7 @@ export function TopNavHeader() {
             <TextBodySm fontWeight="700" color={ColorBase.white}>
               Reservasi
             </TextBodySm>
-            <TextCaption color={ADMIN_HEADER_TEXT_MUTED}>
+            <TextCaption color={HEADER_TEXT_MUTED}>
               Segera hadir
             </TextCaption>
           </View>
@@ -538,11 +584,7 @@ export function TopNavHeader() {
                 <TouchableOpacity
                   activeOpacity={0.7}
                   style={styles.logoutButton}
-                  onPress={() => {
-                    setStaffDetailVisible(false);
-                    void logout();
-                    router.replace("/login" as never);
-                  }}
+                  onPress={handleSwitchUser}
                 >
                   <Ionicons
                     name="log-out-outline"
@@ -550,7 +592,7 @@ export function TopNavHeader() {
                     color={ColorDanger.danger600}
                   />
                   <TextBodySm fontWeight="700" color={ColorDanger.danger600}>
-                    Keluar
+                    {isShiftStarted ? "Tutup Shift & Login Ulang" : "Ganti User"}
                   </TextBodySm>
                 </TouchableOpacity>
               </View>
@@ -594,9 +636,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(240,253,232,0.18)",
+    backgroundColor: "rgba(255,255,255,0.16)",
     borderWidth: 1,
-    borderColor: "rgba(218,247,166,0.3)",
+    borderColor: "rgba(255,255,255,0.28)",
     overflow: "hidden",
   },
   brandLogo: {
@@ -613,9 +655,9 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 14,
     borderRadius: 12,
-    backgroundColor: "rgba(240,253,232,0.14)",
+    backgroundColor: "rgba(88,155,127,0.28)",
     borderWidth: 1,
-    borderColor: "rgba(218,247,166,0.26)",
+    borderColor: "rgba(168,212,196,0.55)",
   },
   primaryAction: {
     flexDirection: "row",
@@ -626,12 +668,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   primaryActionNeutral: {
-    backgroundColor: "rgba(240,253,232,0.16)",
+    backgroundColor: "rgba(255,255,255,0.14)",
     borderWidth: 1,
-    borderColor: "rgba(218,247,166,0.26)",
+    borderColor: "rgba(255,255,255,0.26)",
   },
   primaryActionDanger: {
-    backgroundColor: "#FF6B5F",
+    backgroundColor: BrandColors.coral,
   },
   actionGroup: {
     flexDirection: "row",
@@ -645,18 +687,18 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#FF6B5F",
+    backgroundColor: BrandColors.coral,
     borderWidth: 2,
-    borderColor: ADMIN_HEADER_BG,
+    borderColor: BrandColors.headerGradientBottom,
   },
   navRow: {
     gap: 8,
     alignItems: "center",
     paddingHorizontal: 8,
     paddingVertical: 8,
-    backgroundColor: "rgba(240,253,232,0.13)",
+    backgroundColor: "rgba(88,155,127,0.22)",
     borderWidth: 1,
-    borderColor: "rgba(218,247,166,0.24)",
+    borderColor: "rgba(255,255,255,0.2)",
     borderRadius: 18,
   },
   navChip: {
@@ -672,8 +714,8 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   navChipActive: {
-    backgroundColor: "rgba(255,255,255,0.22)",
-    borderColor: "rgba(218,247,166,0.36)",
+    backgroundColor: BrandColors.buttonSolid,
+    borderColor: "rgba(255,255,255,0.35)",
   },
   readyChip: {
     flexDirection: "row",
@@ -688,8 +730,8 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   readyChipActive: {
-    backgroundColor: "rgba(190,242,100,0.18)",
-    borderColor: "rgba(163,230,53,0.3)",
+    backgroundColor: "rgba(111,175,148,0.35)",
+    borderColor: "rgba(255,255,255,0.28)",
   },
   refreshChip: {
     flexDirection: "row",
@@ -699,9 +741,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
     borderRadius: 12,
-    backgroundColor: "rgba(190,242,100,0.18)",
+    backgroundColor: "rgba(111,175,148,0.32)",
     borderWidth: 1,
-    borderColor: "rgba(163,230,53,0.3)",
+    borderColor: "rgba(255,255,255,0.26)",
   },
   refreshChipDisabled: {
     opacity: 0.72,

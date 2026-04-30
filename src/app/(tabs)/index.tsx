@@ -174,7 +174,7 @@ export default function WebOrdersTabPage() {
             color={ColorPrimary.primary600}
           />
         </View>
-        <TextBodyLg fontWeight="700" color={ColorNeutral.neutral700}>
+        <TextBodyLg fontWeight="700" color={ColorPrimary.primary600}>
           Belum ada pesanan
         </TextBodyLg>
         <TextBodySm
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1.5,
     borderStyle: "dashed",
-    borderColor: "#CFE0D4",
+    borderColor: ColorPrimary.primary200,
   },
   emptyIcon: {
     width: 86,

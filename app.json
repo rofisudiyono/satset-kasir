@@ -22,7 +22,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "apiUrl": "http://127.0.0.1:3000",
+      "apiUrl": "https://api2.arashy.web.id",
       "oneSignalAppId": ""
     },
     "icon": "./assets/images/satset_1024.png",

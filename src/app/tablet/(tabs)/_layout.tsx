@@ -3,7 +3,6 @@ import React, { useCallback } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { TopNavHeader } from "@/components/layout/TopNavHeader";
-import { Colors } from "@/config/theme";
 import { useAuth } from "@/lib/auth";
 import { ColorNeutral } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
@@ -43,7 +42,7 @@ export default function TabletTabsLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.backgroundElement,
+    backgroundColor: BrandColors.canvas,
   },
   content: {
     flex: 1,

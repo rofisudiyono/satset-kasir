@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { Redirect, Tabs, useFocusEffect, usePathname, useRouter } from "expo-router";
+import { useAtomValue } from "jotai";
 import React from "react";
-import { BackHandler, View, StyleSheet } from "react-native";
+import { Alert, BackHandler, View, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import { useAuth } from "@/lib/auth";
 import { getHomeRoute } from "@/lib/routing/device-routes";
 import { ColorNeutral } from "@/themes/Colors";
@@ -51,6 +53,7 @@ export default function MobileTabsLayout() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const router = useRouter();
+  const isShiftStarted = useAtomValue(isShiftStartedAtom);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -64,12 +67,26 @@ export default function MobileTabsLayout() {
             return true;
           }
 
-          return false;
+          Alert.alert(
+            "Tutup aplikasi?",
+            isShiftStarted
+              ? "Shift masih aktif. Aplikasi akan ditutup, tetapi shift tetap berjalan sampai kas ditutup."
+              : "Aplikasi kasir akan ditutup.",
+            [
+              { text: "Batal", style: "cancel" },
+              {
+                text: "Tutup",
+                style: "destructive",
+                onPress: () => BackHandler.exitApp(),
+              },
+            ],
+          );
+          return true;
         },
       );
 
       return () => subscription.remove();
-    }, [isLoggedIn, pathname, router]),
+    }, [isLoggedIn, isShiftStarted, pathname, router]),
   );
 
   if (!isLoggedIn) return <Redirect href={"/mobile/login" as never} />;

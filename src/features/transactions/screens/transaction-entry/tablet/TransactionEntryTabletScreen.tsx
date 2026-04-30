@@ -10,11 +10,11 @@ import {
   VariantSheet,
 } from "@/features/transactions/components/transaksi-baru";
 import {
-  ColorBase,
   ColorNeutral,
   ColorPrimary,
   ColorSurface,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 import { useTransactionEntry } from "../shared/useTransactionEntry";
 
@@ -128,7 +128,7 @@ export function TransactionEntryTabletScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F4F8F1",
+    backgroundColor: BrandColors.canvas,
   },
   splitLayout: {
     flex: 1,
@@ -140,10 +140,10 @@ const styles = StyleSheet.create({
   },
   catalogPanel: {
     flex: 0.65,
-    backgroundColor: "#FDFFFA",
+    backgroundColor: BrandColors.surfaceWarm,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(65, 184, 58, 0.16)",
+    borderColor: BrandColors.border,
     overflow: "hidden",
     shadowColor: ColorSurface.shadow,
     shadowOffset: { width: 0, height: 10 },
@@ -156,9 +156,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingTop: 14,
     paddingBottom: 12,
-    backgroundColor: "#FDFFFA",
+    backgroundColor: BrandColors.surfaceWarm,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(65, 184, 58, 0.1)",
+    borderBottomColor: BrandColors.border,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 38,
     borderRadius: 999,
-    backgroundColor: "#4FBF3E",
+    backgroundColor: BrandColors.buttonSolid,
   },
   headerActions: {
     flexDirection: "row",
@@ -185,9 +185,9 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: "#F3FCEB",
+    backgroundColor: BrandColors.tint,
     borderWidth: 1,
-    borderColor: "rgba(65, 184, 58, 0.18)",
+    borderColor: BrandColors.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -198,12 +198,12 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 999,
-    backgroundColor: "#FF6B5F",
+    backgroundColor: BrandColors.coral,
   },
   catalogScroll: {
     flex: 1,
     minHeight: 0,
-    backgroundColor: "#FDFFFA",
+    backgroundColor: BrandColors.surfaceWarm,
   },
   divider: {
     width: 1,
@@ -211,10 +211,10 @@ const styles = StyleSheet.create({
   },
   cartPanel: {
     flex: 0.35,
-    backgroundColor: "#FDFFFA",
+    backgroundColor: BrandColors.surfaceWarm,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(65, 184, 58, 0.16)",
+    borderColor: BrandColors.border,
     overflow: "hidden",
     shadowColor: ColorSurface.shadow,
     shadowOffset: { width: 0, height: 10 },

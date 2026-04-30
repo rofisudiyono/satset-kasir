@@ -25,8 +25,8 @@ import {
   ColorBase,
   ColorGreen,
   ColorNeutral,
-  ColorPrimary,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import {
   BluetoothPrinter,
   bluetoothPrinterManager,
@@ -124,7 +124,7 @@ export default function BluetoothPrinterSettingsPage() {
 
   const getStatusColor = () => {
     if (printerState.connected) return ColorGreen.green600;
-    if (printerState.reconnecting) return ColorPrimary.primary600;
+    if (printerState.reconnecting) return BrandColors.mid;
     return ColorNeutral.neutral400;
   };
 
@@ -182,8 +182,8 @@ export default function BluetoothPrinterSettingsPage() {
                     activeOpacity={0.8}
                     onPress={handleDisconnect}
                   >
-                    <Ionicons name="close-circle" size={18} color={ColorPrimary.primary600} />
-                    <TextBody fontWeight="700" color={ColorPrimary.primary600}>
+                    <Ionicons name="close-circle" size={18} color={BrandColors.deep} />
+                    <TextBody fontWeight="700" color={BrandColors.deep}>
                       Putuskan
                     </TextBody>
                   </TouchableOpacity>
@@ -264,7 +264,7 @@ export default function BluetoothPrinterSettingsPage() {
                         color={
                           printerState.printer?.id === printer.id
                             ? ColorGreen.green600
-                            : ColorPrimary.primary600
+                            : BrandColors.deep
                         }
                       />
                     </View>
@@ -292,25 +292,25 @@ export default function BluetoothPrinterSettingsPage() {
             </TextBodySm>
             <YStack gap={8}>
               <XStack gap="$2">
-                <TextBodySm fontWeight="700" color={ColorPrimary.primary600}>1.</TextBodySm>
+                <TextBodySm fontWeight="700" color={BrandColors.text}>1.</TextBodySm>
                 <TextBodySm color="$colorSecondary">
                   Pastikan printer Bluetooth dalam mode pairing
                 </TextBodySm>
               </XStack>
               <XStack gap="$2">
-                <TextBodySm fontWeight="700" color={ColorPrimary.primary600}>2.</TextBodySm>
+                <TextBodySm fontWeight="700" color={BrandColors.text}>2.</TextBodySm>
                 <TextBodySm color="$colorSecondary">
                   Tekan {`"Pindai Printer Bluetooth"`}
                 </TextBodySm>
               </XStack>
               <XStack gap="$2">
-                <TextBodySm fontWeight="700" color={ColorPrimary.primary600}>3.</TextBodySm>
+                <TextBodySm fontWeight="700" color={BrandColors.text}>3.</TextBodySm>
                 <TextBodySm color="$colorSecondary">
                   Pilih printer dari daftar dan hubungkan
                 </TextBodySm>
               </XStack>
               <XStack gap="$2">
-                <TextBodySm fontWeight="700" color={ColorPrimary.primary600}>4.</TextBodySm>
+                <TextBodySm fontWeight="700" color={BrandColors.text}>4.</TextBodySm>
                 <TextBodySm color="$colorSecondary">
                   Lakukan Test Print untuk memverifikasi koneksi
                 </TextBodySm>
@@ -318,7 +318,7 @@ export default function BluetoothPrinterSettingsPage() {
             </YStack>
 
             <View style={styles.infoBox}>
-              <Ionicons name="information-circle" size={20} color={ColorPrimary.primary600} />
+              <Ionicons name="information-circle" size={20} color={BrandColors.deep} />
               <TextBodySm color="$colorSecondary" style={{ marginLeft: 8 }}>
                 Printer yang didukung: Thermal 58mm dan 80mm dengan protokol ESC/POS
               </TextBodySm>
@@ -335,7 +335,7 @@ export default function BluetoothPrinterSettingsPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F3F6FB",
+    backgroundColor: BrandColors.canvas,
   },
   scrollView: {
     flex: 1,
@@ -364,17 +364,17 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   actionButtonPrimary: {
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.deep,
   },
   actionButtonSecondary: {
     backgroundColor: ColorBase.white,
     borderWidth: 1.5,
-    borderColor: ColorPrimary.primary600,
+    borderColor: BrandColors.deep,
   },
   scanButton: {
     minHeight: 52,
     borderRadius: 14,
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.deep,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
@@ -383,23 +383,23 @@ const styles = StyleSheet.create({
     backgroundColor: ColorNeutral.neutral300,
   },
   printerCard: {
-    backgroundColor: ColorBase.white,
+    backgroundColor: BrandColors.surface,
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#E5EBF5",
+    borderColor: BrandColors.border,
     flexDirection: "row",
     alignItems: "center",
   },
   printerCardConnected: {
     borderColor: ColorGreen.green600,
-    backgroundColor: "#F0FFF4",
+    backgroundColor: BrandColors.tint,
   },
   printerIcon: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: ColorPrimary.primary50,
+    backgroundColor: BrandColors.tint,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   infoBox: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: ColorPrimary.primary50,
+    backgroundColor: BrandColors.tint,
     borderRadius: 12,
     padding: 12,
     marginTop: 8,

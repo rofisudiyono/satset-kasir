@@ -13,6 +13,7 @@ import {
 import { orderTypeOptions } from "@/features/payment/api/payment.data";
 import { TextBodySm, TextCaption } from "@/components";
 import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import type { CustomerVisitStatus } from "@/features/cart/store/cart.store";
 import type { KasirTable } from "@/lib/api/types";
 import type { OrderType } from "@/types";
@@ -367,8 +368,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   visitOptionActive: {
-    borderColor: "rgba(65, 184, 58, 0.45)",
-    backgroundColor: "#F3FCEB",
+    borderColor: BrandColors.borderStrong,
+    backgroundColor: BrandColors.tint,
   },
   customerFields: {
     gap: 12,
@@ -390,7 +391,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   segmentBtnActive: {
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.buttonSolid,
   },
   selectorButton: {
     backgroundColor: ColorNeutral.neutral50,
@@ -457,7 +458,7 @@ const styles = StyleSheet.create({
   closeButton: {
     marginTop: 16,
     borderRadius: 12,
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.buttonSolid,
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 12,

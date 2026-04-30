@@ -3,7 +3,8 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 
 import { TextCaption } from "@/components";
-import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
+import { ColorBase, ColorNeutral } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 type Props = {
   totalItems: number;
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.buttonSolid,
     alignItems: "center",
     justifyContent: "center",
   },

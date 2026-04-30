@@ -20,21 +20,23 @@ const DEFAULT_IMG_H = 110;
 const styles = StyleSheet.create({
   card: {
     backgroundColor: BrandColors.surface,
-    borderRadius: 16,
+    borderRadius: 18,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: BrandColors.border,
     shadowColor: BrandColors.deep,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.07,
-    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
     elevation: 2,
   },
   cardCompact: {
-    borderRadius: 14,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
     elevation: 1,
   },
   cardEmpty: {
@@ -77,18 +79,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   addButtonEnabled: {
-    backgroundColor: BrandColors.green,
+    backgroundColor: BrandColors.buttonSolid,
     borderRadius: 17,
     width: 34,
     height: 34,
   },
   addButtonCompact: {
-    backgroundColor: BrandColors.tint,
-    borderWidth: 1,
-    borderColor: BrandColors.borderStrong,
-    borderRadius: 14,
-    width: 30,
-    height: 30,
+    backgroundColor: BrandColors.tintStrong,
+    borderWidth: 0,
+    borderRadius: 999,
+    width: 32,
+    height: 32,
   },
   addButtonDisabled: {
     backgroundColor: ColorNeutral.neutral200,
@@ -226,7 +227,7 @@ export const ProductCard = React.memo(function ProductCard({
           numberOfLines={compact ? 1 : 2}
           fontSize={compact ? 13 : undefined}
           lineHeight={compact ? 17 : 20}
-          color={isDisabled ? "$colorTertiary" : ColorNeutral.neutral900}
+          color={isDisabled ? "$colorTertiary" : BrandColors.text}
         >
           {name}
         </TextBodyLg>
@@ -236,7 +237,7 @@ export const ProductCard = React.memo(function ProductCard({
             fontWeight="800"
             fontSize={compact ? 12 : undefined}
             lineHeight={compact ? 15 : undefined}
-            color={isDisabled ? "$colorTertiary" : BrandColors.text}
+            color={isDisabled ? "$colorTertiary" : BrandColors.deep}
           >
             {formatPrice(basePrice)}
           </TextBodySm>
@@ -256,7 +257,7 @@ export const ProductCard = React.memo(function ProductCard({
                 isDisabled
                   ? ColorNeutral.neutral400
                   : compact
-                    ? BrandColors.text
+                    ? BrandColors.deep
                     : ColorBase.white
               }
             />

@@ -13,6 +13,7 @@ import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/config/categoryStyles";
 import { type CartItem } from "@/features/cart/store/cart.store";
 import { TextBodyLg, TextBodySm, TextH3 } from "@/components";
 import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import type { CatalogProduct } from "@/types";
 import { formatPrice } from "@/utils";
 
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
     backgroundColor: ColorBase.white,
   },
   variantChipSelected: {
-    borderColor: ColorPrimary.primary600,
+    borderColor: BrandColors.buttonSolid,
     backgroundColor: ColorPrimary.primary50,
   },
   noteInput: {
@@ -298,11 +299,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   qtyButtonPrimary: {
-    backgroundColor: ColorPrimary.primary600,
-    borderColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.buttonSolid,
+    borderColor: BrandColors.buttonSolid,
   },
   addToCartButton: {
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.buttonSolid,
     borderRadius: 14,
     height: 52,
     alignItems: "center",

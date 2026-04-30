@@ -35,12 +35,25 @@ import { formatPrice } from "@/utils";
 import type { ShiftSlot } from "@/types";
 
 const PRESET_AMOUNTS = [200_000, 500_000, 1_000_000];
-const SHIFT_SLOTS: { id: ShiftSlot; label: string; icon: keyof typeof Ionicons.glyphMap }[] =
-  [
-    { id: "PAGI", label: "Pagi", icon: "sunny-outline" },
-    { id: "SIANG", label: "Siang", icon: "partly-sunny-outline" },
-    { id: "MALAM", label: "Malam", icon: "moon-outline" },
-  ];
+
+const SHIFT_SLOTS: {
+  id: ShiftSlot;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  time: string;
+}[] = [
+  { id: "PAGI", label: "Pagi", icon: "sunny-outline", time: "06.00 – 14.00" },
+  { id: "SIANG", label: "Siang", icon: "partly-sunny-outline", time: "14.00 – 22.00" },
+  { id: "MALAM", label: "Malam", icon: "moon-outline", time: "22.00 – 06.00" },
+];
+
+const SLOT_TARGETS: Record<ShiftSlot, number> = {
+  PAGI: 200_000,
+  SIANG: 500_000,
+  MALAM: 1_000_000,
+};
+
+const QUICK_ADD = [10_000, 50_000, 100_000];
 
 type BukaShiftScreenVariant = "mobile" | "tablet";
 
@@ -48,27 +61,26 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
   const router = useRouter();
   const { user } = useAuth();
   const { mutateAsync: openShiftApi, isPending: isOpeningShift } = useOpenShiftMutation();
-  const [inputValue, setInputValue] = useState("500000");
+  const [inputValue, setInputValue] = useState("200000");
   const [note, setNote] = useState("");
   const [slot, setSlot] = useState<ShiftSlot>("PAGI");
   const [, setIsShiftStarted] = useAtom(isShiftStartedAtom);
   const [, setShiftData] = useAtom(shiftDataAtom);
-  const {
-    contentMaxWidth,
-    horizontalPadding,
-    sectionGap,
-  } = useResponsiveLayout();
+  const { contentMaxWidth, horizontalPadding, sectionGap } = useResponsiveLayout();
   const isTablet = variant === "tablet";
 
   const now = new Date();
+  const hour = now.getHours();
+  const greetingWord =
+    hour < 12 ? "pagi" : hour < 15 ? "siang" : hour < 18 ? "sore" : "malam";
   const currentDateTime =
     now.toLocaleDateString("id-ID", {
       weekday: "long",
       day: "numeric",
-      month: "short",
+      month: "long",
       year: "numeric",
     }) +
-    " • " +
+    " · " +
     now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) +
     " WIB";
 
@@ -80,8 +92,12 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
           ?.split("_")
           .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
           .join(" ") ?? "Kasir";
-  const branchLabel = user?.branchId ? `Outlet ${user.branchId.slice(0, 6)}` : "Cabang belum diatur";
-  const slotLabel = SHIFT_SLOTS.find((item) => item.id === slot)?.label ?? "Pagi";
+  const branchLabel = user?.branchId
+    ? `Outlet ${user.branchId.slice(0, 6)}`
+    : "Cabang belum diatur";
+  const slotData = SHIFT_SLOTS.find((item) => item.id === slot)!;
+  const slotTarget = SLOT_TARGETS[slot];
+  const isMatchTarget = amount === slotTarget;
 
   function handleNumpad(key: string) {
     setInputValue((prev) => {
@@ -104,21 +120,21 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
     setInputValue(String(value));
   }
 
-  async function handleMulaiShift() {
-    if (!user?.branchId) {
-      Alert.alert(
-        "Cabang belum diatur",
-        "Akun Anda belum ditetapkan ke cabang. Hubungi admin outlet untuk mengatur cabang pada profil kasir.",
-      );
-      return;
-    }
-    if (!Number.isFinite(amount) || amount <= 0) {
-      Alert.alert("Modal tidak valid", "Masukkan modal awal kas yang valid.");
-      return;
-    }
+  function handleQuickAdd(value: number) {
+    setInputValue((prev) => {
+      const next = Number(prev) + value;
+      return String(Math.min(next, 99_999_999));
+    });
+  }
+
+  function handleReset() {
+    setInputValue("0");
+  }
+
+  async function openShift() {
     try {
       const shift = await openShiftApi({
-        branchId: user.branchId,
+        branchId: user!.branchId!,
         shiftSlot: slot,
         openingCash: Math.round(amount),
       });
@@ -132,6 +148,42 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
       Alert.alert("Gagal buka shift", getApiErrorMessage(e));
     }
   }
+
+  function handleMulaiShift() {
+    if (!user?.branchId) {
+      Alert.alert(
+        "Cabang belum diatur",
+        "Akun Anda belum ditetapkan ke cabang. Hubungi admin outlet untuk mengatur cabang pada profil kasir.",
+      );
+      return;
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      Alert.alert("Modal tidak valid", "Masukkan modal awal kas yang valid.");
+      return;
+    }
+    Alert.alert(
+      "Buka shift sekarang?",
+      `Slot: ${slotData.label}\nModal awal: ${formatPrice(amount)}\n\nPastikan kas awal sudah dihitung sebelum mulai menerima transaksi.`,
+      [
+        { text: "Batal", style: "cancel" },
+        { text: "Buka Shift", onPress: () => { void openShift(); } },
+      ],
+    );
+  }
+
+  const mulaiButton = (
+    <AppButton
+      variant="brand"
+      size="lg"
+      fullWidth
+      disabled={isOpeningShift}
+      title={isOpeningShift ? "Memproses…" : "Mulai shift sekarang"}
+      icon={
+        <Ionicons name="play" size={16} color={BrandColors.surface} />
+      }
+      onPress={() => void handleMulaiShift()}
+    />
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -152,151 +204,58 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
           gap={isTablet ? "$3" : "$4"}
           style={[
             styles.shell,
-            {
-              maxWidth: contentMaxWidth,
-              paddingHorizontal: horizontalPadding,
-            },
+            { maxWidth: contentMaxWidth, paddingHorizontal: horizontalPadding },
           ]}
         >
+          {/* ── Left column ── */}
           <YStack flex={isTablet ? 0.58 : undefined} gap={sectionGap}>
-            <YStack
-              alignItems="flex-start"
-              gap="$3"
-              style={[styles.heroCard, isTablet && styles.heroCardTablet]}
-            >
-              <XStack width="100%" alignItems="flex-start" gap="$3">
-                <YStack gap="$3" flex={1} minWidth={0}>
-                  <XStack
-                    width="100%"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    gap="$2"
-                  >
-                    <XStack alignItems="center" gap="$2" style={styles.statusChip}>
-                      <View style={styles.statusDot} />
-                      <TextCaption
-                        fontWeight="700"
-                        color={ColorSuccess.success700}
-                      >
-                        Siap mulai shift
-                      </TextCaption>
-                    </XStack>
-                    <XStack alignItems="center" gap={6} style={styles.slotBadge}>
-                      <Ionicons
-                        name={slot === "MALAM" ? "moon-outline" : "sunny-outline"}
-                        size={14}
-                        color={BrandColors.text}
-                      />
-                      <TextCaption
-                        fontWeight="700"
-                        color={BrandColors.text}
-                      >
-                        {slotLabel}
-                      </TextCaption>
-                    </XStack>
-                  </XStack>
 
-                  <XStack alignItems="center" gap="$3" minWidth={0}>
-                    <YStack style={styles.heroIconWrap}>
-                      <YStack
-                        width={isTablet ? 64 : 72}
-                        height={isTablet ? 64 : 72}
-                        borderRadius={999}
-                        backgroundColor={BrandColors.tintStrong}
-                        alignItems="center"
-                        justifyContent="center"
-                      >
-                        <Ionicons
-                          name="sunny-outline"
-                          size={isTablet ? 26 : 30}
-                          color={BrandColors.green}
-                        />
-                      </YStack>
-                    </YStack>
-
-                    <YStack gap={4} flex={1} minWidth={0}>
-                      <TextH1 fontWeight="800" numberOfLines={1}>
-                        Selamat Datang!
-                      </TextH1>
-                      <TextH3
-                        fontWeight="700"
-                        color={BrandColors.text}
-                        numberOfLines={1}
-                      >
-                        {cashierLabel}
-                      </TextH3>
-                      <TextBodySm
-                        color={ColorNeutral.neutral500}
-                        numberOfLines={1}
-                      >
-                        {branchLabel}
-                      </TextBodySm>
-                    </YStack>
-                  </XStack>
+            {/* Hero card */}
+            <YStack style={[styles.heroCard, isTablet && styles.heroCardTablet]}>
+              <XStack width="100%" alignItems="flex-start" justifyContent="space-between" gap="$3">
+                <YStack gap={4} flex={1} minWidth={0}>
+                  <TextCaption color={ColorNeutral.neutral400}>
+                    {currentDateTime}
+                  </TextCaption>
+                  <TextH1 fontWeight="800" numberOfLines={1}>
+                    Selamat {greetingWord}, {cashierLabel}
+                  </TextH1>
                 </YStack>
 
-                {isTablet ? (
-                  <YStack
-                    minWidth={220}
-                    maxWidth={260}
-                    gap="$2"
-                    style={styles.heroAside}
+                {/* Modal target badge */}
+                <YStack style={styles.targetBadge}>
+                  <TextCaption
+                    fontWeight="700"
+                    color={ColorNeutral.neutral500}
+                    style={styles.labelCaps}
                   >
-                    <TextCaption
-                      fontWeight="700"
-                      color={ColorNeutral.neutral500}
-                    >
-                      Jadwal buka hari ini
-                    </TextCaption>
-                    <XStack alignItems="center" gap={6} style={styles.metaPill}>
-                      <Ionicons
-                        name="calendar-outline"
-                        size={14}
-                        color={ColorNeutral.neutral500}
-                      />
-                      <TextCaption
-                        color={ColorNeutral.neutral500}
-                        numberOfLines={1}
-                      >
-                        {currentDateTime}
-                      </TextCaption>
-                    </XStack>
-                  </YStack>
-                ) : null}
-              </XStack>
-
-              <XStack width="100%" gap="$2" flexWrap="wrap">
-                <YStack style={styles.heroInfoCard}>
-                  <TextCaption color={ColorNeutral.neutral500}>Jadwal</TextCaption>
-                  <XStack alignItems="center" gap={6} marginTop={6}>
-                    <Ionicons
-                      name="calendar-outline"
-                      size={14}
-                      color={ColorNeutral.neutral500}
-                    />
-                    <TextBodySm
-                      fontWeight="600"
-                      color={ColorNeutral.neutral700}
-                      flex={1}
-                    >
-                      {currentDateTime}
-                    </TextBodySm>
-                  </XStack>
-                </YStack>
-                <YStack style={styles.heroInfoCardCompact}>
-                  <TextCaption color={ColorNeutral.neutral500}>Modal target</TextCaption>
-                  <TextH3
-                    fontWeight="800"
-                    color={BrandColors.text}
-                    numberOfLines={1}
-                    marginTop={6}
-                  >
-                    {formatPrice(amount)}
+                    MODAL TARGET
+                  </TextCaption>
+                  <TextH3 fontWeight="800" color={BrandColors.text} numberOfLines={1}>
+                    {formatPrice(slotTarget)}
                   </TextH3>
                 </YStack>
               </XStack>
+
+              <View style={styles.heroDivider} />
+
+              <XStack gap="$3" flexWrap="wrap">
+                <XStack alignItems="center" gap={6}>
+                  <Ionicons name="person-outline" size={14} color={ColorNeutral.neutral500} />
+                  <TextBodySm color={ColorNeutral.neutral600}>{cashierLabel}</TextBodySm>
+                </XStack>
+                <XStack alignItems="center" gap={6}>
+                  <Ionicons name="storefront-outline" size={14} color={ColorNeutral.neutral500} />
+                  <TextBodySm color={ColorNeutral.neutral600}>{branchLabel}</TextBodySm>
+                </XStack>
+                <XStack alignItems="center" gap={6}>
+                  <View style={styles.onlineDot} />
+                  <TextBodySm color={ColorSuccess.success600}>Online</TextBodySm>
+                </XStack>
+              </XStack>
             </YStack>
 
+            {/* Form card */}
             <YStack style={[styles.formCard, isTablet && styles.formCardTablet]}>
               <XStack
                 width="100%"
@@ -306,7 +265,7 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
                 flexWrap="wrap"
               >
                 <YStack gap={4} flex={1} minWidth={0}>
-                  <TextH3 fontWeight="700">Pengaturan Shift</TextH3>
+                  <TextH3 fontWeight="700">Pengaturan shift</TextH3>
                   <TextBodySm color={ColorNeutral.neutral500}>
                     Pilih slot dan tentukan modal awal kas sebelum mulai jaga.
                   </TextBodySm>
@@ -317,19 +276,26 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
                     !isTablet && styles.amountSummaryMobile,
                   ]}
                 >
-                  <TextCaption color={ColorNeutral.neutral500}>
-                    Modal saat ini
+                  <TextCaption
+                    fontWeight="700"
+                    color={ColorNeutral.neutral500}
+                    style={styles.labelCaps}
+                  >
+                    MODAL SAAT INI
                   </TextCaption>
-                  <TextH1 fontWeight="800" color={BrandColors.green}>
+                  <TextH3 fontWeight="800" color={BrandColors.buttonSolid} numberOfLines={1}>
                     {formatPrice(amount)}
-                  </TextH1>
+                  </TextH3>
                 </YStack>
               </XStack>
 
               <View style={styles.sectionDivider} />
 
+              {/* Slot shift */}
               <YStack gap={8}>
-                <TextH3 fontWeight="700">Slot Shift</TextH3>
+                <TextCaption fontWeight="700" color={ColorNeutral.neutral500} style={styles.labelCaps}>
+                  SLOT SHIFT
+                </TextCaption>
                 <XStack gap="$2" flexWrap="wrap">
                   {SHIFT_SLOTS.map((s) => {
                     const active = slot === s.id;
@@ -338,18 +304,13 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
                         key={s.id}
                         onPress={() => setSlot(s.id)}
                         activeOpacity={0.8}
-                        style={[
-                          styles.slotChip,
-                          active && styles.slotChipActive,
-                        ]}
+                        style={[styles.slotChip, active && styles.slotChipActive]}
                       >
                         <Ionicons
                           name={s.icon}
-                          size={15}
-                          color={
-                            active ? BrandColors.surface : ColorNeutral.neutral600
-                          }
-                          style={{ marginRight: 6 }}
+                          size={14}
+                          color={active ? BrandColors.surface : ColorNeutral.neutral500}
+                          style={{ marginRight: 5 }}
                         />
                         <TextBodySm
                           fontWeight="700"
@@ -357,45 +318,65 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
                         >
                           {s.label}
                         </TextBodySm>
+                        <TextBodySm
+                          color={active ? "rgba(255,255,255,0.92)" : ColorNeutral.neutral400}
+                          style={{ marginLeft: 5 }}
+                        >
+                          {s.time}
+                        </TextBodySm>
                       </TouchableOpacity>
                     );
                   })}
                 </XStack>
               </YStack>
 
+              {/* Preset modal */}
               <YStack gap={8}>
-                <TextH3 fontWeight="700">Preset Modal</TextH3>
+                <TextCaption fontWeight="700" color={ColorNeutral.neutral500} style={styles.labelCaps}>
+                  PRESET MODAL
+                </TextCaption>
                 <XStack flexWrap="wrap" gap="$2">
-                  {PRESET_AMOUNTS.map((preset) => (
-                    <TouchableOpacity
-                      key={preset}
-                      onPress={() => handlePreset(preset)}
-                      activeOpacity={0.7}
-                      style={[
-                        styles.presetChip,
-                        amount === preset && styles.presetChipActive,
-                      ]}
-                    >
-                      <TextBodySm
-                        fontWeight="600"
-                        color={
-                          amount === preset
-                            ? BrandColors.surface
-                            : ColorNeutral.neutral700
-                        }
+                  {PRESET_AMOUNTS.map((preset) => {
+                    const active = amount === preset;
+                    return (
+                      <TouchableOpacity
+                        key={preset}
+                        onPress={() => handlePreset(preset)}
+                        activeOpacity={0.7}
+                        style={[styles.presetChip, active && styles.presetChipActive]}
                       >
-                        {formatPrice(preset)}
-                      </TextBodySm>
-                    </TouchableOpacity>
-                  ))}
+                        <TextBodySm
+                          fontWeight="600"
+                          color={active ? BrandColors.surface : ColorNeutral.neutral700}
+                        >
+                          {formatPrice(preset)}
+                        </TextBodySm>
+                      </TouchableOpacity>
+                    );
+                  })}
+                  <TouchableOpacity
+                    onPress={() => handleReset()}
+                    activeOpacity={0.7}
+                    style={styles.presetChip}
+                  >
+                    <TextBodySm fontWeight="600" color={ColorNeutral.neutral700}>
+                      Custom
+                    </TextBodySm>
+                  </TouchableOpacity>
                 </XStack>
               </YStack>
 
+              {/* Catatan */}
               <YStack gap={8}>
-                <TextH3 fontWeight="700">Catatan</TextH3>
+                <XStack justifyContent="space-between" alignItems="center">
+                  <TextCaption fontWeight="700" color={ColorNeutral.neutral500} style={styles.labelCaps}>
+                    CATATAN
+                  </TextCaption>
+                  <TextCaption color={ColorNeutral.neutral400}>opsional</TextCaption>
+                </XStack>
                 <TextInput
                   style={styles.noteInput}
-                  placeholder="Catatan shift... (opsional)"
+                  placeholder="Misal: stok kembalian Rp 50.000 belum tersedia"
                   placeholderTextColor={ColorNeutral.neutral400}
                   value={note}
                   onChangeText={setNote}
@@ -403,69 +384,96 @@ export function BukaShiftScreen({ variant }: { variant: BukaShiftScreenVariant }
                 />
               </YStack>
 
+              <View style={styles.sectionDivider} />
+
+              {/* Footer info */}
+              <YStack gap={2}>
+                <TextBodySm color={ColorNeutral.neutral600}>
+                  Shift akan tercatat otomatis pada laporan harian.
+                </TextBodySm>
+                <TextBodySm color={ColorNeutral.neutral400}>
+                  Pastikan jumlah modal sesuai uang fisik di laci kas.
+                </TextBodySm>
+              </YStack>
+
               {isTablet ? (
-                <YStack gap={6} paddingTop="$2">
-                  <AppButton
-                    variant="brand"
-                    size="lg"
-                    fullWidth
-                    disabled={isOpeningShift}
-                    title={isOpeningShift ? "Memproses…" : "Mulai Shift Sekarang"}
-                    icon={
-                      <Ionicons
-                        name="sunny-outline"
-                        size={18}
-                        color={BrandColors.surface}
-                      />
-                    }
-                    onPress={() => void handleMulaiShift()}
-                  />
-                  <TextCaption
-                    color={ColorNeutral.neutral400}
-                    textAlign="center"
-                  >
-                    Shift akan tercatat otomatis
-                  </TextCaption>
+                <YStack paddingTop={4}>
+                  {mulaiButton}
                 </YStack>
               ) : null}
             </YStack>
           </YStack>
 
+          {/* ── Right column (numpad) ── */}
           <YStack flex={isTablet ? 0.42 : undefined} gap={sectionGap}>
-            <View style={styles.numpadCard}>
-              <YStack gap="$2">
-                <TextH3 fontWeight="700">Input Manual</TextH3>
-                <TextBodySm color={ColorNeutral.neutral500}>
-                  Gunakan keypad untuk menyesuaikan nominal dengan cepat.
-                </TextBodySm>
-              </YStack>
+            <YStack style={styles.numpadCard}>
+
+              {/* Amount display */}
+              <XStack justifyContent="space-between" alignItems="flex-start">
+                <TextCaption fontWeight="700" color={ColorNeutral.neutral500} style={styles.labelCaps}>
+                  MODAL AWAL KAS
+                </TextCaption>
+                <TextCaption fontWeight="700" color={ColorNeutral.neutral400} style={styles.labelCaps}>
+                  IDR
+                </TextCaption>
+              </XStack>
+              <TextH1 fontWeight="800" numberOfLines={1} style={styles.amountDisplay}>
+                {formatPrice(amount)}
+              </TextH1>
+
               <View style={styles.numpadDivider} />
+
               <NumpadGrid onPress={handleNumpad} compact={isTablet} />
-            </View>
+
+              {/* Match validation */}
+              {isMatchTarget ? (
+                <XStack alignItems="center" gap={6} style={styles.matchChip}>
+                  <Ionicons name="checkmark" size={14} color={ColorSuccess.success600} />
+                  <TextBodySm color={ColorSuccess.success700}>
+                    Modal cocok dengan target shift {slotData.label}.
+                  </TextBodySm>
+                </XStack>
+              ) : null}
+
+              <View style={styles.numpadDivider} />
+
+              {/* Geser cepat */}
+              <YStack gap={8}>
+                <TextCaption fontWeight="700" color={ColorNeutral.neutral500} style={styles.labelCaps}>
+                  GESER CEPAT
+                </TextCaption>
+                <XStack gap="$2" flexWrap="wrap">
+                  {QUICK_ADD.map((val) => (
+                    <TouchableOpacity
+                      key={val}
+                      onPress={() => handleQuickAdd(val)}
+                      activeOpacity={0.7}
+                      style={styles.quickAddChip}
+                    >
+                      <TextBodySm fontWeight="600" color={BrandColors.text}>
+                        +{val >= 1_000_000 ? `${val / 1_000_000}jt` : `${val / 1_000}rb`}
+                      </TextBodySm>
+                    </TouchableOpacity>
+                  ))}
+                  <TouchableOpacity
+                    onPress={handleReset}
+                    activeOpacity={0.7}
+                    style={styles.quickResetChip}
+                  >
+                    <TextBodySm fontWeight="600" color={ColorNeutral.neutral600}>
+                      Reset
+                    </TextBodySm>
+                  </TouchableOpacity>
+                </XStack>
+              </YStack>
+            </YStack>
           </YStack>
         </XStack>
       </ScrollView>
 
       {!isTablet ? (
         <BottomBar paddingBottom={18}>
-          <AppButton
-            variant="brand"
-            size="lg"
-            fullWidth
-            disabled={isOpeningShift}
-            title={isOpeningShift ? "Memproses…" : "Mulai Shift Sekarang"}
-            icon={
-              <Ionicons name="sunny-outline" size={18} color={BrandColors.surface} />
-            }
-            onPress={() => void handleMulaiShift()}
-          />
-          <TextCaption
-            color={ColorNeutral.neutral400}
-            textAlign="center"
-            marginTop={6}
-          >
-            Shift akan tercatat otomatis
-          </TextCaption>
+          {mulaiButton}
         </BottomBar>
       ) : null}
     </SafeAreaView>
@@ -485,82 +493,38 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     backgroundColor: BrandColors.surface,
-    borderRadius: 24,
+    borderRadius: 20,
     padding: 18,
+    gap: 14,
     borderWidth: 1,
     borderColor: BrandColors.border,
     shadowColor: ColorNeutral.neutralShadow,
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 3,
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
   },
   heroCardTablet: {
-    paddingVertical: 14,
+    paddingVertical: 16,
   },
-  heroIconWrap: {
-    width: 88,
-    height: 88,
-    borderRadius: 28,
-    backgroundColor: BrandColors.tint,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: BrandColors.border,
+  heroDivider: {
+    height: 1,
+    backgroundColor: BrandColors.border,
   },
-  heroAside: {
-    alignSelf: "stretch",
-    justifyContent: "center",
-  },
-  heroInfoCard: {
-    flex: 1,
-    minWidth: 0,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 18,
-    backgroundColor: ColorNeutral.neutral50,
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-  },
-  heroInfoCardCompact: {
-    minWidth: 140,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 18,
-    backgroundColor: BrandColors.tint,
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-  },
-  metaPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-    backgroundColor: ColorNeutral.neutral100,
-  },
-  statusChip: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 999,
-    backgroundColor: ColorSuccess.success50,
-    borderWidth: 1,
-    borderColor: ColorSuccess.success200,
-  },
-  statusDot: {
+  onlineDot: {
     width: 8,
     height: 8,
     borderRadius: 999,
     backgroundColor: ColorSuccess.success500,
   },
-  slotBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 999,
-    backgroundColor: BrandColors.tint,
+  targetBadge: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: BrandColors.border,
+    backgroundColor: BrandColors.tint,
+    alignItems: "flex-end",
   },
   formCard: {
     backgroundColor: BrandColors.surface,
@@ -573,53 +537,24 @@ const styles = StyleSheet.create({
   formCardTablet: {
     gap: 12,
   },
-  numpadCard: {
-    backgroundColor: BrandColors.surface,
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-  },
-  numpadDivider: {
-    height: 1,
-    backgroundColor: BrandColors.border,
-    marginVertical: 12,
-  },
-  presetChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-    backgroundColor: BrandColors.surface,
-  },
-  presetChipActive: {
-    backgroundColor: BrandColors.green,
-    borderColor: BrandColors.green,
-  },
-  noteInput: {
-    height: 40,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-    backgroundColor: ColorNeutral.neutral50,
-    paddingHorizontal: 14,
-    fontFamily: "System",
-    fontSize: 14,
-    color: ColorNeutral.neutral800,
-  },
   amountSummary: {
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderRadius: 14,
     backgroundColor: BrandColors.tint,
     borderWidth: 1,
     borderColor: BrandColors.border,
-    minWidth: 210,
+    minWidth: 150,
+    alignItems: "flex-end",
   },
   amountSummaryMobile: {
     minWidth: 0,
     width: "100%",
+    alignItems: "flex-start",
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: BrandColors.border,
   },
   slotChip: {
     flexDirection: "row",
@@ -632,11 +567,75 @@ const styles = StyleSheet.create({
     backgroundColor: BrandColors.surface,
   },
   slotChipActive: {
-    backgroundColor: BrandColors.green,
-    borderColor: BrandColors.green,
+    backgroundColor: BrandColors.buttonSolid,
+    borderColor: BrandColors.buttonSolid,
   },
-  sectionDivider: {
+  presetChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    backgroundColor: BrandColors.surface,
+  },
+  presetChipActive: {
+    backgroundColor: BrandColors.buttonSolid,
+    borderColor: BrandColors.buttonSolid,
+  },
+  noteInput: {
+    height: 42,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    backgroundColor: ColorNeutral.neutral50,
+    paddingHorizontal: 14,
+    fontFamily: "System",
+    fontSize: 14,
+    color: ColorNeutral.neutral800,
+  },
+  numpadCard: {
+    backgroundColor: BrandColors.surface,
+    borderRadius: 20,
+    padding: 16,
+    gap: 14,
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+  },
+  amountDisplay: {
+    fontSize: 28,
+    lineHeight: 34,
+    color: ColorNeutral.neutral900,
+  },
+  numpadDivider: {
     height: 1,
     backgroundColor: BrandColors.border,
+  },
+  matchChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: ColorSuccess.success50,
+    borderWidth: 1,
+    borderColor: ColorSuccess.success200,
+  },
+  quickAddChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: BrandColors.borderStrong,
+    backgroundColor: BrandColors.tint,
+  },
+  quickResetChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+    backgroundColor: BrandColors.surface,
+  },
+  labelCaps: {
+    letterSpacing: 0.5,
+    fontSize: 11,
   },
 });

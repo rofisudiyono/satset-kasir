@@ -58,16 +58,46 @@ export default function MobileSettingsPage() {
 
   async function handleLogout() {
     if (isShiftStarted) {
-      router.push("/tutup-shift" as never);
+      Alert.alert(
+        "Ganti user?",
+        "Shift aktif harus ditutup dulu sebelum akun kasir diganti.",
+        [
+          { text: "Batal", style: "cancel" },
+          {
+            text: "Tutup Shift",
+            style: "destructive",
+            onPress: () => {
+              router.push({
+                pathname: "/tutup-shift",
+              } as never);
+            },
+          },
+        ],
+      );
       return;
     }
 
-    try {
-      await logout();
-      router.replace(getLoginRoute(false) as never);
-    } catch {
-      Alert.alert("Gagal logout", "Coba ulangi beberapa saat lagi.");
-    }
+    Alert.alert(
+      "Keluar dari akun ini?",
+      "Sesi kasir di perangkat ini akan diakhiri dan layar login akan ditampilkan.",
+      [
+        { text: "Batal", style: "cancel" },
+        {
+          text: "Keluar",
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              try {
+                await logout();
+                router.replace(getLoginRoute(false) as never);
+              } catch {
+                Alert.alert("Gagal logout", "Coba ulangi beberapa saat lagi.");
+              }
+            })();
+          },
+        },
+      ],
+    );
   }
 
   return (
@@ -155,7 +185,7 @@ export default function MobileSettingsPage() {
           <Ionicons name="log-out-outline" size={18} color={ColorDanger.danger600} />
           <YStack gap={2}>
             <TextBodySm fontWeight="700" color={ColorDanger.danger600}>
-              Keluar
+              {isShiftStarted ? "Tutup Shift & Login Ulang" : "Ganti User"}
             </TextBodySm>
             <TextBodySm color={ColorNeutral.neutral500}>
               {isShiftStarted

@@ -24,8 +24,8 @@ import {
 import {
   ColorBase,
   ColorNeutral,
-  ColorPrimary,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -78,7 +78,7 @@ function DayRow({
         value={schedule.isOpen}
         onValueChange={onToggle}
         trackColor={{
-          true: ColorPrimary.primary600,
+          true: BrandColors.green,
           false: ColorNeutral.neutral300,
         }}
       />
@@ -207,7 +207,7 @@ export default function InformasiTokoPage() {
         <YStack alignItems="center" paddingVertical="$4" gap="$2">
           <YStack style={styles.logoWrapper}>
             <YStack style={styles.logoPlaceholder}>
-              <Ionicons name="storefront" size={44} color={ColorPrimary.primary400} />
+              <Ionicons name="storefront" size={44} color={BrandColors.mid} />
             </YStack>
             <TouchableOpacity style={styles.cameraBtn} activeOpacity={0.85}>
               <Ionicons name="camera" size={15} color={ColorBase.white} />
@@ -427,7 +427,7 @@ export default function InformasiTokoPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: BrandColors.canvas,
   },
   scrollContent: {
     gap: 16,
@@ -446,11 +446,11 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 20,
-    backgroundColor: ColorPrimary.primary100,
+    backgroundColor: BrandColors.tint,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
-    borderColor: ColorPrimary.primary200,
+    borderColor: BrandColors.borderStrong,
     borderStyle: "dashed",
   },
   cameraBtn: {
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.deep,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",

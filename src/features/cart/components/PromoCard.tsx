@@ -14,9 +14,9 @@ import {
   ColorBase,
   ColorGreen,
   ColorNeutral,
-  ColorPrimary,
   ColorSurface,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import type { AppliedPromo } from "@/types";
 
 interface PromoCardProps {
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_400Regular",
   },
   promoApplyBtn: {
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.buttonSolid,
     borderRadius: 12,
     paddingHorizontal: 20,
     height: 48,
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   toggleTrackActive: {
-    backgroundColor: ColorGreen.green600,
+    backgroundColor: BrandColors.buttonSolid,
   },
   toggleThumb: {
     width: 16,

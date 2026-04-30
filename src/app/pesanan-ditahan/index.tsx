@@ -26,8 +26,8 @@ import {
   ColorDanger,
   ColorGreen,
   ColorNeutral,
-  ColorPrimary,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import { formatPrice } from "@/utils";
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
@@ -168,7 +168,7 @@ const HeldOrderCard = memo(function HeldOrderCard({
         <YStack flex={1} gap={2}>
           <XStack alignItems="center" gap={6}>
             <View style={styles.holdBadge}>
-              <Ionicons name="time" size={12} color={ColorPrimary.primary600} />
+              <Ionicons name="time" size={12} color={BrandColors.text} />
             </View>
             <TextBody fontWeight="700">{order.label || "Tanpa Nama"}</TextBody>
           </XStack>
@@ -231,7 +231,7 @@ const HeldOrderCard = memo(function HeldOrderCard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: BrandColors.canvas,
   },
   list: {
     padding: 16,
@@ -241,20 +241,22 @@ const styles = StyleSheet.create({
     height: 12,
   },
   card: {
-    backgroundColor: ColorBase.white,
+    backgroundColor: BrandColors.surface,
     borderRadius: 16,
     padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    shadowColor: BrandColors.deep,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowRadius: 12,
     elevation: 2,
   },
   holdBadge: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: ColorPrimary.primary50,
+    backgroundColor: BrandColors.tint,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -272,7 +274,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.deep,
     borderRadius: 12,
   },
 });

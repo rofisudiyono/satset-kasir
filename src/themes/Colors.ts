@@ -2,53 +2,54 @@ export const enum ColorBase {
   white = "#FFFFFF",
   black = "#000000",
   transparent = "transparent",
-  bgScreen = "#F7F8F6",
+  bgScreen = "#F8F9FA",
 }
 
 export const enum ColorSurface {
-  canvas = "#F7F8F6",
+  canvas = "#F8F9FA",
   surface = "#FFFFFF",
-  surfaceMuted = "#FAFBF9",
-  border = "#E3E6E0",
-  borderStrong = "#C8CEC5",
+  surfaceMuted = "#F3F5F4",
+  border = "#DFE6E2",
+  borderStrong = "#C5D0CA",
   shadow = "#1F2937",
 }
 
+/** Teal–sage scale aligned with tablet header (#006D4E) & active tab (#589B7F). */
 export const enum ColorPrimary {
-  primary25 = "#F7FAF7",
-  primary50 = "#EEF4EF",
-  primary100 = "#DDE8DE",
-  primary200 = "#C3D2C5",
-  primary400 = "#6B8F71",
-  primary600 = "#2F6B4F",
-  primary700 = "#24543E",
-  primary900 = "#142B22",
+  primary25 = "#F4FAF8",
+  primary50 = "#E8F2EE",
+  primary100 = "#D0E5DD",
+  primary200 = "#A8CFC0",
+  primary400 = "#589B7F",
+  primary600 = "#006D4E",
+  primary700 = "#005640",
+  primary900 = "#0C2A22",
 }
 
 export const enum ColorSky {
-  sky50 = "#EEF7F6",
-  indigo50 = "#EEF4EF",
+  sky50 = "#E8F2EE",
+  indigo50 = "#E8F2EE",
 }
 
 export const enum ColorSuccess {
-  success50 = "#EEF8F2",
-  success200 = "#BFDCCB",
-  success400 = "#4FA36E",
-  success500 = "#238B5A",
-  success600 = "#147A4F",
-  success700 = "#0F623F",
-  success900 = "#123526",
+  success50 = "#E8F4F0",
+  success200 = "#A8D4C4",
+  success400 = "#4A9B82",
+  success500 = "#2E8570",
+  success600 = "#1F7260",
+  success700 = "#165A4C",
+  success900 = "#0F3D34",
 }
 
 export const enum ColorGreen {
-  green50 = "#F0F6F1",
-  green75 = "#E8F0EA",
-  green100 = "#DDEBDD",
-  green125 = "#D3E4D5",
-  green150 = "#C9DCCD",
-  green200 = "#BFD6C4",
-  green400 = "#5F9C6D",
-  green600 = "#2F7A48",
+  green50 = "#E8F2EE",
+  green75 = "#DDECE5",
+  green100 = "#D0E5DD",
+  green125 = "#C4DED5",
+  green150 = "#B8D7CC",
+  green200 = "#A8CFC0",
+  green400 = "#589B7F",
+  green600 = "#006D4E",
 }
 
 export const enum ColorWarning {
@@ -69,29 +70,29 @@ export const enum ColorYellow {
 }
 
 export const enum ColorDanger {
-  danger25 = "#FFF7F6",
+  danger25 = "#FFF8F7",
   danger50 = "#FDF0EE",
-  danger75 = "#F8E3E0",
-  danger100 = "#F5D5D1",
-  danger200 = "#EAB8B2",
-  danger400 = "#D65C50",
-  danger600 = "#B42318",
-  danger700 = "#911B13",
-  danger900 = "#7F1D1D",
+  danger75 = "#F8E5E2",
+  danger100 = "#F0D5D0",
+  danger200 = "#E5B8B0",
+  danger400 = "#D96A5E",
+  danger600 = "#C4483E",
+  danger700 = "#9E3A32",
+  danger900 = "#5C2824",
 }
 
 export const enum ColorNeutral {
-  neutral50 = "#F9FAFB",
-  neutral100 = "#F3F4F6",
-  neutral150 = "#F4F5F9",
-  neutral200 = "#E5E7EB",
-  neutral300 = "#D1D5DB",
-  neutral400 = "#9CA3AF",
-  neutral500 = "#6B7280",
-  neutral600 = "#4B5563",
-  neutral700 = "#374151",
-  neutral800 = "#1F2937",
-  neutral900 = "#111827",
+  neutral50 = "#F8F9FA",
+  neutral100 = "#F1F3F5",
+  neutral150 = "#ECEEF0",
+  neutral200 = "#DEE3E0",
+  neutral300 = "#C5CBC7",
+  neutral400 = "#8F9893",
+  neutral500 = "#6B756F",
+  neutral600 = "#4F5853",
+  neutral700 = "#3D4541",
+  neutral800 = "#2B322F",
+  neutral900 = "#1A1F1D",
   neutralShadow = "#94A3B8",
 }
 
@@ -116,11 +117,11 @@ export const enum ColorAccentOrange {
 }
 
 export const enum ColorTeal {
-  teal700 = "#327A74",
+  teal700 = "#006D4E",
 }
 
 export const enum ColorIconGradient {
-  gradientStart = "#D6E3D6",
-  gradientEnd = "#5C8F87",
+  gradientStart = "#D0E5DD",
+  gradientEnd = "#589B7F",
   iconBg = "#FFFFFF",
 }

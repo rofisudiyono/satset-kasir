@@ -39,6 +39,7 @@ import {
   ColorSuccess,
   ColorWarning,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import { formatPrice } from "@/utils";
 
 type HistoryFilter = "SEMUA" | KasirOrder["status"];
@@ -121,7 +122,7 @@ const HistoryOrderCard = memo(function HistoryOrderCard({
           <TextCaption color={ColorNeutral.neutral400}>
             #{item.id.slice(0, 8)}
           </TextCaption>
-          <TextBodyLg fontWeight="800" color={ColorPrimary.primary700}>
+          <TextBodyLg fontWeight="800" color={BrandColors.deep}>
             {formatPrice(item.grandTotal)}
           </TextBodyLg>
           <Ionicons
@@ -259,8 +260,8 @@ export function OrderHistoryMobileScreen() {
             onRefresh={() => {
               void refetch();
             }}
-            tintColor={ColorPrimary.primary600}
-            colors={[ColorPrimary.primary600]}
+            tintColor={BrandColors.deep}
+            colors={[BrandColors.deep]}
           />
         }
       />

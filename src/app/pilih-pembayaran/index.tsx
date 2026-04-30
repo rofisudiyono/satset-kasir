@@ -39,7 +39,8 @@ import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import { getApiErrorMessage, useCheckoutMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
-import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
+import { ColorBase, ColorNeutral } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import type { PaymentMethod } from "@/types";
 import { formatPrice } from "@/utils";
 
@@ -351,7 +352,7 @@ export default function PilihPembayaranPage() {
                     name={active ? "checkbox" : "square-outline"}
                     size={20}
                     color={
-                      active ? ColorPrimary.primary600 : ColorNeutral.neutral400
+                      active ? BrandColors.deep : ColorNeutral.neutral400
                     }
                   />
                 </YStack>
@@ -389,7 +390,7 @@ export default function PilihPembayaranPage() {
                 onPress={() => setAmountInput(String(Math.round(value)))}
                 style={styles.quickAmountChip}
               >
-                <TextBodySm fontWeight="700" color={ColorPrimary.primary600}>
+                <TextBodySm fontWeight="700" color={BrandColors.text}>
                   {index === 2 ? "Sisa Penuh" : formatPrice(Math.round(value))}
                 </TextBodySm>
               </TouchableOpacity>
@@ -503,7 +504,7 @@ export default function PilihPembayaranPage() {
 
   const methodSummaryCard = (
     <View style={styles.methodSummaryCard}>
-      <TextCaption color={ColorPrimary.primary700} fontWeight="700">
+      <TextCaption color={BrandColors.text} fontWeight="700">
         SIAP DICATAT
       </TextCaption>
       <TextH3 fontWeight="700" marginTop={6}>
@@ -602,7 +603,7 @@ export default function PilihPembayaranPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ColorBase.bgScreen,
+    backgroundColor: BrandColors.canvas,
   },
   shell: {
     width: "100%",
@@ -620,7 +621,7 @@ const styles = StyleSheet.create({
   totalCard: {
     borderRadius: 20,
     padding: 20,
-    backgroundColor: ColorPrimary.primary700,
+    backgroundColor: BrandColors.deep,
   },
   dotSeparator: {
     width: 4,
@@ -646,8 +647,8 @@ const styles = StyleSheet.create({
     borderColor: ColorNeutral.neutral200,
   },
   modeChipActive: {
-    backgroundColor: ColorPrimary.primary600,
-    borderColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.deep,
+    borderColor: BrandColors.deep,
   },
   amountInput: {
     backgroundColor: ColorBase.white,
@@ -667,7 +668,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: ColorPrimary.primary50,
+    backgroundColor: BrandColors.tint,
   },
   itemCard: {
     backgroundColor: ColorBase.white,
@@ -677,8 +678,8 @@ const styles = StyleSheet.create({
     borderColor: ColorNeutral.neutral200,
   },
   itemCardActive: {
-    borderColor: ColorPrimary.primary600,
-    backgroundColor: ColorPrimary.primary50,
+    borderColor: BrandColors.deep,
+    backgroundColor: BrandColors.tint,
   },
   summaryBox: {
     backgroundColor: ColorBase.white,
@@ -709,11 +710,11 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   methodSummaryCard: {
-    backgroundColor: ColorPrimary.primary50,
+    backgroundColor: BrandColors.tint,
     borderRadius: 18,
     padding: 18,
     borderWidth: 1,
-    borderColor: ColorPrimary.primary100,
+    borderColor: BrandColors.border,
   },
   tabletLeft: {
     flex: 0.56,

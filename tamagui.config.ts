@@ -74,25 +74,25 @@ const animationDrivers = {
   default: animations,
 } as const;
 
-// ─── Raw Color Palette ───────────────────────────────────────────────────────
+// ─── Raw Color Palette (tablet reference: teal header #006D4E, sage #589B7F) ──
 const rawColors = {
-  brand25: "#F7FAF7",
-  brand50: "#EEF4EF",
-  brand100: "#DDE8DE",
-  brand200: "#C3D2C5",
-  brand400: "#6B8F71",
-  brand500: "#3D7B5C",
-  brand600: "#2F6B4F",
-  brand700: "#24543E",
-  brand800: "#1A4031",
-  brand900: "#142B22",
+  brand25: "#F4FAF8",
+  brand50: "#E8F2EE",
+  brand100: "#D0E5DD",
+  brand200: "#A8CFC0",
+  brand400: "#589B7F",
+  brand500: "#1F8264",
+  brand600: "#006D4E",
+  brand700: "#005640",
+  brand800: "#0A4536",
+  brand900: "#0C2A22",
 
-  teal50: "#EEF7F6",
-  teal100: "#D8E9E6",
-  teal300: "#8EBDB7",
-  teal500: "#4F938B",
-  teal600: "#327A74",
-  teal800: "#1F4D49",
+  teal50: "#E8F2EE",
+  teal100: "#D0E5DD",
+  teal300: "#6FAF94",
+  teal500: "#589B7F",
+  teal600: "#006D4E",
+  teal800: "#004F3A",
 
   blue50: "#EFF6FF",
   blue100: "#DBEAFE",
@@ -104,14 +104,14 @@ const rawColors = {
   blue800: "#1E40AF",
   blue900: "#1E3A8A",
 
-  green50: "#F0F6F1",
-  green100: "#DDEBDD",
-  green300: "#9EC4A7",
-  green500: "#3F8E5C",
-  green600: "#2F7A48",
-  green700: "#246238",
-  green800: "#1D4F2F",
-  green900: "#153A24",
+  green50: "#E8F2EE",
+  green100: "#D0E5DD",
+  green300: "#7AB69A",
+  green500: "#2E8570",
+  green600: "#1F7260",
+  green700: "#165A4C",
+  green800: "#11463B",
+  green900: "#0F3D34",
 
   amber50: "#FBF7ED",
   amber100: "#F3E6C9",
@@ -122,12 +122,12 @@ const rawColors = {
   amber900: "#5C3712",
 
   red50: "#FDF0EE",
-  red100: "#F5D5D1",
-  red300: "#E69C94",
-  red500: "#C84036",
-  red600: "#B42318",
-  red700: "#911B13",
-  red900: "#7F1D1D",
+  red100: "#F0D5D0",
+  red300: "#E5B8B0",
+  red500: "#D96A5E",
+  red600: "#C4483E",
+  red700: "#9E3A32",
+  red900: "#5C2824",
 
   gray50: "#F9FAFB",
   gray100: "#F3F4F6",
@@ -222,14 +222,14 @@ const lightTheme = {
   dangerLight: rawColors.red50,
   // Background
   background: rawColors.white,
-  backgroundSecondary: "#F7F8F6",
+  backgroundSecondary: "#F8F9FA",
   backgroundTertiary: rawColors.brand50,
   // Text
-  color: "#17211B",
-  colorSecondary: "#5B675F",
-  colorTertiary: "#89928B",
+  color: "#0F3D32",
+  colorSecondary: "#5A6963",
+  colorTertiary: "#8A928E",
   // Border
-  borderColor: "#E3E6E0",
+  borderColor: "#DFE6E2",
   // Surfaces
   white: rawColors.white,
   black: rawColors.black,
@@ -238,7 +238,7 @@ const lightTheme = {
 
 const darkTheme = {
   // Primary
-  primary: rawColors.brand400,
+  primary: rawColors.teal300,
   primaryLight: rawColors.brand900,
   primaryMid: rawColors.brand800,
   primaryDark: rawColors.brand100,
@@ -261,7 +261,7 @@ const darkTheme = {
   colorSecondary: "#C9D3CA",
   colorTertiary: "#9AA89C",
   // Border
-  borderColor: "#2B4638",
+  borderColor: "#2A4A40",
   // Surfaces
   white: rawColors.white,
   black: rawColors.black,

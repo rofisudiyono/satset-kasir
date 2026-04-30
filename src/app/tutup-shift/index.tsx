@@ -27,7 +27,8 @@ import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { useCloseShiftMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { getApiErrorMessage } from "@/lib/api/client";
-import { getOpenShiftRoute } from "@/lib/routing/device-routes";
+import { useAuth } from "@/lib/auth";
+import { getLoginRoute } from "@/lib/routing/device-routes";
 import {
   ColorBase,
   ColorDanger,
@@ -40,6 +41,7 @@ import { formatPrice } from "@/utils";
 
 export default function TutupShiftPage() {
   const router = useRouter();
+  const { logout } = useAuth();
   const { mutateAsync: closeShiftApi, isPending: isClosingShift } = useCloseShiftMutation();
   const [, setIsShiftStarted] = useAtom(isShiftStartedAtom);
   const [, setShiftData] = useAtom(shiftDataAtom);
@@ -117,6 +119,20 @@ export default function TutupShiftPage() {
     });
   }
 
+  async function closeShift() {
+    try {
+      await closeShiftApi({
+        actualCash: Math.round(kasAkhir),
+      });
+      setIsShiftStarted(false);
+      setShiftData(null);
+      await logout();
+      router.replace(getLoginRoute(isTablet) as never);
+    } catch (e) {
+      Alert.alert("Gagal tutup shift", getApiErrorMessage(e));
+    }
+  }
+
   function handleTutupShift() {
     const hasDiscrepancy = selisih !== 0;
     const title = hasDiscrepancy ? "Perhatian: Ada Selisih Kas!" : "Tutup Shift";
@@ -125,8 +141,8 @@ export default function TutupShiftPage() {
           selisih > 0
             ? "Kas lebih — periksa kembalian yang diberikan ke pelanggan."
             : "Kas kurang — periksa apakah ada transaksi yang belum tercatat."
-        }\n\nTetap tutup shift?`
-      : "Yakin ingin menutup shift sekarang? Data shift akan disimpan.";
+        }\n\nTetap tutup shift dan kembali ke login?`
+      : "Yakin ingin menutup shift sekarang? Data shift akan disimpan dan kasir harus login ulang.";
 
     Alert.alert(title, message, [
       { text: "Batal", style: "cancel" },
@@ -134,18 +150,7 @@ export default function TutupShiftPage() {
         text: hasDiscrepancy ? "Tetap Tutup" : "Tutup Shift",
         style: "destructive",
         onPress: () => {
-          void (async () => {
-            try {
-              await closeShiftApi({
-                actualCash: Math.round(kasAkhir),
-              });
-              setIsShiftStarted(false);
-              setShiftData(null);
-              router.replace(getOpenShiftRoute(isTablet) as never);
-            } catch (e) {
-              Alert.alert("Gagal tutup shift", getApiErrorMessage(e));
-            }
-          })();
+          void closeShift();
         },
       },
     ]);
@@ -363,7 +368,11 @@ export default function TutupShiftPage() {
           size="lg"
           fullWidth
           disabled={isClosingShift}
-          title={isClosingShift ? "Memproses…" : "Tutup Shift Sekarang"}
+          title={
+            isClosingShift
+              ? "Memproses…"
+              : "Tutup Shift & Login Ulang"
+          }
           icon={
             <Ionicons name="moon-outline" size={18} color={ColorBase.white} />
           }

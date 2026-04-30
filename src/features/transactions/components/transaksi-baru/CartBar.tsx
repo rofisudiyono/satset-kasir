@@ -28,7 +28,7 @@ export function CartBar({ totalItems, totalPrice, onPress }: Props) {
           <Ionicons name="bag-outline" size={20} color={BrandColors.text} />
         </View>
         <YStack flex={1} gap={1}>
-          <TextBodySm color="rgba(8,116,95,0.7)" fontWeight="600">
+          <TextBodySm color={BrandColors.textMuted} fontWeight="600">
             {totalItems} item dipilih
           </TextBodySm>
           <TextBodyLg fontWeight="800" color={BrandColors.text}>
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   cartBarButton: {
-    backgroundColor: BrandColors.green,
+    backgroundColor: BrandColors.buttonSolid,
     borderRadius: 12,
     paddingHorizontal: 16,
     height: 42,

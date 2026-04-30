@@ -16,8 +16,8 @@ import {
   ColorBase,
   ColorDanger,
   ColorNeutral,
-  ColorPrimary,
 } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import { formatPrice } from "@/utils";
 
 const styles = StyleSheet.create({
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   qtyBtnPrimary: {
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.buttonSolid,
   },
   deleteBtn: {
     width: 32,

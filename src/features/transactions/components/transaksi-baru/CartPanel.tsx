@@ -38,6 +38,7 @@ import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { shiftDataAtom } from "@/features/shift/store/shift.store";
 import type { KasirTable } from "@/lib/api/types";
 import { ColorBase, ColorDanger, ColorNeutral, ColorSurface } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
 import type { AppliedPromo, OrderType } from "@/types";
 
 type CartPanelProps = {
@@ -382,7 +383,7 @@ const styles = StyleSheet.create({
     backgroundColor: ColorSurface.surfaceMuted,
   },
   containerCompact: {
-    backgroundColor: "#FDFFFA",
+    backgroundColor: BrandColors.surfaceWarm,
   },
   header: {
     flexDirection: "row",
@@ -399,8 +400,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 14,
     paddingBottom: 12,
-    backgroundColor: "#FDFFFA",
-    borderBottomColor: "rgba(65, 184, 58, 0.1)",
+    backgroundColor: BrandColors.surfaceWarm,
+    borderBottomColor: BrandColors.border,
   },
   trashBtn: {
     width: 36,
