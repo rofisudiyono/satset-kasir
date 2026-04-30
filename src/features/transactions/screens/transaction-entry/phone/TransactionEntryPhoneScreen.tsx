@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
+  KeyboardAvoidingView,
   LayoutChangeEvent,
   Modal,
   Platform,
@@ -54,7 +55,12 @@ export function TransactionEntryPhoneScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right"]}>
-      <View style={styles.catalogPanel} onLayout={handlePanelLayout}>
+      <KeyboardAvoidingView
+        style={styles.keyboardRoot}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={0}
+      >
+        <View style={styles.catalogPanel} onLayout={handlePanelLayout}>
         <View style={styles.catalogPanelHeader}>
           <YStack gap={6} flex={1} paddingRight="$2">
             <TextH2 fontWeight="800" color={BrandColors.text}>
@@ -93,11 +99,12 @@ export function TransactionEntryPhoneScreen() {
         )}
       </View>
 
-      <CartBar
-        totalItems={cartTotalItems}
-        totalPrice={cartTotalPrice}
-        onPress={openCart}
-      />
+        <CartBar
+          totalItems={cartTotalItems}
+          totalPrice={cartTotalPrice}
+          onPress={openCart}
+        />
+      </KeyboardAvoidingView>
 
       <Modal
         visible={isCartVisible}
@@ -106,10 +113,15 @@ export function TransactionEntryPhoneScreen() {
         onRequestClose={closeCart}
       >
         <View style={styles.modalOverlay}>
-          <SafeAreaView
-            style={styles.cartModal}
-            edges={Platform.OS === "ios" ? ["top", "bottom"] : ["bottom"]}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.modalKeyboard}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 20}
           >
+            <SafeAreaView
+              style={styles.cartModal}
+              edges={Platform.OS === "ios" ? ["top", "bottom"] : ["bottom"]}
+            >
             <XStack
               alignItems="center"
               justifyContent="space-between"
@@ -143,6 +155,7 @@ export function TransactionEntryPhoneScreen() {
               <CartPanel />
             </View>
           </SafeAreaView>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
 
@@ -160,6 +173,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: BrandColors.canvas,
+  },
+  keyboardRoot: {
+    flex: 1,
   },
   catalogPanel: {
     flex: 1,
@@ -186,6 +202,11 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(7, 14, 32, 0.32)",
+    justifyContent: "flex-end",
+  },
+  modalKeyboard: {
+    flex: 1,
+    width: "100%",
     justifyContent: "flex-end",
   },
   cartModal: {

@@ -4,6 +4,8 @@ import { useAtom } from "jotai";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -380,23 +382,30 @@ export default function KeranjangPage() {
         maxWidth={contentMaxWidth}
       />
 
-      <XStack
-        flex={1}
-        gap={0}
-        flexDirection={isTablet ? "row" : "column"}
-        style={[
-          styles.shell,
-          {
-            maxWidth: contentMaxWidth,
-            paddingHorizontal: horizontalPadding,
-          },
-        ]}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
       >
-        <ScrollView
-          style={[styles.tabletLeft, !isTablet && styles.stackPanel]}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        <XStack
+          flex={1}
+          gap={0}
+          flexDirection={isTablet ? "row" : "column"}
+          style={[
+            styles.shell,
+            {
+              maxWidth: contentMaxWidth,
+              paddingHorizontal: horizontalPadding,
+            },
+          ]}
         >
+          <ScrollView
+            style={[styles.tabletLeft, !isTablet && styles.stackPanel]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+          >
           <CartItemsCard
             cart={cart}
             onUpdateQty={handleUpdateQty}
@@ -410,7 +419,9 @@ export default function KeranjangPage() {
         <ScrollView
           style={[styles.tabletRight, !isTablet && styles.stackPanel]}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          contentContainerStyle={{ padding: 16, paddingBottom: 48 }}
         >
           <YStack gap={12}>
             <CustomerInfoCard
@@ -485,6 +496,7 @@ export default function KeranjangPage() {
           </YStack>
         </ScrollView>
       </XStack>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -493,6 +505,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: ColorBase.bgScreen,
+  },
+  keyboardAvoid: {
+    flex: 1,
   },
   shell: {
     width: "100%",

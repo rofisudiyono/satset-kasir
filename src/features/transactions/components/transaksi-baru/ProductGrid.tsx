@@ -3,27 +3,17 @@ import {
   FlatList,
   ListRenderItem,
   Platform,
-  Pressable,
-  ScrollView,
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
-import { XStack, YStack } from "tamagui";
 
-import { FilterChip } from "@/components";
-import { TextBodySm } from "@/components/atoms/Typography";
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/config/categoryStyles";
-import { categoryFilters } from "@/features/catalog/api/category.data";
 import { ProductCard } from "@/features/catalog/components/ProductCard";
-import { ColorBase, ColorNeutral } from "@/themes/Colors";
-import { BrandColors } from "@/themes/brand";
 import type { CatalogProduct, CategoryFilter } from "@/types";
 
-import { SearchBar } from "./SearchBar";
+import { CatalogSearchToolbar } from "./CatalogSearchToolbar";
 
-const PADDING = 16 * 2;
 const GAP = 12;
-const COMPACT_PADDING = 12 * 2;
 const COMPACT_GAP = 10;
 const TABLET_COLS = 3;
 const H_PAD = 16;
@@ -43,6 +33,10 @@ type Props = {
   compact?: boolean;
   refreshing?: boolean;
   onRefresh?: () => void;
+  /** Judul + search dipisah di parent (tablet); list hanya grid produk */
+  omitListHeader?: boolean;
+  /** Override padding horizontal isi list (selaraskan dengan toolbar luar) */
+  listContentPaddingH?: number;
 };
 
 export function ProductGrid({
@@ -59,14 +53,18 @@ export function ProductGrid({
   compact = false,
   refreshing = false,
   onRefresh,
+  omitListHeader = false,
+  listContentPaddingH,
 }: Props) {
   const { width: screenWidth } = useWindowDimensions();
 
+  const hPadSingle = listContentPaddingH ?? (compact ? COMPACT_H_PAD : H_PAD);
+  const horizontalPaddingTotal = hPadSingle * 2;
+
   const containerWidth = availableWidth ?? screenWidth;
-  const horizontalPadding = compact ? COMPACT_PADDING : PADDING;
   const itemGap = compact ? COMPACT_GAP : GAP;
   const cardWidth =
-    (containerWidth - horizontalPadding - itemGap * (numColumns - 1)) /
+    (containerWidth - horizontalPaddingTotal - itemGap * (numColumns - 1)) /
     numColumns;
 
   const renderItem = useCallback<ListRenderItem<CatalogProduct>>(
@@ -95,68 +93,32 @@ export function ProductGrid({
     [itemGap, numColumns],
   );
 
+  const horizontalPad = hPadSingle;
+
   const contentContainerStyle = useMemo(
     () => [
       styles.listContent,
       {
         gap: itemGap,
         paddingBottom: contentBottomInset,
-        paddingHorizontal: compact ? COMPACT_H_PAD : H_PAD,
+        paddingHorizontal: horizontalPad,
       },
     ],
-    [compact, contentBottomInset, itemGap],
+    [contentBottomInset, itemGap, horizontalPad],
   );
 
   const ListHeaderComponent = useCallback(
     () => (
-      <YStack gap={compact ? "$3" : "$3"} paddingBottom={compact ? "$3" : "$3"}>
-        <SearchBar
-          value={searchValue}
-          onChangeText={onSearchChangeText}
-          onBarcodePress={onBarcodePress}
-          compact={compact}
-        />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <XStack gap="$2">
-            {categoryFilters.map((c) => {
-              const active = categoryFilter === c;
-              if (!compact) {
-                return (
-                  <FilterChip
-                    key={c}
-                    label={c}
-                    active={active}
-                    onPress={() => onCategoryChange(c)}
-                    paddingH={14}
-                  />
-                );
-              }
-
-              return (
-                <Pressable
-                  key={c}
-                  onPress={() => onCategoryChange(c)}
-                  style={[
-                    styles.compactChip,
-                    active && styles.compactChipActive,
-                  ]}
-                >
-                  <TextBodySm
-                    fontWeight="700"
-                    fontSize={13}
-                    lineHeight={16}
-                    color={
-                      active ? ColorBase.white : ColorNeutral.neutral700
-                    }
-                  >
-                    {c}
-                  </TextBodySm>
-                </Pressable>
-              );
-            })}
-          </XStack>
-        </ScrollView>
-      </YStack>
+      <CatalogSearchToolbar
+        compact={compact}
+        dense={false}
+        searchValue={searchValue}
+        onSearchChangeText={onSearchChangeText}
+        onBarcodePress={onBarcodePress}
+        categoryFilter={categoryFilter}
+        onCategoryChange={onCategoryChange}
+        paddingHorizontal={0}
+      />
     ),
     [
       categoryFilter,
@@ -178,10 +140,12 @@ export function ProductGrid({
       key={String(numColumns)}
       columnWrapperStyle={columnWrapperStyle}
       contentContainerStyle={contentContainerStyle}
-      ListHeaderComponent={ListHeaderComponent}
+      ListHeaderComponent={omitListHeader ? undefined : ListHeaderComponent}
       refreshing={refreshing}
       onRefresh={onRefresh}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
       initialNumToRender={12}
       maxToRenderPerBatch={12}
       windowSize={5}
@@ -194,21 +158,8 @@ const styles = StyleSheet.create({
   list: {
     flex: 1,
     backgroundColor: "transparent",
+    paddingTop: 16,
   },
   listContent: {},
   columnRow: {},
-  compactChip: {
-    height: 36,
-    paddingHorizontal: 16,
-    borderRadius: 999,
-    backgroundColor: ColorBase.white,
-    borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  compactChipActive: {
-    backgroundColor: BrandColors.buttonSolid,
-    borderColor: BrandColors.buttonSolid,
-  },
 });

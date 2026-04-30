@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { TextBodySm, TextH2 } from "@/components";
 import {
+  CatalogSearchToolbar,
   CartPanel,
   ProductGrid,
   VariantSheet,
@@ -56,7 +57,7 @@ export function TransactionEntryTabletScreen() {
                 <TextH2 fontWeight="800" color={ColorNeutral.neutral900}>
                   Input Manual
                 </TextH2>
-                <TextBodySm color={ColorNeutral.neutral500}>
+                <TextBodySm color={ColorNeutral.neutral500} marginTop={2}>
                   Pilih menu dan tambah item ke keranjang
                 </TextBodySm>
               </View>
@@ -89,6 +90,19 @@ export function TransactionEntryTabletScreen() {
             </View>
           </View>
 
+          <View style={styles.catalogToolbar}>
+            <CatalogSearchToolbar
+              compact
+              dense
+              searchValue={searchQuery}
+              onSearchChangeText={setSearchQuery}
+              onBarcodePress={openScanner}
+              categoryFilter={categoryFilter}
+              onCategoryChange={setCategoryFilter}
+              paddingHorizontal={18}
+            />
+          </View>
+
           <View style={styles.catalogScroll}>
             {hasMeasuredCatalogPanel ? (
               <ProductGrid
@@ -98,11 +112,10 @@ export function TransactionEntryTabletScreen() {
                 onAddProduct={handleAddProduct}
                 availableWidth={catalogPanelWidth}
                 numColumns={4}
-                searchValue={searchQuery}
-                onSearchChangeText={setSearchQuery}
-                onBarcodePress={openScanner}
                 contentBottomInset={24}
                 compact
+                omitListHeader
+                listContentPaddingH={18}
               />
             ) : null}
           </View>
@@ -152,17 +165,20 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   catalogHeader: {
-    minHeight: 72,
     paddingHorizontal: 18,
-    paddingTop: 14,
-    paddingBottom: 12,
+    paddingTop: 10,
+    paddingBottom: 6,
+    backgroundColor: BrandColors.surfaceWarm,
+    borderBottomWidth: 0,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  catalogToolbar: {
     backgroundColor: BrandColors.surfaceWarm,
     borderBottomWidth: 1,
     borderBottomColor: BrandColors.border,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
   },
   titleBlock: {
     flex: 1,
@@ -173,13 +189,14 @@ const styles = StyleSheet.create({
   },
   sectionMarker: {
     width: 4,
-    height: 38,
+    height: 34,
     borderRadius: 999,
     backgroundColor: BrandColors.buttonSolid,
   },
   headerActions: {
     flexDirection: "row",
     gap: 8,
+    marginTop: 4,
   },
   headerAction: {
     width: 38,

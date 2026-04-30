@@ -4,6 +4,8 @@ import { useAtom } from "jotai";
 import React, { useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -315,15 +317,25 @@ export function CartPanel({ compact = false }: CartPanelProps) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: compact ? 92 : 100 }}
+      <KeyboardAvoidingView
+        style={styles.keyboardWrap}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={compact ? 8 : 12}
       >
-        <YStack
-          gap={compact ? 10 : 12}
-          paddingHorizontal={compact ? 12 : 16}
-          paddingTop={compact ? 10 : 12}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          contentContainerStyle={{
+            paddingBottom: compact ? 100 : 108,
+            flexGrow: 1,
+          }}
         >
+          <YStack
+            gap={compact ? 10 : 12}
+            paddingHorizontal={compact ? 12 : 16}
+            paddingTop={compact ? 10 : 12}
+          >
           <CartItemsCard
             cart={cart}
             onUpdateQty={handleUpdateQty}
@@ -367,17 +379,21 @@ export function CartPanel({ compact = false }: CartPanelProps) {
         </YStack>
       </ScrollView>
 
-      <BottomActionBar
-        cartLength={cart.length}
-        onHoldOrder={handleHoldOrder}
-        onPay={handlePay}
-        compact={compact}
-      />
+        <BottomActionBar
+          cartLength={cart.length}
+          onHoldOrder={handleHoldOrder}
+          onPay={handlePay}
+          compact={compact}
+        />
+      </KeyboardAvoidingView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardWrap: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: ColorSurface.surfaceMuted,

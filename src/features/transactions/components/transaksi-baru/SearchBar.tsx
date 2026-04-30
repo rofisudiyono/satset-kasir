@@ -12,6 +12,8 @@ type SearchBarProps = {
   placeholder?: string;
   onBarcodePress?: () => void;
   compact?: boolean;
+  /** Lebih pendek (toolbar rapat di tablet) */
+  slim?: boolean;
 };
 
 export function SearchBar({
@@ -20,12 +22,14 @@ export function SearchBar({
   placeholder = "Cari produk atau scan barcode...",
   onBarcodePress,
   compact = false,
+  slim = false,
 }: SearchBarProps) {
+  const compactHeight = slim ? 40 : 44;
   return (
     <XStack
       backgroundColor={ColorBase.white}
       borderRadius={999}
-      height={compact ? 44 : 48}
+      height={compact ? compactHeight : 48}
       alignItems="center"
       paddingHorizontal={compact ? "$3" : "$4"}
       gap="$2"

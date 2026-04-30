@@ -1,6 +1,7 @@
 {
   "expo": {
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "backgroundImage": "./assets/images/android-icon-background.png",
