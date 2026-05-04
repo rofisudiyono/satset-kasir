@@ -13,6 +13,7 @@ import type {
   KasirTaxSettings,
   KasirTenantInfo,
   KasirApprovalRequest,
+  KasirUnpaidOrder,
   PendingWebOrder,
   ShiftSlotApi,
   ValidatePromoResponse,
@@ -217,4 +218,19 @@ export async function getTaxSettings(): Promise<KasirTaxSettings | null> {
 export async function getTenantInfo(): Promise<KasirTenantInfo> {
   const { data } = await api.get<{ data: KasirTenantInfo }>("/kasir/tenant-info");
   return data.data;
+}
+
+// ─── Post-Pay ─────────────────────────────────────────────────────────────────
+
+export async function getUnpaidOrders(): Promise<KasirUnpaidOrder[]> {
+  const { data } = await api.get<{ data: KasirUnpaidOrder[] }>("/kasir/orders/unpaid");
+  return data.data ?? [];
+}
+
+export type CollectPaymentBody = {
+  payments: PaymentEntry[];
+};
+
+export async function collectPayment(orderId: string, body: CollectPaymentBody): Promise<void> {
+  await api.post(`/kasir/orders/${orderId}/collect-payment`, body);
 }

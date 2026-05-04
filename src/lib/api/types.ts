@@ -32,6 +32,35 @@ export type KasirTenantInfo = {
   tenantPhone?: string | null;
   branchAddress?: string | null;
   branchPhone?: string | null;
+  defaultPaymentTiming: 'PREPAY' | 'POSTPAY';
+};
+
+// ─── Unpaid Orders (Post-Pay) ─────────────────────────────────────────────────
+
+export type KasirUnpaidOrderItem = {
+  id: string;
+  menuId: string | null;
+  nameSnapshot: string;
+  variantNameSnapshot: string | null;
+  qty: number;
+  unitPriceSnapshot: number;
+  note: string | null;
+  modifiers: { id: string; labelSnapshot: string; extraPriceSnapshot: number }[];
+};
+
+export type KasirUnpaidOrder = {
+  id: string;
+  tableId: string | null;
+  tableLabel: string | null;
+  customerName: string | null;
+  orderNote: string | null;
+  subtotal: number;
+  taxAmount: number;
+  discountAmount: number;
+  grandTotal: number;
+  fulfillmentStatus: string;
+  createdAt: string;
+  items: KasirUnpaidOrderItem[];
 };
 
 // ─── Menu (Kasir) ─────────────────────────────────────────────────────────────
@@ -190,7 +219,7 @@ export type CheckoutOrderBody = {
   promoCode?: string;
   promoId?: string;
   items: CheckoutOrderItem[];
-  payments: CheckoutPayment[];
+  payments?: CheckoutPayment[];
 };
 
 // ─── Promo ────────────────────────────────────────────────────────────────────

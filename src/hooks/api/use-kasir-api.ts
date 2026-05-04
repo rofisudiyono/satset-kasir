@@ -5,6 +5,7 @@ import * as kasirApi from "@/lib/api/kasir.api";
 import { getApiErrorMessage } from "@/lib/api/client";
 import type {
   CloseShiftBody,
+  CollectPaymentBody,
   OpenShiftBody,
   QueueOrderBody,
   PaymentEntry,
@@ -238,5 +239,27 @@ export function useTaxSettingsQuery(enabled: boolean) {
     enabled,
     staleTime: 10 * 60_000,
     gcTime: 30 * 60_000,
+  });
+}
+
+// ─── Post-Pay ─────────────────────────────────────────────────────────────────
+
+export function useUnpaidOrdersQuery(enabled = true) {
+  return useQuery({
+    queryKey: [...kasirKeys.all, "orders", "unpaid"],
+    queryFn: kasirApi.getUnpaidOrders,
+    enabled,
+    refetchInterval: enabled ? 15_000 : false,
+  });
+}
+
+export function useCollectPaymentMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, body }: { orderId: string; body: CollectPaymentBody }) =>
+      kasirApi.collectPayment(orderId, body),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...kasirKeys.all, "orders", "unpaid"] });
+    },
   });
 }
