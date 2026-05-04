@@ -29,11 +29,17 @@ import {
   heldOrdersAtom,
 } from "@/features/cart/store/cart.store";
 import {
+  useCheckoutMutation,
   useTablesQuery,
   useTaxSettingsQuery,
+  useTenantInfoQuery,
   useValidatePromoMutation,
 } from "@/hooks/api/use-kasir-api";
-import { buildPosOrderFromCart } from "@/features/pos/pos.utils";
+import {
+  buildCheckoutOrderBody,
+  buildPosOrderFromCart,
+  mapOrderTypeToServiceMode,
+} from "@/features/pos/pos.utils";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { calculateTaxBreakdown } from "@/lib/tax";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
@@ -68,8 +74,11 @@ export function CartPanel({ compact = false }: CartPanelProps) {
   const [promoEnabled, setPromoEnabled] = useState(false);
   const [promoLoading, setPromoLoading] = useState(false);
   const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(true);
+  const { data: tenantInfo } = useTenantInfoQuery(Boolean(shiftData?.shiftId));
   const { data: taxSettings } = useTaxSettingsQuery(Boolean(shiftData?.shiftId));
+  const checkoutMutation = useCheckoutMutation();
   const validatePromoMutation = useValidatePromoMutation();
+  const isPostPay = tenantInfo?.defaultPaymentTiming === "POSTPAY";
 
   const subtotal = cart.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
   const discount = appliedPromo && promoEnabled ? appliedPromo.discount : 0;
@@ -240,7 +249,7 @@ export function CartPanel({ compact = false }: CartPanelProps) {
     Alert.alert("Pesanan Ditahan", `Pesanan "${label}" telah ditahan.`);
   }
 
-  function handlePay() {
+  async function handlePay() {
     if (cart.length === 0) return;
     if (!validateCustomerInfo()) return;
     if (orderType === "Dine In" && !selectedTable) {
@@ -258,6 +267,38 @@ export function CartPanel({ compact = false }: CartPanelProps) {
           ? "Takeaway"
           : "Delivery");
     const resolvedCustomerName = customerVisitStatus === "new" ? customerName : "";
+
+    if (isPostPay) {
+      try {
+        await checkoutMutation.mutateAsync(
+          buildCheckoutOrderBody({
+            cart,
+            orderType: mapOrderTypeToServiceMode(orderType),
+            tableId: selectedTable?.id,
+            customerName: resolvedCustomerName,
+            customerPhone,
+            orderNote,
+            tableLabel,
+            promoCode: promoEnabled ? appliedPromo?.code : undefined,
+            promoId: promoEnabled ? appliedPromo?.promoId : undefined,
+          }),
+        );
+        setCart([]);
+        setOrderDraft({
+          customerName: "",
+          customerPhone: "",
+          orderNote: "",
+          customerVisitStatus: null,
+          orderType: "Dine In",
+          tableId: undefined,
+          tableLabel: undefined,
+        });
+        Alert.alert("Pesanan Masuk Dapur", `Meja ${tableLabel} — bayar setelah selesai makan.`);
+      } catch (error) {
+        Alert.alert("Gagal", getApiErrorMessage(error, "Transaksi tidak berhasil dikirim ke server."));
+      }
+      return;
+    }
 
     const order = buildPosOrderFromCart({
       orderId,

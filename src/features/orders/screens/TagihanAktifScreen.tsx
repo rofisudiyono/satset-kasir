@@ -30,6 +30,9 @@ function UnpaidOrderCard({
   order: KasirUnpaidOrder;
   onCollect: (order: KasirUnpaidOrder) => void;
 }) {
+  const customerLabel = order.customerName?.trim();
+  const tableLabel = order.tableLabel || "Takeaway";
+
   return (
     <Pressable
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
@@ -39,11 +42,11 @@ function UnpaidOrderCard({
       <XStack justifyContent="space-between" alignItems="flex-start">
         <YStack flex={1} gap={4}>
           <TextBodyLg fontWeight="700">
-            {order.tableLabel || "Takeaway"}
+            {customerLabel || tableLabel}
           </TextBodyLg>
-          {order.customerName ? (
+          {customerLabel ? (
             <TextCaption color={ColorNeutral.neutral500}>
-              {order.customerName}
+              {tableLabel}
             </TextCaption>
           ) : null}
           <TextBodySm color={ColorNeutral.neutral500} numberOfLines={2}>
@@ -85,9 +88,11 @@ export function TagihanAktifScreen() {
 
   const handleCollect = useCallback(
     (order: KasirUnpaidOrder) => {
+      const customerLabel = order.customerName?.trim();
+      const tableLabel = order.tableLabel || "Takeaway";
       Alert.alert(
-        `Tagih ${order.tableLabel || "Takeaway"}`,
-        `Total: ${formatPrice(order.grandTotal)}\n\nLanjut ke pembayaran?`,
+        `Tagih ${customerLabel || tableLabel}`,
+        `${customerLabel ? `Meja: ${tableLabel}\n` : ""}Total: ${formatPrice(order.grandTotal)}\n\nLanjut ke pembayaran?`,
         [
           { text: "Batal", style: "cancel" },
           {

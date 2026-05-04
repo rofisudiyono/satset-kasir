@@ -39,6 +39,8 @@ export function TransactionEntryPhoneScreen() {
     setSearchQuery,
     menusRefreshing,
     refetchMenus,
+    openHeldOrders,
+    heldOrdersCount,
     variantProduct,
     isVariantSheetVisible,
     closeVariantSheet,
@@ -71,11 +73,24 @@ export function TransactionEntryPhoneScreen() {
             </TextBodySm>
           </YStack>
 
-          <View style={styles.catalogBadge}>
-            <TextCaption fontWeight="700" color={BrandColors.deep}>
-              {products.length} menu
-            </TextCaption>
-          </View>
+          <TouchableOpacity
+            activeOpacity={0.78}
+            onPress={openHeldOrders}
+            style={styles.headerAction}
+          >
+            <Ionicons
+              name="pause-circle-outline"
+              size={18}
+              color={BrandColors.green}
+            />
+            {heldOrdersCount > 0 ? (
+              <View style={styles.actionBadge}>
+                <TextCaption fontWeight="800" color={BrandColors.text}>
+                  {heldOrdersCount}
+                </TextCaption>
+              </View>
+            ) : null}
+          </TouchableOpacity>
         </View>
 
         {panelWidth > 0 && (
@@ -191,13 +206,29 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     backgroundColor: BrandColors.canvas,
   },
-  catalogBadge: {
-    borderRadius: 999,
-    paddingHorizontal: 13,
-    paddingVertical: 7,
+  headerAction: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
     backgroundColor: BrandColors.surface,
     borderWidth: 1,
-    borderColor: BrandColors.sage,
+    borderColor: BrandColors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: BrandColors.tint,
+    borderWidth: 1,
+    borderColor: BrandColors.surface,
   },
   modalOverlay: {
     flex: 1,

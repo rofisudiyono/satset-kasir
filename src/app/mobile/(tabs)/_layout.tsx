@@ -7,6 +7,7 @@ import { Alert, BackHandler, View, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
+import { useTenantInfoQuery } from "@/hooks/api/use-kasir-api";
 import { useAuth } from "@/lib/auth";
 import { getHomeRoute } from "@/lib/routing/device-routes";
 import { ColorNeutral } from "@/themes/Colors";
@@ -56,6 +57,8 @@ export default function MobileTabsLayout() {
   const pathname = usePathname();
   const router = useRouter();
   const isShiftStarted = useAtomValue(isShiftStartedAtom);
+  const { data: tenantInfo } = useTenantInfoQuery(Boolean(isLoggedIn && isShiftStarted));
+  const isPostPay = tenantInfo?.defaultPaymentTiming === "POSTPAY";
 
   useFocusEffect(
     React.useCallback(() => {
@@ -129,7 +132,10 @@ export default function MobileTabsLayout() {
           ),
         })}
       >
-        <Tabs.Screen name="pesanan-web" options={{ title: "Pesanan Web" }} />
+        <Tabs.Screen
+          name="pesanan-web"
+          options={{ title: "Pesanan Web", href: isPostPay ? null : undefined }}
+        />
         <Tabs.Screen name="input-manual" options={{ title: "Input Manual" }} />
         <Tabs.Screen name="siap-antar" options={{ title: "Siap Antar" }} />
         <Tabs.Screen name="tagihan-aktif" options={{ title: "Tagihan" }} />

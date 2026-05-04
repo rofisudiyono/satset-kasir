@@ -142,6 +142,7 @@ export function useCheckoutMutation() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: orderHistoryPrefix });
       void qc.invalidateQueries({ queryKey: orderDetailPrefix });
+      void qc.invalidateQueries({ queryKey: [...kasirKeys.all, "orders", "unpaid"] });
       void qc.invalidateQueries({ queryKey: kasirKeys.activeShift() });
     },
   });
