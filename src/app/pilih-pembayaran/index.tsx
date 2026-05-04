@@ -37,7 +37,7 @@ import {
 } from "@/features/pos/pos.utils";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
-import { getApiErrorMessage, useCheckoutMutation } from "@/hooks/api/use-kasir-api";
+import { getApiErrorMessage, useCheckoutMutation, useCollectPaymentMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { ColorBase, ColorNeutral } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
@@ -55,8 +55,11 @@ export default function PilihPembayaranPage() {
   const [cartSnapshot, setCartSnapshot] = useAtom(cartSnapshotAtom);
   const [, setCatalogStock] = useAtom(catalogStockAtom);
   const { isTablet, contentMaxWidth, horizontalPadding } = useResponsiveLayout();
-  const params = useLocalSearchParams<{ orderId: string }>();
+  const params = useLocalSearchParams<{ orderId: string; collectOrderId?: string; grandTotal?: string }>();
+  const isCollectMode = !!params.collectOrderId;
+  const collectGrandTotal = params.grandTotal ? Number(params.grandTotal) : 0;
   const checkoutMutation = useCheckoutMutation();
+  const collectPaymentMutation = useCollectPaymentMutation();
 
   const order = useMemo(
     () => orders.find((item) => item.id === params.orderId),
@@ -92,6 +95,77 @@ export default function PilihPembayaranPage() {
     if (isTablet || !order) return;
     setMobileStep("summary");
   }, [isTablet, order]);
+
+  if (isCollectMode) {
+    async function handleCollectProcess() {
+      if (!params.collectOrderId) return;
+      const method = selectedMethod;
+      Alert.alert(
+        "Konfirmasi Pembayaran",
+        `${getPaymentMethodLabel(method)} sebesar ${formatPrice(collectGrandTotal)}`,
+        [
+          { text: "Batal", style: "cancel" },
+          {
+            text: "Konfirmasi",
+            onPress: async () => {
+              try {
+                await collectPaymentMutation.mutateAsync({
+                  orderId: params.collectOrderId!,
+                  body: {
+                    payments: [
+                      {
+                        method: method as "CASH" | "QRIS" | "TRANSFER" | "DEBIT" | "CREDIT" | "EWALLET",
+                        amountPaid: collectGrandTotal,
+                        label: "Tagihan",
+                      },
+                    ],
+                  },
+                });
+                Alert.alert("Pembayaran Berhasil", "Tagihan telah dicatat.", [
+                  { text: "OK", onPress: () => router.back() },
+                ]);
+              } catch (error) {
+                Alert.alert("Gagal", getApiErrorMessage(error, "Pembayaran tidak berhasil."));
+              }
+            },
+          },
+        ],
+      );
+    }
+
+    return (
+      <SafeAreaView style={styles.container} edges={["top", "left", "right", "bottom"]}>
+        <PageHeader title="Pilih Pembayaran" showBack onBack={() => router.back()} />
+        <View style={[styles.mobileShell, { maxWidth: contentMaxWidth, paddingHorizontal: horizontalPadding }]}>
+          <ScrollView style={styles.mobileContent} showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 132, gap: 12 }}>
+            <View style={styles.totalCard}>
+              <TextCaption color="rgba(255,255,255,0.85)">Total Tagihan</TextCaption>
+              <TextH2 fontWeight="700" color={ColorBase.white}>{formatPrice(collectGrandTotal)}</TextH2>
+            </View>
+            <TextCaption color="$colorSecondary" fontWeight="700" letterSpacing={0.8}>METODE PEMBAYARAN</TextCaption>
+            {paymentMethodOptions.map((method) => (
+              <PaymentMethodCard
+                key={method.id}
+                {...method}
+                selected={selectedMethod === method.id}
+                onPress={() => setSelectedMethod(method.id)}
+              />
+            ))}
+          </ScrollView>
+          <View style={styles.bottomBar}>
+            <AppButton
+              variant="primary"
+              size="lg"
+              fullWidth
+              title={`Bayar ${formatPrice(collectGrandTotal)}`}
+              onPress={handleCollectProcess}
+              disabled={collectPaymentMutation.isPending}
+            />
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!order) {
     return (

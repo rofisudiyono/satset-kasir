@@ -28,7 +28,7 @@ import {
   type CustomerVisitStatus,
   heldOrdersAtom,
 } from "@/features/cart/store/cart.store";
-import { buildPosOrderFromCart } from "@/features/pos/pos.utils";
+import { buildCheckoutOrderBody, buildPosOrderFromCart } from "@/features/pos/pos.utils";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import {
   isShiftStartedAtom,
@@ -36,8 +36,10 @@ import {
 } from "@/features/shift/store/shift.store";
 import {
   useActivePromosQuery,
+  useCheckoutMutation,
   useTablesQuery,
   useTaxSettingsQuery,
+  useTenantInfoQuery,
   useValidatePromoMutation,
 } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
@@ -66,6 +68,9 @@ export default function KeranjangPage() {
   const [selectedTable, setSelectedTable] = useState<KasirTable | null>(null);
   const [orderType, setOrderType] = useState<OrderType>(orderDraft.orderType);
   const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(isShiftStarted);
+  const { data: tenantInfo } = useTenantInfoQuery(isShiftStarted);
+  const checkoutMutation = useCheckoutMutation();
+  const isPostPay = tenantInfo?.defaultPaymentTiming === 'POSTPAY';
 
   // ─── Promo & Tax ────────────────────────────────────────────────────────────
   const { data: taxSettings } = useTaxSettingsQuery(isShiftStarted);
@@ -304,7 +309,7 @@ export default function KeranjangPage() {
     ]);
   }
 
-  function handlePay() {
+  async function handlePay() {
     if (cart.length === 0) return;
     if (!validateCustomerInfo()) return;
     if (orderType === "Dine In" && !selectedTable) {
@@ -312,8 +317,6 @@ export default function KeranjangPage() {
       return;
     }
 
-    setCartSnapshot([...cart]);
-    const orderId = `#ORD-${String(posOrders.length + 1).padStart(4, "0")}`;
     const tableLabel =
       selectedTable?.label ||
       (orderType === "Dine In"
@@ -322,6 +325,35 @@ export default function KeranjangPage() {
           ? "Takeaway"
           : "Delivery");
     const resolvedCustomerName = customerVisitStatus === "new" ? customerName : "";
+
+    if (isPostPay) {
+      try {
+        await checkoutMutation.mutateAsync(
+          buildCheckoutOrderBody({
+            cart,
+            orderType: orderType === "Dine In" ? "DINE_IN" : orderType === "Take Away" ? "TAKEAWAY" : "DELIVERY",
+            tableId: selectedTable?.id,
+            customerName: resolvedCustomerName,
+            customerPhone,
+            orderNote,
+            tableLabel,
+            promoCode: promoEnabled ? appliedPromo?.code : undefined,
+            promoId: promoEnabled ? appliedPromo?.promoId : undefined,
+          }),
+        );
+        setCart([]);
+        setOrderDraft({ customerName: "", customerPhone: "", orderNote: "", customerVisitStatus: null, orderType: "Dine In", tableId: undefined, tableLabel: undefined });
+        Alert.alert("Pesanan Masuk Dapur", `Meja ${tableLabel} — bayar setelah selesai makan.`, [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } catch (error) {
+        Alert.alert("Gagal", getApiErrorMessage(error, "Transaksi tidak berhasil dikirim ke server."));
+      }
+      return;
+    }
+
+    setCartSnapshot([...cart]);
+    const orderId = `#ORD-${String(posOrders.length + 1).padStart(4, "0")}`;
 
     const order = buildPosOrderFromCart({
       orderId,

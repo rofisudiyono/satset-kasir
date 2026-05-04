@@ -199,7 +199,7 @@ export function buildCheckoutOrderBody(params: {
   tableLabel?: string;
   promoCode?: string;
   promoId?: string;
-  payment: {
+  payment?: {
     method: PaymentMethod;
     amountPaid: number;
     amountReceived?: number;
@@ -228,14 +228,16 @@ export function buildCheckoutOrderBody(params: {
       qty: item.quantity,
       note: item.note?.trim() || undefined,
     })),
-    payments: [
-      {
-        method: mapPaymentMethodToCheckoutMethod(params.payment.method),
-        amountPaid: params.payment.amountPaid,
-        amountReceived: params.payment.amountReceived,
-        label: params.payment.label?.trim() || undefined,
-      },
-    ],
+    payments: params.payment
+      ? [
+          {
+            method: mapPaymentMethodToCheckoutMethod(params.payment.method),
+            amountPaid: params.payment.amountPaid,
+            amountReceived: params.payment.amountReceived,
+            label: params.payment.label?.trim() || undefined,
+          },
+        ]
+      : [],
   };
 }
 
