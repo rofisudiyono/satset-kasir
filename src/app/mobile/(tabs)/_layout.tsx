@@ -23,6 +23,8 @@ function getTabIcon(
       return focused ? "create" : "create-outline";
     case "siap-antar":
       return focused ? "bag-check" : "bag-check-outline";
+    case "tagihan-aktif":
+      return focused ? "receipt" : "receipt-outline";
     case "riwayat":
       return focused ? "time" : "time-outline";
     case "setting":
@@ -130,6 +132,7 @@ export default function MobileTabsLayout() {
         <Tabs.Screen name="pesanan-web" options={{ title: "Pesanan Web" }} />
         <Tabs.Screen name="input-manual" options={{ title: "Input Manual" }} />
         <Tabs.Screen name="siap-antar" options={{ title: "Siap Antar" }} />
+        <Tabs.Screen name="tagihan-aktif" options={{ title: "Tagihan" }} />
         <Tabs.Screen name="riwayat" options={{ title: "Riwayat" }} />
         <Tabs.Screen name="setting" options={{ title: "Setting" }} />
       </Tabs>
