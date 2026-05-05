@@ -3,9 +3,10 @@ const path = require("node:path");
 
 const baseConfig = require("./app.json").expo;
 
-const APP_ENV = process.env.APP_ENV === "prod"
-  ? "production"
-  : process.env.APP_ENV || process.env.EXPO_PUBLIC_APP_ENV || "development";
+const APP_ENV =
+  process.env.APP_ENV === "prod"
+    ? "production"
+    : process.env.APP_ENV || process.env.EXPO_PUBLIC_APP_ENV || "development";
 
 function parseEnvFile(filePath) {
   if (!fs.existsSync(filePath)) return {};
@@ -45,34 +46,39 @@ const profiles = {
     name: "Satset Kasir Dev",
     slug: "satset-kasir-dev",
     scheme: "satset-kasir-dev",
-    androidPackage: "id.satset.kasir.dev",
-    iosBundleIdentifier: "id.web.satset.kasir.dev",
+    androidPackage: "com.sisatset.kasir.dev",
+    iosBundleIdentifier: "com.sisatset.kasir.dev",
     oneSignalMode: "development",
   },
   staging: {
     name: "Satset Kasir Staging",
     slug: "satset-kasir-staging",
     scheme: "satset-kasir-staging",
-    androidPackage: "id.satset.kasir.staging",
-    iosBundleIdentifier: "id.web.satset.kasir.staging",
+    androidPackage: "com.sisatset.kasir.staging",
+    iosBundleIdentifier: "com.sisatset.kasir.staging",
     oneSignalMode: "development",
   },
   production: {
     name: "Satset Kasir",
     slug: "satset-kasir",
     scheme: "sat-set",
-    androidPackage: "id.satset.kasir",
-    iosBundleIdentifier: "id.web.satset.kasir",
+    androidPackage: "com.sisatset.kasir",
+    iosBundleIdentifier: "com.sisatset.kasir",
     oneSignalMode: "production",
   },
 };
 
 const profile = profiles[APP_ENV] ?? profiles.development;
 const apiUrl =
-  process.env.EXPO_PUBLIC_API_URL ?? baseConfig.extra?.apiUrl ?? "http://127.0.0.1:3000";
+  process.env.EXPO_PUBLIC_API_URL ??
+  baseConfig.extra?.apiUrl ??
+  "http://127.0.0.1:3000";
 const oneSignalAppId =
-  process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID ?? baseConfig.extra?.oneSignalAppId ?? "";
-const easProjectId = process.env.EAS_PROJECT_ID ?? baseConfig.extra?.eas?.projectId;
+  process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID ??
+  baseConfig.extra?.oneSignalAppId ??
+  "";
+const easProjectId =
+  process.env.EAS_PROJECT_ID ?? baseConfig.extra?.eas?.projectId;
 
 module.exports = {
   expo: {
@@ -82,12 +88,14 @@ module.exports = {
     scheme: process.env.EXPO_PUBLIC_APP_SCHEME || profile.scheme,
     android: {
       ...baseConfig.android,
-      package: process.env.EXPO_PUBLIC_ANDROID_PACKAGE || profile.androidPackage,
+      package:
+        process.env.EXPO_PUBLIC_ANDROID_PACKAGE || profile.androidPackage,
     },
     ios: {
       ...baseConfig.ios,
       bundleIdentifier:
-        process.env.EXPO_PUBLIC_IOS_BUNDLE_IDENTIFIER || profile.iosBundleIdentifier,
+        process.env.EXPO_PUBLIC_IOS_BUNDLE_IDENTIFIER ||
+        profile.iosBundleIdentifier,
     },
     extra: {
       ...baseConfig.extra,
@@ -102,7 +110,8 @@ module.exports = {
           plugin[0],
           {
             ...plugin[1],
-            mode: process.env.EXPO_PUBLIC_ONESIGNAL_MODE || profile.oneSignalMode,
+            mode:
+              process.env.EXPO_PUBLIC_ONESIGNAL_MODE || profile.oneSignalMode,
           },
         ];
       }

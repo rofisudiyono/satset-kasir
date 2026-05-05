@@ -8,7 +8,7 @@
         "foregroundImage": "./assets/images/satset_1024.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "package": "id.satset.kasir",
+      "package": "com.sisatset.kasir",
       "permissions": [
         "android.permission.BLUETOOTH",
         "android.permission.BLUETOOTH_ADMIN",
@@ -28,7 +28,7 @@
     },
     "icon": "./assets/images/satset_1024.png",
     "ios": {
-      "bundleIdentifier": "id.web.satset.kasir",
+      "bundleIdentifier": "com.sisatset.kasir",
       "icon": "./assets/images/satset_1024.png",
       "supportsTablet": true
     },
