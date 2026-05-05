@@ -5,8 +5,10 @@
     "requireCommit": true
   },
   "build": {
-    "staging": {
+    "android-staging-apk": {
+      "channel": "staging",
       "distribution": "internal",
+      "environment": "preview",
       "env": {
         "APP_ENV": "staging",
         "EXPO_PUBLIC_APP_ENV": "staging"
@@ -15,9 +17,91 @@
         "buildType": "apk"
       }
     },
-    "production": {
-      "distribution": "store",
+    "android-staging-debug": {
+      "distribution": "internal",
+      "environment": "preview",
       "autoIncrement": true,
+      "developmentClient": true,
+      "env": {
+        "APP_ENV": "staging",
+        "EXPO_PUBLIC_APP_ENV": "staging"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "android-production-debug": {
+      "distribution": "internal",
+      "environment": "production",
+      "autoIncrement": true,
+      "developmentClient": true,
+      "env": {
+        "APP_ENV": "production",
+        "EXPO_PUBLIC_APP_ENV": "production"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "android-production-apk": {
+      "autoIncrement": true,
+      "channel": "production",
+      "distribution": "internal",
+      "environment": "production",
+      "env": {
+        "APP_ENV": "production",
+        "EXPO_PUBLIC_APP_ENV": "production"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "android-production-aab": {
+      "autoIncrement": true,
+      "channel": "production",
+      "distribution": "store",
+      "environment": "production",
+      "env": {
+        "APP_ENV": "production",
+        "EXPO_PUBLIC_APP_ENV": "production"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    },
+    "ios-staging": {
+      "autoIncrement": true,
+      "channel": "staging",
+      "distribution": "store",
+      "environment": "preview",
+      "env": {
+        "APP_ENV": "staging",
+        "EXPO_PUBLIC_APP_ENV": "staging"
+      }
+    },
+    "ios-staging-debug": {
+      "autoIncrement": true,
+      "environment": "preview",
+      "developmentClient": true,
+      "env": {
+        "APP_ENV": "staging",
+        "EXPO_PUBLIC_APP_ENV": "staging"
+      }
+    },
+    "ios-production-debug": {
+      "autoIncrement": true,
+      "environment": "production",
+      "developmentClient": true,
+      "env": {
+        "APP_ENV": "production",
+        "EXPO_PUBLIC_APP_ENV": "production"
+      }
+    },
+    "ios-production": {
+      "autoIncrement": true,
+      "channel": "production",
+      "distribution": "store",
+      "environment": "production",
       "env": {
         "APP_ENV": "production",
         "EXPO_PUBLIC_APP_ENV": "production"
