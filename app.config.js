@@ -39,7 +39,7 @@ for (const [key, value] of Object.entries(envFromFile)) {
 const profiles = {
   staging: {
     name: "Satset Kasir Staging",
-    slug: "satset-kasir",
+    slug: "satset",
     scheme: "satset-kasir-staging",
     androidPackage: "com.sisatset.kasir.staging",
     iosBundleIdentifier: "com.sisatset.kasir.staging",
@@ -47,7 +47,7 @@ const profiles = {
   },
   production: {
     name: "Satset Kasir",
-    slug: "satset-kasir",
+    slug: "satset",
     scheme: "sat-set",
     androidPackage: "com.sisatset.kasir",
     iosBundleIdentifier: "com.sisatset.kasir",
@@ -63,7 +63,7 @@ const easProjectId = "3eb2941c-0277-491c-9b99-7b175d41d822";
 module.exports = {
   expo: {
     name: process.env.EXPO_PUBLIC_APP_NAME || profile.name,
-    slug: "satset-kasir",
+    slug: "satset",
     version: "1.0.0",
     orientation: "default",
     icon: "./assets/images/satset_1024.png",
