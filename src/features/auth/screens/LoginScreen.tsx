@@ -1,19 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useSetAtom } from "jotai";
 import React, { useState } from "react";
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
-  Image,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import { XStack, YStack } from "tamagui";
 
 import {
@@ -27,20 +27,23 @@ import {
   TextH3,
 } from "@/components";
 import { PrinterTestModal } from "@/components/molecules/PrinterTestModal";
-import { isShiftStartedAtom, shiftDataAtom } from "@/features/shift/store/shift.store";
+import {
+  isShiftStartedAtom,
+  shiftDataAtom,
+} from "@/features/shift/store/shift.store";
 import { buildShiftSyncState } from "@/features/shift/utils/syncShiftState";
+import { kasirKeys } from "@/hooks/api/query-keys";
 import { useLoginMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
-import { getActiveShift } from "@/lib/api/kasir.api";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { getActiveShift } from "@/lib/api/kasir.api";
 import { useAuth } from "@/lib/auth";
-import { getAuthenticatedEntryRoute, getHomeRoute } from "@/lib/routing/device-routes";
-import { kasirKeys } from "@/hooks/api/query-keys";
-import { queryClient } from "@/providers/query-client";
 import {
-  ColorBase,
-  ColorNeutral,
-} from "@/themes/Colors";
+  getAuthenticatedEntryRoute,
+  getHomeRoute,
+} from "@/lib/routing/device-routes";
+import { queryClient } from "@/providers/query-client";
+import { ColorBase, ColorNeutral } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
 
 const KASIR_ROLES = new Set(["kasir", "admin_coffee"]);
@@ -54,8 +57,8 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
   const router = useRouter();
   const { isLargeTablet, horizontalPadding } = useResponsiveLayout();
   const isTablet = variant === "tablet";
-  const [email, setEmail] = useState("bilqis@gmail.com");
-  const [password, setPassword] = useState("12345678");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showPrinterTest, setShowPrinterTest] = useState(false);
@@ -117,11 +120,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
       <View style={{ flex: 1 }}>
         <SafeAreaView style={styles.tabletScreen} edges={["top", "bottom"]}>
           <LinearGradient
-            colors={[
-              BrandColors.sageLight,
-              BrandColors.mid,
-              BrandColors.deep,
-            ]}
+            colors={[BrandColors.sageLight, BrandColors.mid, BrandColors.deep]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.brandPanel}
@@ -148,14 +147,21 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                   <TextH2 color={ColorBase.white} fontWeight="900">
                     SATSET
                   </TextH2>
-                  <TextCaption color={BrandColors.accentOnDark} fontWeight="700">
+                  <TextCaption
+                    color={BrandColors.accentOnDark}
+                    fontWeight="700"
+                  >
                     Akselerasi Bisnis Tanpa Batas
                   </TextCaption>
                 </YStack>
               </XStack>
 
               <YStack gap="$2">
-                <TextH1 color={ColorBase.white} fontWeight="700" lineHeight={32}>
+                <TextH1
+                  color={ColorBase.white}
+                  fontWeight="700"
+                  lineHeight={32}
+                >
                   Satset POS{"\n"}Kasir
                 </TextH1>
                 <TextBodyLg color="rgba(240,253,232,0.72)" lineHeight={22}>
@@ -334,7 +340,9 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                         onPress={() => setShowPassword(!showPassword)}
                       >
                         <Ionicons
-                          name={showPassword ? "eye-off-outline" : "eye-outline"}
+                          name={
+                            showPassword ? "eye-off-outline" : "eye-outline"
+                          }
                           size={18}
                           color={ColorNeutral.neutral400}
                         />
@@ -347,7 +355,11 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                 <XStack alignItems="center" justifyContent="space-between">
                   <TouchableOpacity
                     onPress={() => setRememberMe(!rememberMe)}
-                    style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
                   >
                     <YStack
                       width={20}
@@ -357,7 +369,9 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                         rememberMe ? BrandColors.sage : ColorBase.transparent
                       }
                       borderWidth={2}
-                      borderColor={rememberMe ? BrandColors.sage : "$borderColor"}
+                      borderColor={
+                        rememberMe ? BrandColors.sage : "$borderColor"
+                      }
                       alignItems="center"
                       justifyContent="center"
                     >
@@ -402,10 +416,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                     size={16}
                     color={ColorNeutral.neutral500}
                   />
-                  <TextBodySm
-                    color="$colorSecondary"
-                    style={{ marginLeft: 6 }}
-                  >
+                  <TextBodySm color="$colorSecondary" style={{ marginLeft: 6 }}>
                     Test Printer
                   </TextBodySm>
                 </TouchableOpacity>
@@ -624,10 +635,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                   size={16}
                   color={ColorNeutral.neutral500}
                 />
-                <TextBodySm
-                  color="$colorSecondary"
-                  style={{ marginLeft: 6 }}
-                >
+                <TextBodySm color="$colorSecondary" style={{ marginLeft: 6 }}>
                   Test Printer
                 </TextBodySm>
               </TouchableOpacity>
