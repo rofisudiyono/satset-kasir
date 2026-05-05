@@ -24,7 +24,10 @@
     },
     "extra": {
       "apiUrl": "https://api2.arashy.web.id",
-      "oneSignalAppId": ""
+      "oneSignalAppId": "",
+      "eas": {
+        "projectId": "bf918a31-9ed6-4919-8c04-b4284c9927c5"
+      }
     },
     "icon": "./assets/images/satset_1024.png",
     "ios": {
