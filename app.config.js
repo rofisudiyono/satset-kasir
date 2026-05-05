@@ -1,8 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const baseConfig = require("./app.json").expo;
-
 const APP_ENV =
   process.env.APP_ENV === "prod"
     ? "production"
@@ -10,17 +8,14 @@ const APP_ENV =
 
 function parseEnvFile(filePath) {
   if (!fs.existsSync(filePath)) return {};
-
   return fs
     .readFileSync(filePath, "utf8")
     .split(/\r?\n/)
     .reduce((acc, line) => {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith("#")) return acc;
-
       const separatorIndex = trimmed.indexOf("=");
       if (separatorIndex === -1) return acc;
-
       const key = trimmed.slice(0, separatorIndex).trim();
       let value = trimmed.slice(separatorIndex + 1).trim();
       if (
@@ -70,52 +65,93 @@ const profiles = {
 
 const profile = profiles[APP_ENV] ?? profiles.development;
 const apiUrl =
-  process.env.EXPO_PUBLIC_API_URL ??
-  baseConfig.extra?.apiUrl ??
-  "http://127.0.0.1:3000";
-const oneSignalAppId =
-  process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID ??
-  baseConfig.extra?.oneSignalAppId ??
-  "";
+  process.env.EXPO_PUBLIC_API_URL ?? "https://api2.arashy.web.id";
+const oneSignalAppId = process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID ?? "";
 const easProjectId =
-  process.env.EAS_PROJECT_ID ?? baseConfig.extra?.eas?.projectId;
+  process.env.EAS_PROJECT_ID || "bf918a31-9ed6-4919-8c04-b4284c9927c5";
 
 module.exports = {
   expo: {
-    ...baseConfig,
     name: process.env.EXPO_PUBLIC_APP_NAME || profile.name,
     slug: process.env.EXPO_PUBLIC_APP_SLUG || profile.slug,
+    version: "1.0.0",
+    orientation: "default",
+    icon: "./assets/images/satset_1024.png",
     scheme: process.env.EXPO_PUBLIC_APP_SCHEME || profile.scheme,
-    android: {
-      ...baseConfig.android,
-      package:
-        process.env.EXPO_PUBLIC_ANDROID_PACKAGE || profile.androidPackage,
-    },
+    userInterfaceStyle: "automatic",
     ios: {
-      ...baseConfig.ios,
+      icon: "./assets/images/satset_1024.png",
       bundleIdentifier:
         process.env.EXPO_PUBLIC_IOS_BUNDLE_IDENTIFIER ||
         profile.iosBundleIdentifier,
+      supportsTablet: true,
+    },
+    android: {
+      softwareKeyboardLayoutMode: "resize",
+      adaptiveIcon: {
+        backgroundColor: "#E6F4FE",
+        backgroundImage: "./assets/images/android-icon-background.png",
+        foregroundImage: "./assets/images/satset_1024.png",
+        monochromeImage: "./assets/images/android-icon-monochrome.png",
+      },
+      package:
+        process.env.EXPO_PUBLIC_ANDROID_PACKAGE || profile.androidPackage,
+      permissions: [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.POST_NOTIFICATIONS",
+      ],
+      predictiveBackGestureEnabled: false,
+    },
+    web: {
+      output: "static",
+      favicon: "./assets/images/favicon.png",
+    },
+    plugins: [
+      [
+        "onesignal-expo-plugin",
+        {
+          mode:
+            process.env.EXPO_PUBLIC_ONESIGNAL_MODE || profile.oneSignalMode,
+        },
+      ],
+      [
+        "expo-camera",
+        {
+          cameraPermission:
+            "Izinkan $(PRODUCT_NAME) mengakses kamera untuk memindai barcode produk.",
+        },
+      ],
+      [
+        "expo-splash-screen",
+        {
+          backgroundColor: "#FFFFFF",
+          android: {
+            image: "./assets/images/satset_1024.png",
+            imageWidth: 200,
+          },
+          ios: {
+            image: "./assets/images/satset_1024.png",
+            imageWidth: 200,
+          },
+        },
+      ],
+      "expo-router",
+      "expo-sharing",
+    ],
+    experiments: {
+      typedRoutes: true,
+      reactCompiler: true,
     },
     extra: {
-      ...baseConfig.extra,
       appEnv: APP_ENV,
       apiUrl,
       oneSignalAppId,
-      ...(easProjectId ? { eas: { projectId: easProjectId } } : {}),
+      eas: {
+        projectId: easProjectId,
+      },
     },
-    plugins: baseConfig.plugins.map((plugin) => {
-      if (Array.isArray(plugin) && plugin[0] === "onesignal-expo-plugin") {
-        return [
-          plugin[0],
-          {
-            ...plugin[1],
-            mode:
-              process.env.EXPO_PUBLIC_ONESIGNAL_MODE || profile.oneSignalMode,
-          },
-        ];
-      }
-      return plugin;
-    }),
   },
 };
