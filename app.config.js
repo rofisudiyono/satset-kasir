@@ -37,14 +37,6 @@ for (const [key, value] of Object.entries(envFromFile)) {
 }
 
 const profiles = {
-  development: {
-    name: "Satset Kasir Dev",
-    slug: "satset-kasir",
-    scheme: "satset-kasir-dev",
-    androidPackage: "com.sisatset.kasir.dev",
-    iosBundleIdentifier: "com.sisatset.kasir.dev",
-    oneSignalMode: "development",
-  },
   staging: {
     name: "Satset Kasir Staging",
     slug: "satset-kasir",
@@ -63,11 +55,10 @@ const profiles = {
   },
 };
 
-const profile = profiles[APP_ENV] ?? profiles.development;
+const profile = profiles[APP_ENV] ?? profiles.staging;
 const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? "https://api2.arashy.web.id";
 const oneSignalAppId = process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID ?? "";
-const easProjectId =
-  process.env.EAS_PROJECT_ID || "bf918a31-9ed6-4919-8c04-b4284c9927c5";
+const easProjectId = "3eb2941c-0277-491c-9b99-7b175d41d822";
 
 module.exports = {
   expo: {
