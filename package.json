@@ -64,12 +64,24 @@
   "private": true,
   "scripts": {
     "android": "expo run:android -d Medium_Tablet",
+    "android:staging": "node scripts/with-env.js staging expo run:android -d Medium_Tablet",
+    "android:prod": "node scripts/with-env.js production expo run:android -d Medium_Tablet",
     "android:phone": "expo run:android -d Pixel_8",
+    "android:phone:staging": "node scripts/with-env.js staging expo run:android -d Pixel_8",
+    "android:phone:prod": "node scripts/with-env.js production expo run:android -d Pixel_8",
     "ios": "expo run:ios",
+    "ios:staging": "node scripts/with-env.js staging expo run:ios",
+    "ios:prod": "node scripts/with-env.js production expo run:ios",
     "lint": "expo lint",
     "reset-project": "node ./scripts/reset-project.js",
     "start": "expo start",
-    "web": "expo start --web"
+    "start:staging": "node scripts/with-env.js staging expo start",
+    "start:prod": "node scripts/with-env.js production expo start",
+    "config:staging": "node scripts/with-env.js staging expo config --type public",
+    "config:prod": "node scripts/with-env.js production expo config --type public",
+    "web": "expo start --web",
+    "web:staging": "node scripts/with-env.js staging expo start --web",
+    "web:prod": "node scripts/with-env.js production expo start --web"
   },
   "version": "1.0.0"
 }

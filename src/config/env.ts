@@ -1,20 +1,30 @@
 import Constants from "expo-constants";
 
+type ExpoExtra = {
+  appEnv?: string;
+  apiUrl?: string;
+  oneSignalAppId?: string;
+};
+
+const expoExtra = Constants.expoConfig?.extra as ExpoExtra | undefined;
+
+export const APP_ENV =
+  process.env.EXPO_PUBLIC_APP_ENV ?? expoExtra?.appEnv ?? "development";
+
 /**
  * Base URL API Satset (tanpa trailing slash).
  * Set `EXPO_PUBLIC_API_URL` di `.env` atau `app.json` → `expo.extra.apiUrl`.
  */
 export const API_BASE_URL = (
   process.env.EXPO_PUBLIC_API_URL ??
-  (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl ??
+  expoExtra?.apiUrl ??
   "http://127.0.0.1:3000"
 ).replace(/\/$/, "");
 
 /** OneSignal App ID untuk push kasir. Kosong = runtime push dilewati. */
 export const ONESIGNAL_APP_ID =
   process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID ??
-  (Constants.expoConfig?.extra as { oneSignalAppId?: string } | undefined)
-    ?.oneSignalAppId ??
+  expoExtra?.oneSignalAppId ??
   "";
 
 /**
