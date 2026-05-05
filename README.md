@@ -38,6 +38,7 @@ File environment:
 | `EXPO_PUBLIC_ANDROID_PACKAGE` | Android package id |
 | `EXPO_PUBLIC_IOS_BUNDLE_IDENTIFIER` | iOS bundle identifier |
 | `EXPO_PUBLIC_ONESIGNAL_MODE` | `development` untuk dev/staging, `production` untuk production |
+| `EAS_PROJECT_ID` | Opsional setelah project di-link dengan EAS; juga bisa ditulis otomatis oleh `eas init` |
 
 Catatan: `.env.staging` masih memakai placeholder `https://staging-api.example.com`.
 Ganti ke URL staging `satset-api` yang benar sebelum build.
@@ -63,6 +64,44 @@ pnpm run ios:prod
 pnpm run config:staging
 pnpm run config:prod
 ```
+
+## EAS Build
+
+`eas.json` menyediakan tiga profile:
+
+| Profile | EAS environment | Output | Identitas app |
+|---------|-----------------|--------|---------------|
+| `development` | `development` | Internal dev client / APK Android | `id.satset.kasir.dev` / `id.web.satset.kasir.dev` |
+| `staging` | `preview` | Internal distribution / APK Android | `id.satset.kasir.staging` / `id.web.satset.kasir.staging` |
+| `production` | `production` | Store build | `id.satset.kasir` / `id.web.satset.kasir` |
+
+Perintah build:
+
+```bash
+pnpm run eas:build:dev:android
+pnpm run eas:build:staging:android
+pnpm run eas:build:prod:android
+pnpm run eas:build:dev:ios
+pnpm run eas:build:staging:ios
+pnpm run eas:build:prod:ios
+pnpm run eas:build:staging
+pnpm run eas:build:prod
+```
+
+Submit production:
+
+```bash
+pnpm run eas:submit:prod
+```
+
+Catatan EAS:
+
+- Install dan login EAS CLI terlebih dahulu jika belum tersedia: `npm install -g eas-cli`, lalu `eas login`.
+- Link project ke EAS jika belum pernah dilakukan: `pnpm run eas:init`. Command ini biasanya menulis `extra.eas.projectId` ke config.
+- `eas.json` memakai `cli.requireCommit=true`, jadi commit perubahan sebelum menjalankan cloud build.
+- `cli.appVersionSource` memakai `remote`; production build akan auto-increment build number/version code dari EAS.
+- Ganti `EXPO_PUBLIC_API_URL` staging di `.env.staging` dan `eas.json` dari placeholder `https://staging-api.example.com` ke URL staging API yang benar sebelum build.
+- Jika OneSignal dipakai, isi `EXPO_PUBLIC_ONESIGNAL_APP_ID` pada profile EAS atau lewat EAS environment variable yang sesuai.
 
 ## Peran dalam ekosistem
 

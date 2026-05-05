@@ -72,6 +72,7 @@ const apiUrl =
   process.env.EXPO_PUBLIC_API_URL ?? baseConfig.extra?.apiUrl ?? "http://127.0.0.1:3000";
 const oneSignalAppId =
   process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID ?? baseConfig.extra?.oneSignalAppId ?? "";
+const easProjectId = process.env.EAS_PROJECT_ID ?? baseConfig.extra?.eas?.projectId;
 
 module.exports = {
   expo: {
@@ -93,6 +94,7 @@ module.exports = {
       appEnv: APP_ENV,
       apiUrl,
       oneSignalAppId,
+      ...(easProjectId ? { eas: { projectId: easProjectId } } : {}),
     },
     plugins: baseConfig.plugins.map((plugin) => {
       if (Array.isArray(plugin) && plugin[0] === "onesignal-expo-plugin") {
