@@ -39,7 +39,7 @@ for (const [key, value] of Object.entries(envFromFile)) {
 const profiles = {
   development: {
     name: "Satset Kasir Dev",
-    slug: "satset-kasir-dev",
+    slug: "satset-kasir",
     scheme: "satset-kasir-dev",
     androidPackage: "com.sisatset.kasir.dev",
     iosBundleIdentifier: "com.sisatset.kasir.dev",
@@ -47,7 +47,7 @@ const profiles = {
   },
   staging: {
     name: "Satset Kasir Staging",
-    slug: "satset-kasir-staging",
+    slug: "satset-kasir",
     scheme: "satset-kasir-staging",
     androidPackage: "com.sisatset.kasir.staging",
     iosBundleIdentifier: "com.sisatset.kasir.staging",
@@ -64,8 +64,7 @@ const profiles = {
 };
 
 const profile = profiles[APP_ENV] ?? profiles.development;
-const apiUrl =
-  process.env.EXPO_PUBLIC_API_URL ?? "https://api2.arashy.web.id";
+const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? "https://api2.arashy.web.id";
 const oneSignalAppId = process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID ?? "";
 const easProjectId =
   process.env.EAS_PROJECT_ID || "bf918a31-9ed6-4919-8c04-b4284c9927c5";
@@ -73,7 +72,7 @@ const easProjectId =
 module.exports = {
   expo: {
     name: process.env.EXPO_PUBLIC_APP_NAME || profile.name,
-    slug: process.env.EXPO_PUBLIC_APP_SLUG || profile.slug,
+    slug: "satset-kasir",
     version: "1.0.0",
     orientation: "default",
     icon: "./assets/images/satset_1024.png",
@@ -113,8 +112,7 @@ module.exports = {
       [
         "onesignal-expo-plugin",
         {
-          mode:
-            process.env.EXPO_PUBLIC_ONESIGNAL_MODE || profile.oneSignalMode,
+          mode: process.env.EXPO_PUBLIC_ONESIGNAL_MODE || profile.oneSignalMode,
         },
       ],
       [
