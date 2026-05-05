@@ -69,11 +69,11 @@ pnpm run config:prod
 
 `eas.json` menyediakan tiga profile:
 
-| Profile       | EAS environment | Output                              | Identitas app                                               |
-| ------------- | --------------- | ----------------------------------- | ----------------------------------------------------------- |
-| `development` | `development`   | Internal dev client / APK Android   | `com.sisatset.kasir.dev` / `com.sisatset.kasir.dev`         |
-| `staging`     | `preview`       | Internal distribution / APK Android | `com.sisatset.kasir.staging` / `com.sisatset.kasir.staging` |
-| `production`  | `production`    | Store build                         | `com.sisatset.kasir` / `com.sisatset.kasir`                 |
+| Profile       | Environment source                               | Output                              | Identitas app                                               |
+| ------------- | ------------------------------------------------ | ----------------------------------- | ----------------------------------------------------------- |
+| `development` | `APP_ENV=development`, lalu `.env.development`   | Internal dev client / APK Android   | `com.sisatset.kasir.dev` / `com.sisatset.kasir.dev`         |
+| `staging`     | `APP_ENV=staging`, lalu `.env.staging`           | Internal distribution / APK Android | `com.sisatset.kasir.staging` / `com.sisatset.kasir.staging` |
+| `production`  | `APP_ENV=production`, lalu `.env.production`     | Store build                         | `com.sisatset.kasir` / `com.sisatset.kasir`                 |
 
 Perintah build:
 
@@ -100,8 +100,10 @@ Catatan EAS:
 - Link project ke EAS jika belum pernah dilakukan: `pnpm run eas:init`. Command ini biasanya menulis `extra.eas.projectId` ke config.
 - `eas.json` memakai `cli.requireCommit=true`, jadi commit perubahan sebelum menjalankan cloud build.
 - `cli.appVersionSource` memakai `remote`; production build akan auto-increment build number/version code dari EAS.
-- Ganti `EXPO_PUBLIC_API_URL` staging di `.env.staging` dan `eas.json` dari placeholder `https://staging-api.example.com` ke URL staging API yang benar sebelum build.
-- Jika OneSignal dipakai, isi `EXPO_PUBLIC_ONESIGNAL_APP_ID` pada profile EAS atau lewat EAS environment variable yang sesuai.
+- `eas.json` hanya set `APP_ENV`; nilai detail diambil dari `.env.development`, `.env.staging`, atau `.env.production` lewat `app.config.js`.
+- Environment variable yang diset di EAS Dashboard/CLI tetap menang atas nilai file `.env.<APP_ENV>`, karena `app.config.js` hanya mengisi nilai dari file saat `process.env` belum punya key tersebut.
+- Ganti `EXPO_PUBLIC_API_URL` staging di `.env.staging` dari placeholder `https://staging-api.example.com` ke URL staging API yang benar sebelum build.
+- Jika OneSignal dipakai, isi `EXPO_PUBLIC_ONESIGNAL_APP_ID` di file env atau lewat EAS environment variable yang sesuai.
 
 ## Peran dalam ekosistem
 

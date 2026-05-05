@@ -1,6 +1,6 @@
 {
   "cli": {
-    "version": ">= 13.3.0",
+    "version": ">= 12.5.1",
     "appVersionSource": "remote",
     "requireCommit": true
   },
@@ -8,19 +8,9 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "environment": "development",
       "env": {
         "APP_ENV": "development",
-        "EXPO_PUBLIC_APP_ENV": "development",
-        "EXPO_PUBLIC_API_URL": "https://staging-api.example.com",
-        "EXPO_PUBLIC_ONESIGNAL_APP_ID": "",
-        "EXPO_PUBLIC_POS_DEMO_SEED": "false",
-        "EXPO_PUBLIC_APP_NAME": "Satset Kasir Dev",
-        "EXPO_PUBLIC_APP_SLUG": "satset-kasir-dev",
-        "EXPO_PUBLIC_APP_SCHEME": "satset-kasir-dev",
-        "EXPO_PUBLIC_ANDROID_PACKAGE": "com.sisatset.kasir.dev",
-        "EXPO_PUBLIC_IOS_BUNDLE_IDENTIFIER": "com.sisatset.kasir.dev",
-        "EXPO_PUBLIC_ONESIGNAL_MODE": "development"
+        "EXPO_PUBLIC_APP_ENV": "development"
       },
       "android": {
         "buildType": "apk"
@@ -28,19 +18,9 @@
     },
     "staging": {
       "distribution": "internal",
-      "environment": "preview",
       "env": {
         "APP_ENV": "staging",
-        "EXPO_PUBLIC_APP_ENV": "staging",
-        "EXPO_PUBLIC_API_URL": "https://staging-api.example.com",
-        "EXPO_PUBLIC_ONESIGNAL_APP_ID": "",
-        "EXPO_PUBLIC_POS_DEMO_SEED": "false",
-        "EXPO_PUBLIC_APP_NAME": "Satset Kasir Staging",
-        "EXPO_PUBLIC_APP_SLUG": "satset-kasir-staging",
-        "EXPO_PUBLIC_APP_SCHEME": "satset-kasir-staging",
-        "EXPO_PUBLIC_ANDROID_PACKAGE": "com.sisatset.kasir.staging",
-        "EXPO_PUBLIC_IOS_BUNDLE_IDENTIFIER": "com.sisatset.kasir.staging",
-        "EXPO_PUBLIC_ONESIGNAL_MODE": "development"
+        "EXPO_PUBLIC_APP_ENV": "staging"
       },
       "android": {
         "buildType": "apk"
@@ -48,20 +28,10 @@
     },
     "production": {
       "distribution": "store",
-      "environment": "production",
       "autoIncrement": true,
       "env": {
         "APP_ENV": "production",
-        "EXPO_PUBLIC_APP_ENV": "production",
-        "EXPO_PUBLIC_API_URL": "https://api2.arashy.web.id",
-        "EXPO_PUBLIC_ONESIGNAL_APP_ID": "",
-        "EXPO_PUBLIC_POS_DEMO_SEED": "false",
-        "EXPO_PUBLIC_APP_NAME": "Satset Kasir",
-        "EXPO_PUBLIC_APP_SLUG": "satset-kasir",
-        "EXPO_PUBLIC_APP_SCHEME": "sat-set",
-        "EXPO_PUBLIC_ANDROID_PACKAGE": "com.sisatset.kasir",
-        "EXPO_PUBLIC_IOS_BUNDLE_IDENTIFIER": "com.sisatset.kasir",
-        "EXPO_PUBLIC_ONESIGNAL_MODE": "production"
+        "EXPO_PUBLIC_APP_ENV": "production"
       }
     }
   },
