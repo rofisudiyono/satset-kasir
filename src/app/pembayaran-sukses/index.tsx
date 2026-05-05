@@ -20,7 +20,6 @@ import {
   TextBodyLg,
   TextBodySm,
   TextCaption,
-  TextH2,
   TextH3,
 } from "@/components";
 import { cartAtom } from "@/features/cart/store/cart.store";
@@ -29,7 +28,6 @@ import {
   getReceiptPrintHeightPx,
 } from "@/features/payment/utils/receipt.utils";
 import {
-  buildOrderItemsSummary,
   calculateOrderPaidAmount,
   getPaymentMethodLabel,
 } from "@/features/pos/pos.utils";
@@ -257,12 +255,25 @@ export default function PembayaranSuksesPage() {
           <TouchableOpacity
             activeOpacity={0.85}
             style={styles.printBtnPrimary}
-            onPress={() => void handlePrintPdf()}
+            onPress={() => {
+              void (printerState.connected ? handleBluetoothPrint() : handlePrintPdf());
+            }}
+            disabled={printerState.connected && printerState.printing}
           >
-            <Ionicons name="print-outline" size={17} color={ColorBase.white} />
-            <TextBodySm fontWeight="700" color={ColorBase.white}>
-              Cetak PDF
-            </TextBodySm>
+            {printerState.connected && printerState.printing ? (
+              <ActivityIndicator size="small" color={ColorBase.white} />
+            ) : (
+              <>
+                <Ionicons
+                  name={printerState.connected ? "bluetooth" : "print-outline"}
+                  size={17}
+                  color={ColorBase.white}
+                />
+                <TextBodySm fontWeight="700" color={ColorBase.white}>
+                  {printerState.connected ? "Cetak BT" : "Cetak PDF"}
+                </TextBodySm>
+              </>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -272,7 +283,9 @@ export default function PembayaranSuksesPage() {
               printerState.connected && styles.printBtnBtConnected,
               printerState.printing && styles.printBtnDisabled,
             ]}
-            onPress={() => void handleBluetoothPrint()}
+            onPress={() => {
+              void (printerState.connected ? handlePrintPdf() : handleBluetoothPrint());
+            }}
             disabled={printerState.printing}
           >
             {printerState.printing ? (
@@ -280,7 +293,7 @@ export default function PembayaranSuksesPage() {
             ) : (
               <>
                 <Ionicons
-                  name={printerState.connected ? "bluetooth" : "bluetooth-outline"}
+                  name={printerState.connected ? "print-outline" : "bluetooth-outline"}
                   size={17}
                   color={printerState.connected ? ColorBase.white : ColorPrimary.primary600}
                 />
@@ -291,7 +304,7 @@ export default function PembayaranSuksesPage() {
                   {printerState.reconnecting
                     ? "Menyambung..."
                     : printerState.connected
-                      ? "Cetak BT"
+                      ? "Cetak PDF"
                       : "Hubungkan BT"}
                 </TextBodySm>
               </>

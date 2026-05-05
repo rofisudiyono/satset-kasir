@@ -3,7 +3,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAtom } from "jotai";
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
+  Modal,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -71,6 +73,7 @@ export default function PilihPembayaranPage() {
   const [amountInput, setAmountInput] = useState("");
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [mobileStep, setMobileStep] = useState<MobilePaymentStep>("summary");
+  const [confirmationVisible, setConfirmationVisible] = useState(false);
 
   useEffect(() => {
     if (isShiftStarted) return;
@@ -315,19 +318,16 @@ export default function PilihPembayaranPage() {
       return;
     }
 
-    const methodLabel = getPaymentMethodLabel(selectedMethod);
+    setConfirmationVisible(true);
+  }
 
-    Alert.alert(
-      "Konfirmasi Pembayaran",
-      `${methodLabel} sebesar ${formatPrice(paymentAmount)} akan dicatat ke order ${currentOrder.id}.`,
-      [
-        { text: "Batal", style: "cancel" },
-        {
-          text: "Konfirmasi",
-          onPress: isDirectCheckoutFlow ? handleDirectCheckout : applyNonCashPayment,
-        },
-      ],
-    );
+  async function handleConfirmNonCashPayment() {
+    setConfirmationVisible(false);
+    if (isDirectCheckoutFlow) {
+      await handleDirectCheckout();
+      return;
+    }
+    applyNonCashPayment();
   }
 
   function handleBack() {
@@ -596,6 +596,82 @@ export default function PilihPembayaranPage() {
     </View>
   );
 
+  const paymentConfirmationSheet = (
+    <Modal
+      visible={confirmationVisible}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setConfirmationVisible(false)}
+    >
+      <View style={styles.confirmationBackdrop}>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={StyleSheet.absoluteFillObject}
+          onPress={() => setConfirmationVisible(false)}
+        />
+        <View style={styles.confirmationSheet}>
+          <View style={styles.confirmationHandle} />
+          <TextCaption color={BrandColors.text} fontWeight="700">
+            KONFIRMASI PEMBAYARAN
+          </TextCaption>
+          <TextH2 fontWeight="800" marginTop={8}>
+            {formatPrice(paymentAmount)}
+          </TextH2>
+          <TextBodySm color="$colorSecondary" marginTop={4}>
+            {getPaymentMethodLabel(selectedMethod)} untuk order {currentOrder.id}
+          </TextBodySm>
+
+          <View style={styles.confirmationSummary}>
+            <XStack justifyContent="space-between" paddingVertical={8}>
+              <TextBodySm color="$colorSecondary">Jenis</TextBodySm>
+              <TextBodySm fontWeight="700">{getPaymentLabel()}</TextBodySm>
+            </XStack>
+            <View style={styles.confirmationDivider} />
+            <XStack justifyContent="space-between" paddingVertical={8}>
+              <TextBodySm color="$colorSecondary">Sisa sebelum bayar</TextBodySm>
+              <TextBodySm fontWeight="700">{formatPrice(remaining)}</TextBodySm>
+            </XStack>
+            <View style={styles.confirmationDivider} />
+            <XStack justifyContent="space-between" paddingVertical={8}>
+              <TextBodySm color="$colorSecondary">Sisa setelah bayar</TextBodySm>
+              <TextBodySm fontWeight="700">
+                {formatPrice(Math.max(0, remaining - paymentAmount))}
+              </TextBodySm>
+            </XStack>
+          </View>
+
+          <XStack gap="$2">
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={[styles.confirmationButton, styles.confirmationCancel]}
+              onPress={() => setConfirmationVisible(false)}
+            >
+              <TextBodySm fontWeight="700" color={ColorNeutral.neutral700}>
+                Batal
+              </TextBodySm>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={[styles.confirmationButton, styles.confirmationConfirm]}
+              onPress={() => {
+                void handleConfirmNonCashPayment();
+              }}
+              disabled={checkoutMutation.isPending}
+            >
+              {checkoutMutation.isPending ? (
+                <ActivityIndicator size="small" color={ColorBase.white} />
+              ) : (
+                <TextBodySm fontWeight="800" color={ColorBase.white}>
+                  Catat Pembayaran
+                </TextBodySm>
+              )}
+            </TouchableOpacity>
+          </XStack>
+        </View>
+      </View>
+    </Modal>
+  );
+
   return (
     <SafeAreaView
       style={styles.container}
@@ -670,6 +746,7 @@ export default function PilihPembayaranPage() {
           {mobileStep === "summary" ? summaryButton : processButton}
         </View>
       )}
+      {paymentConfirmationSheet}
     </SafeAreaView>
   );
 }
@@ -789,6 +866,56 @@ const styles = StyleSheet.create({
     padding: 18,
     borderWidth: 1,
     borderColor: BrandColors.border,
+  },
+  confirmationBackdrop: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+  },
+  confirmationSheet: {
+    backgroundColor: ColorBase.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 18,
+    paddingTop: 12,
+    paddingBottom: 28,
+  },
+  confirmationHandle: {
+    width: 42,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: ColorNeutral.neutral300,
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  confirmationSummary: {
+    marginTop: 16,
+    marginBottom: 16,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    backgroundColor: ColorNeutral.neutral50,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+  },
+  confirmationDivider: {
+    height: 1,
+    backgroundColor: ColorNeutral.neutral200,
+  },
+  confirmationButton: {
+    flex: 1,
+    height: 50,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  confirmationCancel: {
+    backgroundColor: ColorBase.white,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+  },
+  confirmationConfirm: {
+    flex: 1.4,
+    backgroundColor: BrandColors.buttonSolid,
   },
   tabletLeft: {
     flex: 0.56,

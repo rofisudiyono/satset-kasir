@@ -18,6 +18,10 @@ import type { CustomerVisitStatus } from "@/features/cart/store/cart.store";
 import type { KasirTable } from "@/lib/api/types";
 import type { OrderType } from "@/types";
 
+export type CustomerInfoValidationErrors = Partial<
+  Record<"visitStatus" | "customerName" | "customerPhone" | "table", string>
+>;
+
 interface CustomerInfoCardProps {
   customerVisitStatus: CustomerVisitStatus | null;
   onCustomerVisitStatusChange: (v: CustomerVisitStatus) => void;
@@ -34,6 +38,7 @@ interface CustomerInfoCardProps {
   tables: KasirTable[];
   isTablesLoading: boolean;
   onSelectTable: (table: KasirTable) => void;
+  validationErrors?: CustomerInfoValidationErrors;
 }
 
 export function CustomerInfoCard({
@@ -52,6 +57,7 @@ export function CustomerInfoCard({
   tables,
   isTablesLoading,
   onSelectTable,
+  validationErrors = {},
 }: CustomerInfoCardProps) {
   const [pickerVisible, setPickerVisible] = useState(false);
   const isDineIn = orderType === "Dine In";
@@ -72,6 +78,7 @@ export function CustomerInfoCard({
           style={[
             styles.visitOption,
             customerVisitStatus === "returning" && styles.visitOptionActive,
+            validationErrors.visitStatus && styles.inputError,
           ]}
           onPress={() => onCustomerVisitStatusChange("returning")}
         >
@@ -100,6 +107,7 @@ export function CustomerInfoCard({
           style={[
             styles.visitOption,
             customerVisitStatus === "new" && styles.visitOptionActive,
+            validationErrors.visitStatus && styles.inputError,
           ]}
           onPress={() => onCustomerVisitStatusChange("new")}
         >
@@ -124,6 +132,11 @@ export function CustomerInfoCard({
           </TextBodySm>
         </TouchableOpacity>
       </View>
+      {validationErrors.visitStatus ? (
+        <TextCaption color={ColorPrimary.primary700} marginTop={6}>
+          {validationErrors.visitStatus}
+        </TextCaption>
+      ) : null}
 
       {customerVisitStatus ? (
         <View style={styles.customerFields}>
@@ -137,8 +150,16 @@ export function CustomerInfoCard({
                 onChangeText={onCustomerNameChange}
                 placeholder="Nama lengkap"
                 placeholderTextColor={ColorNeutral.neutral400}
-                style={styles.inputField}
+                style={[
+                  styles.inputField,
+                  validationErrors.customerName && styles.inputError,
+                ]}
               />
+              {validationErrors.customerName ? (
+                <TextCaption color={ColorPrimary.primary700} marginTop={6}>
+                  {validationErrors.customerName}
+                </TextCaption>
+              ) : null}
             </View>
           ) : null}
 
@@ -151,11 +172,22 @@ export function CustomerInfoCard({
               onChangeText={onCustomerPhoneChange}
               placeholder="Nomor HP"
               placeholderTextColor={ColorNeutral.neutral400}
-              style={styles.inputField}
+              style={[
+                styles.inputField,
+                validationErrors.customerPhone && styles.inputError,
+              ]}
               keyboardType="phone-pad"
             />
-            <TextCaption color={ColorNeutral.neutral500} marginTop={6}>
-              Gunakan nomor WhatsApp aktif untuk memudahkan konfirmasi pesanan.
+            <TextCaption
+              color={
+                validationErrors.customerPhone
+                  ? ColorPrimary.primary700
+                  : ColorNeutral.neutral500
+              }
+              marginTop={6}
+            >
+              {validationErrors.customerPhone ||
+                "Gunakan nomor WhatsApp aktif untuk memudahkan konfirmasi pesanan."}
             </TextCaption>
           </View>
 
@@ -210,6 +242,7 @@ export function CustomerInfoCard({
             style={[
               styles.selectorButton,
               !displayTableLabel && styles.selectorButtonEmpty,
+              validationErrors.table && styles.inputError,
             ]}
             onPress={() => setPickerVisible(true)}
           >
@@ -229,10 +262,18 @@ export function CustomerInfoCard({
               )}
             </View>
           </TouchableOpacity>
-          <TextCaption color={displayTableLabel ? ColorNeutral.neutral500 : ColorPrimary.primary600} marginTop={6}>
-            {displayTableLabel
-              ? "Meja ini akan dikirim ke backend saat checkout."
-              : "Dine In wajib memilih meja sebelum pembayaran."}
+          <TextCaption
+            color={
+              validationErrors.table || !displayTableLabel
+                ? ColorPrimary.primary700
+                : ColorNeutral.neutral500
+            }
+            marginTop={6}
+          >
+            {validationErrors.table ||
+              (displayTableLabel
+                ? "Meja ini akan dikirim ke backend saat checkout."
+                : "Dine In wajib memilih meja sebelum pembayaran.")}
           </TextCaption>
         </>
       ) : (
@@ -349,6 +390,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: ColorNeutral.neutral900,
     fontFamily: "Poppins_400Regular",
+  },
+  inputError: {
+    borderColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.tint,
   },
   visitControl: {
     flexDirection: "row",

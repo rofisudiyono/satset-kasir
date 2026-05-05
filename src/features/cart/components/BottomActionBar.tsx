@@ -19,12 +19,19 @@ export function BottomActionBar({
   onPay,
   compact = false,
 }: BottomActionBarProps) {
+  const isCartEmpty = cartLength === 0;
+
   return (
     <View style={[styles.bottomBar, compact && styles.bottomBarCompact]}>
       <XStack gap={compact ? 8 : 10}>
         <TouchableOpacity
           activeOpacity={0.85}
-          style={[styles.holdOrderBtn, compact && styles.actionBtnCompact]}
+          style={[
+            styles.holdOrderBtn,
+            compact && styles.actionBtnCompact,
+            isCartEmpty && styles.actionBtnDisabled,
+          ]}
+          disabled={isCartEmpty}
           onPress={onHoldOrder}
         >
           <TextBodyLg
@@ -41,9 +48,9 @@ export function BottomActionBar({
           style={[
             styles.payBtn,
             compact && styles.actionBtnCompact,
-            cartLength === 0 && { opacity: 0.5 },
+            isCartEmpty && styles.actionBtnDisabled,
           ]}
-          disabled={cartLength === 0}
+          disabled={isCartEmpty}
           onPress={onPay}
         >
           <TextBodyLg
@@ -99,5 +106,8 @@ const styles = StyleSheet.create({
   actionBtnCompact: {
     height: 48,
     borderRadius: 12,
+  },
+  actionBtnDisabled: {
+    opacity: 0.5,
   },
 });

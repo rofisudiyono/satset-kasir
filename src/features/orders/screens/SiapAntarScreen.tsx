@@ -3,8 +3,8 @@ import { FlashList } from "@shopify/flash-list";
 import type { ListRenderItem } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useAtomValue } from "jotai";
-import React, { memo, useCallback, useMemo } from "react";
-import { Alert, Pressable, StyleSheet, View } from "react-native";
+import React, { memo, useCallback, useMemo, useState } from "react";
+import { Alert, Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
@@ -40,10 +40,12 @@ const ReadyRow = memo(function ReadyRow({
   row,
   onPress,
   onDeliver,
+  deliverLoading = false,
 }: {
   row: KasirReadyOrder;
   onPress: () => void;
   onDeliver?: () => void;
+  deliverLoading?: boolean;
 }) {
   const manual = needsManualApproval(row);
   return (
@@ -103,9 +105,10 @@ const ReadyRow = memo(function ReadyRow({
             <Pressable
               style={({ pressed }) => [styles.deliverBtn, pressed && { opacity: 0.88 }]}
               onPress={onDeliver}
+              disabled={deliverLoading}
             >
               <TextCaption fontWeight="800" color={ColorBase.white}>
-                Sudah diantar
+                {deliverLoading ? "Memproses..." : "Sudah diantar"}
               </TextCaption>
             </Pressable>
           ) : (
@@ -242,7 +245,8 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
   const { isLoggedIn } = useAuth();
   const isShiftStarted = useAtomValue(isShiftStartedAtom);
   const deliverMutation = useDeliverOrderMutation();
-  const { data = [], isLoading, isError, refetch } = useReadyOrdersQuery(
+  const [deliveringOrderId, setDeliveringOrderId] = useState<string | null>(null);
+  const { data = [], isLoading, isError, isFetching, refetch } = useReadyOrdersQuery(
     Boolean(isLoggedIn && isShiftStarted),
   );
 
@@ -279,28 +283,51 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
   );
 
   const handleDeliver = useCallback(
-    async (row: KasirReadyOrder) => {
-      try {
-        await deliverMutation.mutateAsync(row.id);
-      } catch (error) {
-        Alert.alert(
-          "Gagal",
-          getApiErrorMessage(error, "Gagal menandai pesanan sudah diantar."),
-        );
-      }
+    (row: KasirReadyOrder) => {
+      Alert.alert(
+        "Tandai sudah diantar?",
+        `${row.tableLabel || row.customerName || "Pesanan"} akan hilang dari daftar siap antar.`,
+        [
+          { text: "Batal", style: "cancel" },
+          {
+            text: "Sudah Diantar",
+            onPress: async () => {
+              setDeliveringOrderId(row.id);
+              try {
+                await deliverMutation.mutateAsync(row.id);
+                void refetch();
+              } catch (error) {
+                Alert.alert(
+                  "Gagal",
+                  getApiErrorMessage(error, "Gagal menandai pesanan sudah diantar."),
+                );
+              } finally {
+                setDeliveringOrderId(null);
+              }
+            },
+          },
+        ],
+      );
     },
-    [deliverMutation],
+    [deliverMutation, refetch],
   );
 
   const goBayarReady = useCallback(
-    (readyId: string) => {
+    (row: KasirReadyOrder) => {
       router.push({
-        pathname: "/bayar-ready",
-        params: { readyId },
-      } as never);
+        pathname: "/pilih-pembayaran" as never,
+        params: {
+          collectOrderId: row.id,
+          grandTotal: String(row.grandTotal),
+        },
+      });
     },
     [router],
   );
+
+  const handleRefresh = useCallback(() => {
+    void refetch();
+  }, [refetch]);
 
   const renderItem = useCallback<ListRenderItem<SiapEntry>>(
     ({ item }) => {
@@ -356,23 +383,22 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
               row={row}
               onPress={() => {}}
               onDeliver={() => void handleDeliver(row)}
+              deliverLoading={deliveringOrderId === row.id}
             />
           );
         }
-        return (
-          <ReadyRow row={row} onPress={() => goBayarReady(row.id)} />
-        );
+        return <ReadyRow row={row} onPress={() => goBayarReady(row)} />;
       }
 
       return (
-        <Pressable onPress={() => void refetch()} style={styles.refreshBtn}>
+        <Pressable onPress={handleRefresh} style={styles.refreshBtn}>
           <TextBodySm fontWeight="600" color={BrandColors.text}>
             Muat ulang
           </TextBodySm>
         </Pressable>
       );
     },
-    [goBayarReady, handleDeliver, refetch],
+    [deliveringOrderId, goBayarReady, handleDeliver, handleRefresh],
   );
 
   const keyExtractor = useCallback((item: SiapEntry) => item.id, []);
@@ -396,6 +422,14 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         drawDistance={480}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching}
+            onRefresh={handleRefresh}
+            tintColor={BrandColors.deep}
+            colors={[BrandColors.deep]}
+          />
+        }
       />
     </SafeAreaView>
   );

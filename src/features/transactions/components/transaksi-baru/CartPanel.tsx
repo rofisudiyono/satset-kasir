@@ -18,6 +18,7 @@ import {
   BottomActionBar,
   CartItemsCard,
   CustomerInfoCard,
+  type CustomerInfoValidationErrors,
   PriceSummaryCard,
   PromoCard,
 } from "@/features/cart";
@@ -73,6 +74,8 @@ export function CartPanel({ compact = false }: CartPanelProps) {
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const [promoEnabled, setPromoEnabled] = useState(false);
   const [promoLoading, setPromoLoading] = useState(false);
+  const [validationErrors, setValidationErrors] =
+    useState<CustomerInfoValidationErrors>({});
   const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(true);
   const { data: tenantInfo } = useTenantInfoQuery(Boolean(shiftData?.shiftId));
   const { data: taxSettings } = useTaxSettingsQuery(Boolean(shiftData?.shiftId));
@@ -126,19 +129,21 @@ export function CartPanel({ compact = false }: CartPanelProps) {
   ]);
 
   function validateCustomerInfo() {
+    const nextErrors: CustomerInfoValidationErrors = {};
     if (!customerVisitStatus) {
-      Alert.alert("Lengkapi data pemesan", "Pilih apakah pelanggan sudah pernah mengunjungi atau belum.");
-      return false;
+      nextErrors.visitStatus = "Pilih status pelanggan sebelum melanjutkan.";
     }
     if (!customerPhone.trim()) {
-      Alert.alert("Nomor HP wajib diisi", "Masukkan nomor HP pelanggan sebelum melanjutkan.");
-      return false;
+      nextErrors.customerPhone = "Nomor HP wajib diisi.";
     }
     if (customerVisitStatus === "new" && !customerName.trim()) {
-      Alert.alert("Nama wajib diisi", "Masukkan nama pelanggan baru sebelum melanjutkan.");
-      return false;
+      nextErrors.customerName = "Nama pelanggan baru wajib diisi.";
     }
-    return true;
+    if (orderType === "Dine In" && !selectedTable) {
+      nextErrors.table = "Pilih meja aktif untuk order dine-in.";
+    }
+    setValidationErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   }
 
   function handleUpdateQty(cartId: string, qty: number) {
@@ -202,10 +207,6 @@ export function CartPanel({ compact = false }: CartPanelProps) {
   function handleHoldOrder() {
     if (cart.length === 0) return;
     if (!validateCustomerInfo()) return;
-    if (orderType === "Dine In" && !selectedTable) {
-      Alert.alert("Pilih meja dulu", "Order dine-in wajib memilih meja aktif sebelum ditahan.");
-      return;
-    }
 
     const resolvedCustomerName = customerVisitStatus === "new" ? customerName : "";
     const resolvedCustomerVisitStatus = customerVisitStatus ?? "returning";
@@ -252,10 +253,6 @@ export function CartPanel({ compact = false }: CartPanelProps) {
   async function handlePay() {
     if (cart.length === 0) return;
     if (!validateCustomerInfo()) return;
-    if (orderType === "Dine In" && !selectedTable) {
-      Alert.alert("Pilih meja dulu", "Order dine-in wajib memilih meja aktif sebelum pembayaran.");
-      return;
-    }
 
     setCartSnapshot([...cart]);
     const orderId = `#ORD-${String(posOrders.length + 1).padStart(4, "0")}`;
@@ -385,20 +382,36 @@ export function CartPanel({ compact = false }: CartPanelProps) {
           />
           <CustomerInfoCard
             customerVisitStatus={customerVisitStatus}
-            onCustomerVisitStatusChange={setCustomerVisitStatus}
+            onCustomerVisitStatusChange={(value) => {
+              setCustomerVisitStatus(value);
+              setValidationErrors((prev) => ({ ...prev, visitStatus: undefined }));
+            }}
             customerName={customerName}
-            onCustomerNameChange={setCustomerName}
+            onCustomerNameChange={(value) => {
+              setCustomerName(value);
+              setValidationErrors((prev) => ({ ...prev, customerName: undefined }));
+            }}
             customerPhone={customerPhone}
-            onCustomerPhoneChange={setCustomerPhone}
+            onCustomerPhoneChange={(value) => {
+              setCustomerPhone(value);
+              setValidationErrors((prev) => ({ ...prev, customerPhone: undefined }));
+            }}
             orderNote={orderNote}
             onOrderNoteChange={setOrderNote}
             orderType={orderType}
-            onOrderTypeChange={setOrderType}
+            onOrderTypeChange={(value) => {
+              setOrderType(value);
+              setValidationErrors((prev) => ({ ...prev, table: undefined }));
+            }}
             selectedTableId={selectedTable?.id}
             selectedTableLabel={selectedTable?.label}
             tables={tables}
             isTablesLoading={isTablesLoading}
-            onSelectTable={setSelectedTable}
+            onSelectTable={(table) => {
+              setSelectedTable(table);
+              setValidationErrors((prev) => ({ ...prev, table: undefined }));
+            }}
+            validationErrors={validationErrors}
           />
           <PromoCard
             promoCode={promoCode}

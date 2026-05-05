@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAtomValue, useSetAtom } from "jotai";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { TextBodySm, TextCaption } from "@/components";
 import {
@@ -19,11 +20,24 @@ import {
 export function KdsReadyNotifications() {
   const notifications = useAtomValue(kdsNotificationsAtom);
   const dismissNotification = useSetAtom(dismissKdsNotificationAtom);
+  const insets = useSafeAreaInsets();
+
+  React.useEffect(() => {
+    const timers = notifications.map((item) =>
+      setTimeout(() => dismissNotification(item.id), 6000),
+    );
+    return () => {
+      timers.forEach(clearTimeout);
+    };
+  }, [dismissNotification, notifications]);
 
   if (notifications.length === 0) return null;
 
   return (
-    <View pointerEvents="box-none" style={styles.container}>
+    <View
+      pointerEvents="box-none"
+      style={[styles.container, { top: insets.top + 12 }]}
+    >
       {notifications.map((item) => (
         <View key={item.id} style={styles.card}>
           <View style={styles.iconWrap}>
@@ -61,7 +75,6 @@ export function KdsReadyNotifications() {
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    top: 20,
     right: 16,
     left: 16,
     zIndex: 1200,

@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React, { useEffect, useMemo, useState } from "react";
-import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { XStack, YStack } from "tamagui";
 
 import {
@@ -167,7 +168,8 @@ export const ProductCard = React.memo(function ProductCard({
           <Image
             source={{ uri: imageUrl }}
             style={styles.menuImage}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="memory-disk"
             onError={() => setImageFailed(true)}
           />
         ) : (

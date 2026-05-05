@@ -1,11 +1,11 @@
 import React, { useCallback, useMemo } from "react";
 import {
-  FlatList,
-  ListRenderItem,
   Platform,
   StyleSheet,
   useWindowDimensions,
+  View,
 } from "react-native";
+import { FlashList, type ListRenderItem } from "@shopify/flash-list";
 
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/config/categoryStyles";
 import { ProductCard } from "@/features/catalog/components/ProductCard";
@@ -68,30 +68,30 @@ export function ProductGrid({
     numColumns;
 
   const renderItem = useCallback<ListRenderItem<CatalogProduct>>(
-    ({ item }) => (
-      <ProductCard
-        name={item.name}
-        imageUrl={item.imageUrl}
-        basePrice={item.basePrice}
-        categoryIcon={CATEGORY_ICONS[item.category]}
-        categoryIconBg={CATEGORY_COLORS[item.category].bg}
-        categoryIconColor={CATEGORY_COLORS[item.category].color}
-        stockStatus={item.stockStatus}
-        availabilityReason={item.availabilityReason}
-        width={cardWidth}
-        compact={compact}
-        onAdd={() => onAddProduct(item)}
-      />
-    ),
-    [cardWidth, compact, onAddProduct],
+    ({ item, index }) => {
+      const isLastInRow = index % numColumns === numColumns - 1;
+      return (
+        <View style={!isLastInRow ? { marginRight: itemGap } : undefined}>
+          <ProductCard
+            name={item.name}
+            imageUrl={item.imageUrl}
+            basePrice={item.basePrice}
+            categoryIcon={CATEGORY_ICONS[item.category]}
+            categoryIconBg={CATEGORY_COLORS[item.category].bg}
+            categoryIconColor={CATEGORY_COLORS[item.category].color}
+            stockStatus={item.stockStatus}
+            availabilityReason={item.availabilityReason}
+            width={cardWidth}
+            compact={compact}
+            onAdd={() => onAddProduct(item)}
+          />
+        </View>
+      );
+    },
+    [cardWidth, compact, itemGap, numColumns, onAddProduct],
   );
 
   const keyExtractor = useCallback((item: CatalogProduct) => item.id, []);
-
-  const columnWrapperStyle = useMemo(
-    () => (numColumns > 1 ? [styles.columnRow, { gap: itemGap }] : undefined),
-    [itemGap, numColumns],
-  );
 
   const horizontalPad = hPadSingle;
 
@@ -131,14 +131,13 @@ export function ProductGrid({
   );
 
   return (
-    <FlatList
+    <FlashList
       style={styles.list}
       data={products}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
       numColumns={numColumns}
       key={String(numColumns)}
-      columnWrapperStyle={columnWrapperStyle}
       contentContainerStyle={contentContainerStyle}
       ListHeaderComponent={omitListHeader ? undefined : ListHeaderComponent}
       refreshing={refreshing}
@@ -146,10 +145,8 @@ export function ProductGrid({
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
-      initialNumToRender={12}
-      maxToRenderPerBatch={12}
-      windowSize={5}
       removeClippedSubviews={Platform.OS === "android"}
+      drawDistance={420}
     />
   );
 }
@@ -161,5 +158,4 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   listContent: {},
-  columnRow: {},
 });
