@@ -295,7 +295,7 @@ export default function RiwayatOrderTabPage() {
                 style={[styles.orderCard, active && styles.orderCardActive]}
               >
                 <XStack justifyContent="space-between" alignItems="center">
-                  <TextBodyLg fontWeight="700">{order.id}</TextBodyLg>
+                  <TextBodyLg fontWeight="700">{order.orderNumber}</TextBodyLg>
                   <TextCaption color={getStatusTone(order.status)} fontWeight="700">
                     {order.status}
                   </TextCaption>
@@ -331,8 +331,8 @@ export default function RiwayatOrderTabPage() {
 
               <View style={styles.detailCard}>
                 <XStack justifyContent="space-between">
-                  <TextBodySm color="$colorSecondary">Order</TextBodySm>
-                  <TextBodySm fontWeight="700">{selectedOrder.id}</TextBodySm>
+                  <TextBodySm color="$colorSecondary">No. Nota</TextBodySm>
+                  <TextBodySm fontWeight="700">{selectedOrder.orderNumber}</TextBodySm>
                 </XStack>
                 <XStack justifyContent="space-between">
                   <TextBodySm color="$colorSecondary">Pelanggan</TextBodySm>

@@ -139,6 +139,7 @@ export type KasirOrderFulfillmentStatus =
 
 export type KasirOrder = {
   id: string;
+  orderNumber: string;
   branchId?: string;
   shiftId: string;
   source: "WALK_IN" | "WEB";

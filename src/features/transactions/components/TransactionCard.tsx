@@ -38,7 +38,7 @@ export function TransactionCard({
       >
         <XStack alignItems="center" justifyContent="space-between">
           <TextBodyLg fontWeight="700" color="$primary">
-            {tx.id}
+            {tx.orderNumber ?? tx.id}
           </TextBodyLg>
           <StatusBadge status={tx.status} />
         </XStack>

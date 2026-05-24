@@ -294,7 +294,7 @@ export function OrderDetailMobileScreen({ orderId }: { orderId: string }) {
         actions={
           <View style={[styles.orderIdChip]}>
             <TextCaption fontWeight="700" color={ColorPrimary.primary700}>
-              #{order.id.slice(0, 8)}
+              {order.orderNumber ?? `#${order.id.slice(0, 8)}`}
             </TextCaption>
           </View>
         }

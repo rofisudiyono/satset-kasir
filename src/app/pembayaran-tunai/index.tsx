@@ -120,7 +120,7 @@ export default function PembayaranTunaiPage() {
     }
 
     try {
-      await checkoutMutation.mutateAsync(
+      const serverOrder = await checkoutMutation.mutateAsync(
         buildCheckoutOrderBody({
           cart: cartSnapshot,
           orderType: currentOrder.serviceMode ?? "DINE_IN",
@@ -139,7 +139,7 @@ export default function PembayaranTunaiPage() {
           },
         }),
       );
-      applyLocalPayment();
+      applyLocalPayment(serverOrder);
     } catch (error) {
       Alert.alert(
         "Checkout gagal",
@@ -148,7 +148,7 @@ export default function PembayaranTunaiPage() {
     }
   }
 
-  function applyLocalPayment() {
+  function applyLocalPayment(serverOrder?: { id: string; orderNumber: string }) {
     const paymentId = `pay-${Date.now()}`;
     const updatedOrder = appendPaymentToOrder(currentOrder, {
       id: paymentId,
@@ -159,8 +159,16 @@ export default function PembayaranTunaiPage() {
       paidAt: Date.now(),
     });
 
+    const mergedOrder = serverOrder
+      ? {
+          ...updatedOrder,
+          id: serverOrder.id,
+          orderNumber: serverOrder.orderNumber,
+        }
+      : updatedOrder;
+
     setOrders((prev) =>
-      prev.map((item) => (item.id === currentOrder.id ? updatedOrder : item)),
+      prev.map((item) => (item.id === currentOrder.id ? mergedOrder : item)),
     );
 
     if (cartSnapshot.length > 0) {
@@ -179,7 +187,7 @@ export default function PembayaranTunaiPage() {
     router.push({
       pathname: "/pembayaran-sukses",
       params: {
-        orderId: currentOrder.id,
+        orderId: mergedOrder.id,
         paymentId,
       },
     });

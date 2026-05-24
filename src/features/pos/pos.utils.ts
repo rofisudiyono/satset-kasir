@@ -146,6 +146,7 @@ export function mapPosOrderToTransaction(order: PosOrder): Transaction {
 
   return {
     id: order.id,
+    orderNumber: order.orderNumber,
     time,
     createdAt,
     shiftId: order.shiftId,
@@ -262,6 +263,7 @@ export function mapKasirOrderToTransaction(order: KasirOrder): Transaction {
 
   return {
     id: order.id,
+    orderNumber: order.orderNumber,
     time: formatKasirOrderTime(order.paidAt ?? order.createdAt),
     createdAt: new Date(order.createdAt).getTime(),
     shiftId: order.shiftId,

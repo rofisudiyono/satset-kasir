@@ -115,7 +115,7 @@ const HistoryOrderCard = memo(function HistoryOrderCard({
 
         <YStack alignItems="flex-end" gap={8}>
           <TextCaption color={ColorNeutral.neutral400}>
-            #{item.id.slice(0, 8)}
+            {item.orderNumber ?? `#${item.id.slice(0, 8)}`}
           </TextCaption>
           <TextBodyLg fontWeight="800" color={BrandColors.deep}>
             {formatPrice(item.grandTotal)}

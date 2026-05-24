@@ -231,7 +231,7 @@ export default function PilihPembayaranPage() {
     return remaining === currentOrder.grandTotal ? "Bayar Penuh" : "Pelunasan";
   }
 
-  function applyNonCashPayment() {
+  function applyNonCashPayment(serverOrder?: { id: string; orderNumber: string }) {
     const paymentId = `pay-${Date.now()}`;
     const updatedOrder = appendPaymentToOrder(currentOrder, {
       id: paymentId,
@@ -241,8 +241,16 @@ export default function PilihPembayaranPage() {
       paidAt: Date.now(),
     });
 
+    const mergedOrder = serverOrder
+      ? {
+          ...updatedOrder,
+          id: serverOrder.id,
+          orderNumber: serverOrder.orderNumber,
+        }
+      : updatedOrder;
+
     setOrders((prev) =>
-      prev.map((item) => (item.id === currentOrder.id ? updatedOrder : item)),
+      prev.map((item) => (item.id === currentOrder.id ? mergedOrder : item)),
     );
 
     if (cartSnapshot.length > 0) {
@@ -261,7 +269,7 @@ export default function PilihPembayaranPage() {
     router.push({
       pathname: "/pembayaran-sukses",
       params: {
-        orderId: currentOrder.id,
+        orderId: mergedOrder.id,
         paymentId,
       },
     });
@@ -271,7 +279,7 @@ export default function PilihPembayaranPage() {
     if (!canProcess || cartSnapshot.length === 0) return;
 
     try {
-      await checkoutMutation.mutateAsync(
+      const serverOrder = await checkoutMutation.mutateAsync(
         buildCheckoutOrderBody({
           cart: cartSnapshot,
           orderType: currentOrder.serviceMode ?? "DINE_IN",
@@ -289,7 +297,7 @@ export default function PilihPembayaranPage() {
           },
         }),
       );
-      applyNonCashPayment();
+      applyNonCashPayment(serverOrder);
     } catch (error) {
       Alert.alert(
         "Checkout gagal",

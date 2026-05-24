@@ -20,6 +20,8 @@ export interface StoreInfo {
 
 export interface Transaction {
   id: string;
+  /** Nomor nota human-readable dari backend (contoh: 2026-05-25-0001). */
+  orderNumber?: string;
   time: string;
   createdAt?: number; // epoch ms
   /**

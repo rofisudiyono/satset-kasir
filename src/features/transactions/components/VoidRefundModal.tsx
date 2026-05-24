@@ -50,9 +50,9 @@ export function VoidRefundModal({
 
             <ShadowCard padding="$3" gap="$2">
               <XStack justifyContent="space-between">
-                <TextBodySm color="$colorSecondary">No. Order</TextBodySm>
+                <TextBodySm color="$colorSecondary">No. Nota</TextBodySm>
                 <TextBodyLg fontWeight="700" color="$primary">
-                  {tx.id}
+                  {tx.orderNumber ?? tx.id}
                 </TextBodyLg>
               </XStack>
               <XStack justifyContent="space-between">
@@ -106,7 +106,7 @@ export function VoidRefundModal({
                     onClose();
                     Alert.alert(
                       "Konfirmasi Refund",
-                      `Refund transaksi ${tx.id} sebesar ${tx.amount}?`,
+                      `Refund transaksi ${tx.orderNumber ?? tx.id} sebesar ${tx.amount}?`,
                       [
                         { text: "Batal", style: "cancel" },
                         { text: "Refund", onPress: () => onRefund(tx.id) },
@@ -130,7 +130,7 @@ export function VoidRefundModal({
                     onClose();
                     Alert.alert(
                       "Konfirmasi Void",
-                      `Batalkan transaksi ${tx.id}? Tindakan ini tidak bisa dibatalkan.`,
+                      `Batalkan transaksi ${tx.orderNumber ?? tx.id}? Tindakan ini tidak bisa dibatalkan.`,
                       [
                         { text: "Batal", style: "cancel" },
                         {

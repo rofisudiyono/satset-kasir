@@ -71,7 +71,7 @@ const PendingOrderCard = memo(function PendingOrderCard({
             </TextCaption>
           </View>
           <TextCaption color={ColorNeutral.neutral500} fontWeight="600">
-            #{order.id.slice(0, 8).toUpperCase()}
+            {order.orderNumber ?? `#${order.id.slice(0, 8).toUpperCase()}`}
           </TextCaption>
         </XStack>
         <XStack alignItems="center" gap={4}>

@@ -89,7 +89,7 @@ export function buildESCPOSReceipt(receipt: ESCPOSReceipt): string {
   output += formatSeparator(width);
 
   // Order info
-  output += formatLine('No. Order', receipt.orderNumber, width);
+  output += formatLine('No. Nota', receipt.orderNumber, width);
   output += formatLine('', receipt.dateTime, width);
   output += formatSeparator(width);
 

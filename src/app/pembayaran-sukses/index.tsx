@@ -111,7 +111,7 @@ export default function PembayaranSuksesPage() {
     : "Pembayaran";
 
   const receiptPayload = {
-    orderNumber: params.serverOrderId ?? order.id,
+    orderNumber: order.orderNumber ?? order.id,
     dateTime: new Intl.DateTimeFormat("id-ID", {
       weekday: "long",
       day: "numeric",

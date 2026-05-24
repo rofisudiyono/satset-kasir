@@ -49,6 +49,7 @@ export interface PosOrderPayment {
 
 export interface PosOrder {
   id: string;
+  orderNumber?: string;
   createdAt: number; // epoch ms
   shiftId?: string;
   source: PosOrderSource;

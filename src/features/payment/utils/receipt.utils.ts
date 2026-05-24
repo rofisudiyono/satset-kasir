@@ -181,7 +181,7 @@ export function buildPrintableReceiptOrderFromKasirOrder(
   const amountReceived = primaryPayment?.amountReceived ?? amountPaid;
 
   return {
-    orderNumber: order.id,
+    orderNumber: order.orderNumber,
     dateTime: formatReceiptDate(order.paidAt ?? order.createdAt),
     items: getReceiptItemsFromOrder(order),
     subtotal: order.subtotal,
@@ -236,7 +236,7 @@ export function buildReceiptHtml(
     <p>${escapeHtml(resolvedStoreInfo.address)}</p>
     <p>${escapeHtml(resolvedStoreInfo.phone)}</p>
     <hr/>
-    <p>No. Order: ${escapeHtml(receipt.orderNumber.slice(0, 16))}</p>
+    <p>No. Nota: ${escapeHtml(receipt.orderNumber)}</p>
     <p>${escapeHtml(receipt.dateTime)} WIB</p>
     <hr/>
     <table>${itemsHtml}</table>
