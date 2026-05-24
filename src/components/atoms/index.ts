@@ -44,3 +44,6 @@ export {
 
 export { NumpadGrid } from "./NumpadGrid";
 export type { } from "./NumpadGrid";
+
+export { AppChip } from "./AppChip";
+export type { AppChipProps } from "./AppChip";
