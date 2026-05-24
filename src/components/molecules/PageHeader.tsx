@@ -1,4 +1,3 @@
-import { BrandColors } from "@/themes/brand";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { XStack, YStack } from "tamagui";
@@ -8,14 +7,10 @@ import { TextBodySm, TextH2, TextH3 } from "../atoms/Typography";
 
 export interface PageHeaderProps {
   title: string;
-  /** Secondary line shown below title when provided */
   subtitle?: string;
-  /** Show a back arrow on the left. Default false */
   showBack?: boolean;
   onBack?: () => void;
-  /** Slot for right-side actions (buttons / icon buttons) */
   actions?: React.ReactNode;
-  /** Use TextH2 for title instead of TextH3. Default false */
   largeTitle?: boolean;
   maxWidth?: number | string;
 }
@@ -31,7 +26,6 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <View style={styles.shell}>
-      <View style={styles.accent} />
       <XStack
         paddingHorizontal="$4"
         paddingTop="$3"
@@ -78,20 +72,9 @@ export function PageHeader({
 
 const styles = StyleSheet.create({
   shell: {
-    backgroundColor: BrandColors.canvas,
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: BrandColors.border,
-    marginBottom: 0,
-  },
-  accent: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 3,
-    backgroundColor: BrandColors.green,
-    borderTopRightRadius: 3,
-    borderBottomRightRadius: 3,
+    borderBottomColor: "#e9ede9",
   },
   header: {
     width: "100%",
