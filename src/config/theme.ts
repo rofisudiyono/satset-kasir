@@ -1,5 +1,5 @@
 /**
- * Shared app theme tokens.
+ * Shared app theme tokens (Farmapro — aligned with pos-dashboard).
  */
 
 import '@/global.css';
@@ -7,30 +7,26 @@ import '@/global.css';
 import { Platform } from 'react-native';
 
 export const Colors = {
-  text: '#0F3D32',
-  background: '#FFFFFF',
-  backgroundElement: '#E8F2EE',
-  backgroundSelected: '#D0E5DD',
-  textSecondary: '#5A6963',
+  text: '#0b1f17',
+  background: '#f5f7f5',          // was '#FFFFFF' — now ink-50, matches dashboard --background
+  backgroundElement: '#ecfdf5',
+  backgroundSelected: '#d1fae5',
+  textSecondary: '#5b7268',
 } as const;
 
 export type ThemeColor = keyof typeof Colors;
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
+    sans: 'PlusJakartaSans_400Regular',
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
+    rounded: 'PlusJakartaSans_500Medium',
     mono: 'ui-monospace',
   },
   default: {
-    sans: 'normal',
+    sans: 'PlusJakartaSans_400Regular',
     serif: 'serif',
-    rounded: 'normal',
+    rounded: 'PlusJakartaSans_500Medium',
     mono: 'monospace',
   },
   web: {
