@@ -1,35 +1,24 @@
-/**
- * Satset Kasir — tablet reference palette (eye-friendly teal, sage, soft coral).
- * Header ≈ #006D4E, active/highlight ≈ #589B7F, canvas ≈ #F8F9FA.
- */
+// src/themes/brand.ts
 export const BrandColors = {
-  deep: "#006D4E",
-  deepDark: "#004F3A",
-  sage: "#589B7F",
-  sageLight: "#6FAF94",
-  mid: "#0E7A62",
-  /** Legacy name: interactive tint; untuk teks di atas permukaan terang */
-  green: "#589B7F",
-  /**
-   * Tombol isian & chip aktif berteks putih — teal medium (lebih lembut
-   * dari deepDark, tetap lebih kontras daripada sage).
-   */
-  buttonSolid: "#0F6B57",
-  /** Soft mint for secondary text on dark green / gradients */
-  lime: "#A8D4C4",
-  accentOnDark: "#D4EDE3",
-  canvas: "#F8F9FA",
+  deep: "#047857",
+  deepDark: "#065f46",
+  sage: "#059669",
+  sageLight: "#10b981",
+  mid: "#047857",
+  green: "#059669",
+  buttonSolid: "#047857",
+  lime: "#d1fae5",
+  accentOnDark: "#E6F4EE",
+  canvas: "#F7F8F6",
   surface: "#FFFFFF",
-  surfaceWarm: "#FDFEFE",
-  tint: "#E8F1ED",
-  tintStrong: "#D4E8E0",
-  text: "#0F3D32",
-  textMuted: "#5A6963",
-  border: "rgba(0, 109, 78, 0.12)",
-  borderStrong: "rgba(0, 109, 78, 0.22)",
-  coral: "#E8756B",
-  coralPressed: "#D9665C",
-  headerGradientTop: "#0E8A6E",
-  headerGradientMid: "#007A5E",
-  headerGradientBottom: "#006D4E",
+  surfaceWarm: "#FFFFFF",
+  tint: "#E6F4EE",
+  tintStrong: "#d1fae5",
+  text: "#171F1B",
+  textMuted: "#5B6660",
+  border: "rgba(23, 31, 27, 0.08)",
+  borderStrong: "rgba(23, 31, 27, 0.14)",
+  coral: "#C0392B",
+  coralPressed: "#a93226",
+  // Gradient keys dihapus — tidak ada gradient di design baru
 } as const;
