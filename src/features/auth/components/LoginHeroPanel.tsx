@@ -1,11 +1,11 @@
 import React from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, Text as RNText, View } from "react-native";
 import { Text, XStack, YStack } from "tamagui";
 
 import { LoginHeroBackground } from "@/features/auth/components/LoginHeroBackground";
 import { loginLogoShadow } from "@/features/auth/login-background";
 import { kasirLoginConfig } from "@/features/auth/login-config";
-import { LoginColors } from "@/features/auth/login-styles";
+import { LoginColors, loginStyles } from "@/features/auth/login-styles";
 
 type LoginHeroPanelProps = {
   padding?: number;
@@ -57,20 +57,12 @@ export function LoginHeroPanel({ padding = 48 }: LoginHeroPanelProps) {
 
         <YStack maxWidth={576} width="100%">
           <View style={styles.badge}>
-            <Text
-              fontFamily="PlusJakartaSans_800ExtraBold"
-              fontSize={11}
-              letterSpacing={1.98}
-              color="#d1fae5"
-              textTransform="uppercase"
-            >
-              {heroBadge}
-            </Text>
+            <RNText style={loginStyles.heroBadge}>{heroBadge}</RNText>
           </View>
           <Text
             fontFamily="PlusJakartaSans_800ExtraBold"
             fontSize={48}
-            lineHeight={52}
+            lineHeight={58}
             color={LoginColors.white}
             letterSpacing={-1}
             marginTop={20}
@@ -86,12 +78,13 @@ export function LoginHeroPanel({ padding = 48 }: LoginHeroPanelProps) {
           >
             {heroDescription}
           </Text>
-          <XStack gap={12} marginTop={32}>
+          <XStack gap={12} marginTop={32} flexWrap="wrap">
             {heroTags.map((tag) => (
               <View key={tag} style={styles.tagChip}>
                 <Text
                   fontFamily="PlusJakartaSans_700Bold"
                   fontSize={14}
+                  lineHeight={20}
                   color="rgba(255, 255, 255, 0.85)"
                 >
                   {tag}
@@ -101,26 +94,10 @@ export function LoginHeroPanel({ padding = 48 }: LoginHeroPanelProps) {
           </XStack>
         </YStack>
 
-        <XStack alignItems="center" gap={16}>
-          <Text
-            fontFamily="PlusJakartaSans_700Bold"
-            fontSize={12}
-            letterSpacing={2}
-            color="rgba(255, 255, 255, 0.45)"
-            textTransform="uppercase"
-          >
-            Est. 2026
-          </Text>
+        <XStack alignItems="center" gap={16} flexWrap="wrap">
+          <RNText style={loginStyles.heroFooter}>Est. 2026</RNText>
           <View style={styles.footerDot} />
-          <Text
-            fontFamily="PlusJakartaSans_700Bold"
-            fontSize={12}
-            letterSpacing={2}
-            color="rgba(255, 255, 255, 0.45)"
-            textTransform="uppercase"
-          >
-            Satset Platform
-          </Text>
+          <RNText style={loginStyles.heroFooter}>Satset Platform</RNText>
         </XStack>
       </YStack>
     </View>
@@ -155,17 +132,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.1)",
     backgroundColor: "rgba(255, 255, 255, 0.1)",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
   },
   tagChip: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 0,
+    minWidth: 88,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.1)",
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     paddingHorizontal: 16,
     paddingVertical: 12,
+    alignItems: "center",
   },
   footerDot: {
     width: 4,

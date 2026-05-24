@@ -117,7 +117,7 @@ export function LoginFormCard({
       ) : null}
 
       <YStack marginBottom={32}>
-        <Text style={styles.eyebrow}>{formEyebrow}</Text>
+        <Text style={loginStyles.formEyebrow}>{formEyebrow}</Text>
         <Text style={styles.formTitle}>{formTitle}</Text>
         <Text style={styles.formDescription}>{formDescription}</Text>
       </YStack>
@@ -200,10 +200,10 @@ export function LoginFormCard({
       </YStack>
 
       <View style={styles.supportRow}>
-        <Text style={styles.supportText}>Butuh bantuan?</Text>
-        <TouchableOpacity activeOpacity={0.7}>
+        <Text style={styles.supportText}>
+          Butuh bantuan?
           <Text style={styles.supportLink}> Hubungi Support</Text>
-        </TouchableOpacity>
+        </Text>
       </View>
 
       {onPrinterTest ? (
@@ -222,7 +222,9 @@ export function LoginFormCard({
       ) : null}
 
       {showMobileBrand ? (
-        <Text style={styles.mobileFooterMark}>SATSET</Text>
+        <Text style={[loginStyles.mobileFooterMark, styles.mobileFooterMark]}>
+          SATSET
+        </Text>
       ) : null}
     </View>
   );
@@ -259,16 +261,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: LoginColors.ink500,
   },
-  eyebrow: {
-    fontFamily: "PlusJakartaSans_800ExtraBold",
-    fontSize: 11,
-    letterSpacing: 1.98,
-    textTransform: "uppercase",
-    color: LoginColors.mint600,
-  },
   formTitle: {
     fontFamily: "PlusJakartaSans_800ExtraBold",
     fontSize: 30,
+    lineHeight: 38,
     letterSpacing: -0.5,
     color: LoginColors.ink900,
     marginTop: 8,
@@ -321,14 +317,14 @@ const styles = StyleSheet.create({
   },
   supportRow: {
     marginTop: 32,
-    flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
   },
   supportText: {
     fontFamily: "PlusJakartaSans_400Regular",
     fontSize: 14,
+    lineHeight: 22,
     color: LoginColors.ink500,
+    textAlign: "center",
   },
   supportLink: {
     fontFamily: "PlusJakartaSans_700Bold",
@@ -352,12 +348,5 @@ const styles = StyleSheet.create({
   },
   mobileFooterMark: {
     marginTop: 40,
-    textAlign: "center",
-    opacity: 0.3,
-    fontFamily: "PlusJakartaSans_800ExtraBold",
-    fontSize: 12,
-    letterSpacing: 3.2,
-    color: LoginColors.ink900,
-    textTransform: "uppercase",
   },
 });

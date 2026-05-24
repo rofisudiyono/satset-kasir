@@ -1,10 +1,27 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet, type TextStyle } from "react-native";
 
 import {
   loginFormCardShadow,
   loginInputShadow,
   loginSubmitShadow,
 } from "@/features/auth/login-background";
+
+/** RN clips trailing glyphs on uppercase + letterSpacing unless padded */
+export function loginUppercaseTracking(
+  fontSize: number,
+  trackingEm: number,
+): Pick<TextStyle, "letterSpacing" | "paddingRight" | "lineHeight"> {
+  const letterSpacing = fontSize * trackingEm;
+
+  return {
+    letterSpacing,
+    paddingRight: letterSpacing,
+    lineHeight: Math.ceil(fontSize * 1.45),
+  };
+}
+
+const androidTextFix =
+  Platform.OS === "android" ? ({ includeFontPadding: false } as const) : {};
 
 /**
  * Form styles — converted from pos-dashboard login-styles.ts + index.css
@@ -31,10 +48,45 @@ export const loginStyles = StyleSheet.create({
   fieldLabel: {
     fontFamily: "PlusJakartaSans_800ExtraBold",
     fontSize: 11,
-    letterSpacing: 1.32,
+    ...loginUppercaseTracking(11, 0.12),
     textTransform: "uppercase",
     color: LoginColors.ink500,
     marginBottom: 8,
+    ...androidTextFix,
+  },
+  formEyebrow: {
+    fontFamily: "PlusJakartaSans_800ExtraBold",
+    fontSize: 11,
+    ...loginUppercaseTracking(11, 0.18),
+    textTransform: "uppercase",
+    color: LoginColors.mint600,
+    ...androidTextFix,
+  },
+  heroBadge: {
+    fontFamily: "PlusJakartaSans_800ExtraBold",
+    fontSize: 11,
+    ...loginUppercaseTracking(11, 0.18),
+    textTransform: "uppercase",
+    color: "#d1fae5",
+    ...androidTextFix,
+  },
+  heroFooter: {
+    fontFamily: "PlusJakartaSans_700Bold",
+    fontSize: 12,
+    ...loginUppercaseTracking(12, 0.1),
+    textTransform: "uppercase",
+    color: "rgba(255, 255, 255, 0.45)",
+    ...androidTextFix,
+  },
+  mobileFooterMark: {
+    textAlign: "center",
+    opacity: 0.3,
+    fontFamily: "PlusJakartaSans_800ExtraBold",
+    fontSize: 12,
+    ...loginUppercaseTracking(12, 0.2),
+    color: LoginColors.ink900,
+    textTransform: "uppercase",
+    ...androidTextFix,
   },
   fieldInput: {
     height: 48,
