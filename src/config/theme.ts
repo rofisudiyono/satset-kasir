@@ -18,15 +18,15 @@ export type ThemeColor = keyof typeof Colors;
 
 export const Fonts = Platform.select({
   ios: {
-    sans: 'PlusJakartaSans_400Regular',
+    sans: 'system-ui',
     serif: 'ui-serif',
-    rounded: 'PlusJakartaSans_500Medium',
+    rounded: 'ui-rounded',
     mono: 'ui-monospace',
   },
   default: {
-    sans: 'PlusJakartaSans_400Regular',
+    sans: 'system-ui',
     serif: 'serif',
-    rounded: 'PlusJakartaSans_500Medium',
+    rounded: 'system-ui',
     mono: 'monospace',
   },
   web: {
