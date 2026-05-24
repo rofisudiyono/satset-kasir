@@ -41,6 +41,7 @@ import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import { getApiErrorMessage, useCheckoutMutation, useCollectPaymentMutation } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
+import { getInputManualRoute } from "@/lib/routing/device-routes";
 import { ColorBase, ColorNeutral } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
 import type { PaymentMethod } from "@/types";
@@ -333,6 +334,11 @@ export default function PilihPembayaranPage() {
   function handleBack() {
     if (!isTablet && mobileStep === "method") {
       setMobileStep("summary");
+      return;
+    }
+
+    if (isDirectCheckoutFlow) {
+      router.replace(getInputManualRoute(isTablet) as never);
       return;
     }
 

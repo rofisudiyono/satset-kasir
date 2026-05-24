@@ -40,8 +40,10 @@ import {
   useTaxSettingsQuery,
   useTenantInfoQuery,
 } from "@/hooks/api/use-kasir-api";
+import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { getApiErrorMessage } from "@/lib/api/client";
 import type { KasirTable } from "@/lib/api/types";
+import { getInputManualRoute } from "@/lib/routing/device-routes";
 import { calculateTaxBreakdown } from "@/lib/tax";
 import { BrandColors } from "@/themes/brand";
 import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
@@ -54,6 +56,7 @@ export default function OrderInfoPage() {
   const router = useRouter();
   const params = useLocalSearchParams<{ mode?: string }>();
   const { width } = useWindowDimensions();
+  const { isTablet } = useResponsiveLayout();
   const mode: OrderInfoMode = params.mode === "hold" ? "hold" : "pay";
   const isPay = mode === "pay";
   const isSplit = width >= 900;
@@ -241,6 +244,10 @@ export default function OrderInfoPage() {
     handleConfirmHold();
   }
 
+  function handleBackToInputManual() {
+    router.replace(getInputManualRoute(isTablet) as never);
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -248,7 +255,7 @@ export default function OrderInfoPage() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={styles.header}>
-          <TouchableOpacity activeOpacity={0.75} onPress={() => router.back()} style={styles.backBtn}>
+          <TouchableOpacity activeOpacity={0.75} onPress={handleBackToInputManual} style={styles.backBtn}>
             <Ionicons name="chevron-back" size={22} color={ColorNeutral.neutral900} />
           </TouchableOpacity>
           <View style={styles.headerText}>
