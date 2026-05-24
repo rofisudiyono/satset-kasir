@@ -1,13 +1,5 @@
-/**
- * ProfileCard — User profile card with blue background
- *
- * Used in home page and settings page
- * Displays user avatar, name, role, and status
- */
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { StyleSheet } from "react-native";
 import { XStack, YStack } from "tamagui";
 
 import { ColorBase } from "@/themes/Colors";
@@ -29,13 +21,11 @@ export function ProfileCard({
   showNotifications = false,
 }: ProfileCardProps) {
   return (
-    <YStack borderRadius={16} overflow="hidden">
-      <LinearGradient
-        colors={["#1A9168", "#0E7A58", BrandColors.deep]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      />
+    <YStack
+      borderRadius={16}
+      overflow="hidden"
+      backgroundColor={BrandColors.buttonSolid}
+    >
       <XStack alignItems="center" gap="$3" padding="$4">
         <YStack
           width={56}
@@ -72,9 +62,3 @@ export function ProfileCard({
     </YStack>
   );
 }
-
-const styles = StyleSheet.create({
-  gradient: {
-    ...({ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 } as object),
-  },
-});

@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useSetAtom } from "jotai";
 import React, { useState } from "react";
@@ -119,12 +118,7 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
     return (
       <View style={{ flex: 1 }}>
         <SafeAreaView style={styles.tabletScreen} edges={["top", "bottom"]}>
-          <LinearGradient
-            colors={[BrandColors.sageLight, BrandColors.mid, BrandColors.deep]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.brandPanel}
-          >
+          <View style={[styles.brandPanel, { backgroundColor: BrandColors.buttonSolid }]}>
             <View style={styles.decorCircle1} />
             <View style={styles.decorCircle2} />
             <View style={styles.decorCircle3} />
@@ -244,20 +238,21 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
                 Est. 2026 • Modern POS Ecosystem
               </TextCaption>
             </YStack>
-          </LinearGradient>
+          </View>
 
           <KeyboardAvoidingView
             style={styles.formPanelWrapper}
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
           >
             <ScrollView
               contentContainerStyle={styles.formPanelScroll}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              automaticallyAdjustKeyboardInsets
             >
               <YStack
-                flex={1}
-                justifyContent="center"
                 padding={isLargeTablet ? 56 : 40}
                 maxWidth={500}
                 alignSelf="center"
@@ -437,12 +432,15 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
     <SafeAreaView style={styles.screen}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={styles.mobileScrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          automaticallyAdjustKeyboardInsets
         >
           <YStack
             alignItems="center"
@@ -715,6 +713,13 @@ const styles = StyleSheet.create({
   },
   formPanelScroll: {
     flexGrow: 1,
+    justifyContent: "center",
+    paddingVertical: 24,
+    paddingBottom: 48,
+  },
+  mobileScrollContent: {
+    flexGrow: 1,
+    paddingBottom: 32,
   },
   printerTestButton: {
     alignSelf: "center",
