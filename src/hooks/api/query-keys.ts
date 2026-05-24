@@ -11,3 +11,10 @@ export const kasirKeys = {
   taxSettings: () => [...kasirKeys.all, "settings", "tax"] as const,
   tenantInfo: () => [...kasirKeys.all, "tenant-info"] as const,
 };
+
+export const kdsKeys = {
+  all: ["kds"] as const,
+  queue: () => [...kdsKeys.all, "queue"] as const,
+  processing: () => [...kdsKeys.all, "processing"] as const,
+  ready: () => [...kdsKeys.all, "ready"] as const,
+};
