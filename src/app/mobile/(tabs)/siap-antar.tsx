@@ -1,5 +1,6 @@
-import { SiapAntarScreen } from "@/features/orders/screens/SiapAntarScreen";
+import React from "react";
+import { KdsBoardScreen } from "@/features/orders/screens/KdsBoardScreen";
 
 export default function MobileSiapAntarTab() {
-  return <SiapAntarScreen variant="tab" />;
+  return <KdsBoardScreen variant="tab" />;
 }
