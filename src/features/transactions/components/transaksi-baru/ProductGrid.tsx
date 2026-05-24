@@ -79,6 +79,8 @@ export function ProductGrid({
             categoryIcon={CATEGORY_ICONS[item.category]}
             categoryIconBg={CATEGORY_COLORS[item.category].bg}
             categoryIconColor={CATEGORY_COLORS[item.category].color}
+            categoryLabel={item.category}
+            sku={item.sku ?? undefined}
             stockStatus={item.stockStatus}
             availabilityReason={item.availabilityReason}
             width={cardWidth}
