@@ -47,3 +47,6 @@ export type { } from "./NumpadGrid";
 
 export { AppChip } from "./AppChip";
 export type { AppChipProps } from "./AppChip";
+
+export { AvatarBadge } from "./AvatarBadge";
+export type { AvatarBadgeProps } from "./AvatarBadge";
