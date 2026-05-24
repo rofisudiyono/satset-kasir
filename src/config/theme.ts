@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   text: '#0b1f17',
-  background: '#f5f7f5',          // was '#FFFFFF' — now ink-50, matches dashboard --background
+  background: '#f5f7f5',
   backgroundElement: '#ecfdf5',
   backgroundSelected: '#d1fae5',
   textSecondary: '#5b7268',
