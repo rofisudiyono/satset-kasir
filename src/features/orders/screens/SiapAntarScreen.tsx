@@ -3,7 +3,7 @@ import { FlashList } from "@shopify/flash-list";
 import type { ListRenderItem } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useAtomValue } from "jotai";
-import React, { memo, useCallback, useMemo, useState } from "react";
+import React, { memo, useCallback, useDeferredValue, useMemo, useState } from "react";
 import { Alert, Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
@@ -43,11 +43,14 @@ const ReadyRow = memo(function ReadyRow({
   deliverLoading = false,
 }: {
   row: KasirReadyOrder;
-  onPress: () => void;
-  onDeliver?: () => void;
+  onPress: (row: KasirReadyOrder) => void;
+  onDeliver?: (row: KasirReadyOrder) => void;
   deliverLoading?: boolean;
 }) {
   const manual = needsManualApproval(row);
+  const handlePress = useCallback(() => onPress(row), [onPress, row]);
+  const handleDeliverPress = useCallback(() => onDeliver?.(row), [onDeliver, row]);
+
   return (
     <Pressable
       disabled={Boolean(onDeliver)}
@@ -55,7 +58,7 @@ const ReadyRow = memo(function ReadyRow({
         styles.card,
         !onDeliver && pressed && styles.cardPressed,
       ]}
-      onPress={onDeliver ? undefined : onPress}
+      onPress={onDeliver ? undefined : handlePress}
     >
       <View
         style={[
@@ -104,7 +107,7 @@ const ReadyRow = memo(function ReadyRow({
           {onDeliver ? (
             <Pressable
               style={({ pressed }) => [styles.deliverBtn, pressed && { opacity: 0.88 }]}
-              onPress={onDeliver}
+              onPress={handleDeliverPress}
               disabled={deliverLoading}
             >
               <TextCaption fontWeight="800" color={ColorBase.white}>
@@ -249,25 +252,26 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
   const { data = [], isLoading, isError, isFetching, refetch } = useReadyOrdersQuery(
     Boolean(isLoggedIn && isShiftStarted),
   );
+  const deferredData = useDeferredValue(data);
 
   const { manualRows, deliveryRows, pendingRows } = useMemo(() => {
     const manual: KasirReadyOrder[] = [];
     const delivery: KasirReadyOrder[] = [];
     const pending: KasirReadyOrder[] = [];
-    for (const r of data) {
-      if (r.canMarkDelivered || r.paymentStatus === 'PAID') delivery.push(r);
+    for (const r of deferredData) {
+      if (r.canMarkDelivered || r.paymentStatus === "PAID") delivery.push(r);
       else if (needsManualApproval(r)) manual.push(r);
       else pending.push(r);
     }
     return { manualRows: manual, deliveryRows: delivery, pendingRows: pending };
-  }, [data]);
+  }, [deferredData]);
 
   const entries = useMemo(
     () =>
       buildEntries(
         isError,
         isLoading,
-        data.length,
+        deferredData.length,
         deliveryRows,
         manualRows,
         pendingRows,
@@ -275,7 +279,7 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
     [
       isError,
       isLoading,
-      data.length,
+      deferredData.length,
       deliveryRows,
       manualRows,
       pendingRows,
@@ -381,13 +385,13 @@ export function SiapAntarScreen({ variant }: SiapAntarScreenProps) {
           return (
             <ReadyRow
               row={row}
-              onPress={() => {}}
-              onDeliver={() => void handleDeliver(row)}
+              onPress={goBayarReady}
+              onDeliver={handleDeliver}
               deliverLoading={deliveringOrderId === row.id}
             />
           );
         }
-        return <ReadyRow row={row} onPress={() => goBayarReady(row)} />;
+        return <ReadyRow row={row} onPress={goBayarReady} />;
       }
 
       return (

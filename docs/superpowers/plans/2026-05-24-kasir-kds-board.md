@@ -1,9 +1,333 @@
+# Kasir KDS Board Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Upgrade the kasir app's "Siap Antar" tab into a full 3-column KDS board (Antrian Masuk → Sedang Dimasak → Siap Diantar) with full action buttons, backed by `/api/kds/*` endpoints.
+
+**Architecture:** Add `'kasir'` to the KDS route role guard in `pos-api` so the kasir JWT can access all `/kds/*` endpoints. In `pos-kasir`, add a KDS API client, React Query hooks, and a new `KdsBoardScreen` component. Replace both the tablet and mobile `siap-antar` tabs to render `KdsBoardScreen` instead of `SiapAntarScreen`.
+
+**Tech Stack:** Hono (pos-api), React Native + Expo Router, Axios, @tanstack/react-query, Tamagui (XStack/YStack), @shopify/flash-list, Ionicons.
+
+---
+
+## File Map
+
+| Action | File | Purpose |
+|--------|------|---------|
+| Modify | `pos-api/src/routes/kds/index.ts` | Add `'kasir'` to role guard |
+| Modify | `pos-api/src/routes/kds/kds.route.ts` | Update comment on `getStationFilter` |
+| Create | `pos-kasir/src/lib/api/kds.api.ts` | KDS HTTP functions |
+| Modify | `pos-kasir/src/hooks/api/query-keys.ts` | Add `kdsKeys` |
+| Create | `pos-kasir/src/hooks/api/use-kds-board-api.ts` | React Query hooks for KDS |
+| Create | `pos-kasir/src/features/orders/screens/KdsBoardScreen.tsx` | 3-column KDS board UI |
+| Modify | `pos-kasir/src/app/tablet/(tabs)/siap-antar.tsx` | Render KdsBoardScreen |
+| Modify | `pos-kasir/src/app/mobile/(tabs)/siap-antar.tsx` | Render KdsBoardScreen |
+
+---
+
+## Task 1: Backend — Open KDS routes to kasir role
+
+**Files:**
+- Modify: `pos-api/src/routes/kds/index.ts`
+- Modify: `pos-api/src/routes/kds/kds.route.ts`
+
+- [ ] **Step 1: Edit `pos-api/src/routes/kds/index.ts`**
+
+Replace the existing `requireRole` call to include `'kasir'`:
+
+```ts
+// pos-api/src/routes/kds/index.ts
+import { Hono } from 'hono'
+import { authMiddleware }   from '../../middleware/auth.middleware'
+import { tenantMiddleware } from '../../middleware/tenant.middleware'
+import { requireRole }      from '../../middleware/role.middleware'
+import { kdsRoute } from './kds.route'
+
+export const kdsRoutes = new Hono()
+
+// KDS endpoints: valid JWT + tenant context + role kds/kds_koki/kds_barista/admin_coffee/kasir
+kdsRoutes.use('*', authMiddleware, tenantMiddleware, requireRole('kds', 'kds_koki', 'kds_barista', 'admin_coffee', 'kasir'))
+
+kdsRoutes.route('/', kdsRoute)
+```
+
+- [ ] **Step 2: Update comment in `pos-api/src/routes/kds/kds.route.ts`**
+
+Find `getStationFilter` (line ~18) and update only its comment line:
+
+```ts
+function getStationFilter(role: string): 'KOKI' | 'BARISTA' | null {
+  if (role === 'kds_koki') return 'KOKI'
+  if (role === 'kds_barista') return 'BARISTA'
+  return null // kds (legacy), admin_coffee, kasir: see all stations
+}
+```
+
+No other changes to `kds.route.ts`.
+
+- [ ] **Step 3: Verify with curl (requires running API)**
+
+```bash
+# Get a kasir token first (from login), then:
+curl -H "Authorization: Bearer <kasir_token>" http://localhost:3000/api/kds/queue
+# Expected: 200 { data: [...] }  (not 403)
+```
+
+- [ ] **Step 4: Commit**
+
+```bash
+cd pos-api
+git add src/routes/kds/index.ts src/routes/kds/kds.route.ts
+git commit --no-gpg-sign -m "feat(kds): allow kasir role to access KDS endpoints"
+```
+
+---
+
+## Task 2: KDS API client in pos-kasir
+
+**Files:**
+- Create: `pos-kasir/src/lib/api/kds.api.ts`
+
+- [ ] **Step 1: Create `pos-kasir/src/lib/api/kds.api.ts`**
+
+```ts
+// pos-kasir/src/lib/api/kds.api.ts
+import { api } from "./client";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+export interface KdsBoardOrderItem {
+  menuId: string;
+  name: string;
+  qty: number;
+  unitPrice: number;
+  note?: string;
+  modifiers: Array<{ label: string; extraPrice: number }>;
+}
+
+export interface KdsBoardQueueRecord {
+  id: string;
+  branchId: string;
+  shiftId: string;
+  tableLabel: string | null;
+  customerName: string | null;
+  items: KdsBoardOrderItem[];
+  createdAt: string;
+}
+
+export interface KdsBoardProcessingRecord {
+  id: string;
+  sourceOrderId: string | null;
+  branchId: string;
+  shiftId: string;
+  tableLabel: string | null;
+  customerName: string | null;
+  items: KdsBoardOrderItem[];
+  startedCookingAt: string;
+  createdAt: string;
+}
+
+export interface KdsBoardReadyRecord {
+  id: string;
+  orderId: string | null;
+  branchId: string;
+  shiftId: string;
+  tableLabel: string | null;
+  customerName: string | null;
+  items: KdsBoardOrderItem[];
+  canMarkDelivered: boolean;
+  readyAt: string;
+  createdAt: string;
+}
+
+// ─── Fetch functions ──────────────────────────────────────────────────────────
+
+export async function fetchKdsBoardQueue(): Promise<KdsBoardQueueRecord[]> {
+  const { data } = await api.get<{ data: KdsBoardQueueRecord[] }>("/kds/queue");
+  return data.data ?? [];
+}
+
+export async function fetchKdsBoardProcessing(): Promise<KdsBoardProcessingRecord[]> {
+  const { data } = await api.get<{ data: KdsBoardProcessingRecord[] }>("/kds/processing");
+  return data.data ?? [];
+}
+
+export async function fetchKdsBoardReady(): Promise<KdsBoardReadyRecord[]> {
+  const { data } = await api.get<{ data: KdsBoardReadyRecord[] }>("/kds/ready");
+  return data.data ?? [];
+}
+
+// ─── Mutations ────────────────────────────────────────────────────────────────
+
+export async function takeKdsBoardOrder(id: string): Promise<void> {
+  await api.patch(`/kds/queue/${id}/take`);
+}
+
+export async function finishKdsBoardOrder(id: string): Promise<void> {
+  await api.patch(`/kds/processing/${id}/done`);
+}
+
+export async function deliverKdsBoardOrder(id: string): Promise<void> {
+  await api.post(`/kds/ready/${id}/deliver`);
+}
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+cd pos-kasir
+git add src/lib/api/kds.api.ts
+git commit --no-gpg-sign -m "feat(kasir): add KDS API client functions"
+```
+
+---
+
+## Task 3: Add KDS query keys
+
+**Files:**
+- Modify: `pos-kasir/src/hooks/api/query-keys.ts`
+
+- [ ] **Step 1: Add `kdsKeys` export to `query-keys.ts`**
+
+Append after the existing `kasirKeys` export:
+
+```ts
+// pos-kasir/src/hooks/api/query-keys.ts  (append at end of file)
+export const kdsKeys = {
+  all: ["kds"] as const,
+  queue: () => [...kdsKeys.all, "queue"] as const,
+  processing: () => [...kdsKeys.all, "processing"] as const,
+  ready: () => [...kdsKeys.all, "ready"] as const,
+};
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+cd pos-kasir
+git add src/hooks/api/query-keys.ts
+git commit --no-gpg-sign -m "feat(kasir): add KDS query keys"
+```
+
+---
+
+## Task 4: React Query hooks for KDS board
+
+**Files:**
+- Create: `pos-kasir/src/hooks/api/use-kds-board-api.ts`
+
+- [ ] **Step 1: Create `pos-kasir/src/hooks/api/use-kds-board-api.ts`**
+
+```ts
+// pos-kasir/src/hooks/api/use-kds-board-api.ts
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import {
+  fetchKdsBoardQueue,
+  fetchKdsBoardProcessing,
+  fetchKdsBoardReady,
+  takeKdsBoardOrder,
+  finishKdsBoardOrder,
+  deliverKdsBoardOrder,
+} from "@/lib/api/kds.api";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { kdsKeys } from "./query-keys";
+
+export { getApiErrorMessage };
+
+const POLL_INTERVAL = 15_000;
+
+export function useKdsBoardQueueQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: kdsKeys.queue(),
+    queryFn: fetchKdsBoardQueue,
+    enabled,
+    staleTime: POLL_INTERVAL,
+    refetchInterval: enabled ? POLL_INTERVAL : false,
+  });
+}
+
+export function useKdsBoardProcessingQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: kdsKeys.processing(),
+    queryFn: fetchKdsBoardProcessing,
+    enabled,
+    staleTime: POLL_INTERVAL,
+    refetchInterval: enabled ? POLL_INTERVAL : false,
+  });
+}
+
+export function useKdsBoardReadyQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: kdsKeys.ready(),
+    queryFn: fetchKdsBoardReady,
+    enabled,
+    staleTime: POLL_INTERVAL,
+    refetchInterval: enabled ? POLL_INTERVAL : false,
+  });
+}
+
+function useInvalidateAllKds() {
+  const qc = useQueryClient();
+  return () => {
+    void qc.invalidateQueries({ queryKey: kdsKeys.queue() });
+    void qc.invalidateQueries({ queryKey: kdsKeys.processing() });
+    void qc.invalidateQueries({ queryKey: kdsKeys.ready() });
+  };
+}
+
+export function useTakeKdsBoardMutation() {
+  const invalidate = useInvalidateAllKds();
+  return useMutation({
+    mutationFn: (id: string) => takeKdsBoardOrder(id),
+    onSuccess: invalidate,
+  });
+}
+
+export function useFinishKdsBoardMutation() {
+  const invalidate = useInvalidateAllKds();
+  return useMutation({
+    mutationFn: (id: string) => finishKdsBoardOrder(id),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeliverKdsBoardMutation() {
+  const invalidate = useInvalidateAllKds();
+  return useMutation({
+    mutationFn: (id: string) => deliverKdsBoardOrder(id),
+    onSuccess: invalidate,
+  });
+}
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+cd pos-kasir
+git add src/hooks/api/use-kds-board-api.ts
+git commit --no-gpg-sign -m "feat(kasir): add KDS board React Query hooks"
+```
+
+---
+
+## Task 5: KdsBoardScreen component
+
+**Files:**
+- Create: `pos-kasir/src/features/orders/screens/KdsBoardScreen.tsx`
+
+This is the main UI. It shows 3 columns (segmented tabs on mobile, or all visible on tablet).
+Uses `FlashList` from `@shopify/flash-list`, Tamagui `XStack`/`YStack`, and `Ionicons`.
+
+- [ ] **Step 1: Create `pos-kasir/src/features/orders/screens/KdsBoardScreen.tsx`**
+
+```tsx
 // pos-kasir/src/features/orders/screens/KdsBoardScreen.tsx
 import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import type { ListRenderItem } from "@shopify/flash-list";
 import { useAtomValue } from "jotai";
-import React, { memo, useCallback, useMemo, useState } from "react";
+import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -13,7 +337,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { XStack } from "tamagui";
+import { XStack, YStack } from "tamagui";
 
 import { PageHeader } from "@/components";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
@@ -34,6 +358,7 @@ import {
 } from "@/hooks/api/use-kds-board-api";
 import { BrandColors } from "@/themes/brand";
 import { ColorBase, ColorNeutral, ColorSuccess, ColorWarning } from "@/themes/Colors";
+import { formatPrice } from "@/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,8 +373,6 @@ type BoardEntry =
 export type KdsBoardScreenProps = {
   variant: "stack" | "tab";
 };
-
-const BOARD_COLUMNS: BoardColumn[] = ["queue", "processing", "ready"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -66,7 +389,7 @@ function formatElapsed(ms: number): string {
 }
 
 function itemSummary(
-  items: { name: string; qty: number; note?: string; modifiers: { label: string }[] }[],
+  items: Array<{ name: string; qty: number; note?: string; modifiers: Array<{ label: string }> }>,
 ): string {
   return items
     .map((it) => {
@@ -87,7 +410,6 @@ const QueueCard = memo(function QueueCard({
   onTake: (id: string) => void;
   loading: boolean;
 }) {
-  const summary = useMemo(() => itemSummary(record.items), [record.items]);
   const elapsed = Date.now() - parseTs(record.createdAt);
   const isSlow = elapsed > 15 * 60 * 1000;
   return (
@@ -98,7 +420,7 @@ const QueueCard = memo(function QueueCard({
         <Text style={[styles.timer, isSlow && styles.timerSlow]}>{formatElapsed(elapsed)}</Text>
       </XStack>
       <Text style={styles.tableLabel}>{record.tableLabel || record.customerName || "Takeaway"}</Text>
-      <Text style={styles.itemSummary} numberOfLines={3}>{summary}</Text>
+      <Text style={styles.itemSummary} numberOfLines={3}>{itemSummary(record.items)}</Text>
       <Pressable
         style={({ pressed }) => [styles.actionBtn, styles.actionBtnQueue, pressed && styles.pressed]}
         onPress={() => onTake(record.id)}
@@ -119,7 +441,6 @@ const ProcessingCard = memo(function ProcessingCard({
   onFinish: (id: string) => void;
   loading: boolean;
 }) {
-  const summary = useMemo(() => itemSummary(record.items), [record.items]);
   const elapsed = Date.now() - parseTs(record.createdAt);
   const cookElapsed = Date.now() - parseTs(record.startedCookingAt);
   const isSlow = elapsed > 15 * 60 * 1000;
@@ -132,7 +453,7 @@ const ProcessingCard = memo(function ProcessingCard({
       </XStack>
       <Text style={styles.tableLabel}>{record.tableLabel || record.customerName || "Takeaway"}</Text>
       <Text style={styles.cookingLabel}>Memasak {formatElapsed(cookElapsed)}</Text>
-      <Text style={styles.itemSummary} numberOfLines={3}>{summary}</Text>
+      <Text style={styles.itemSummary} numberOfLines={3}>{itemSummary(record.items)}</Text>
       <Pressable
         style={({ pressed }) => [styles.actionBtn, styles.actionBtnFinish, pressed && styles.pressed]}
         onPress={() => onFinish(record.id)}
@@ -153,7 +474,6 @@ const ReadyCard = memo(function ReadyCard({
   onDeliver: (record: KdsBoardReadyRecord) => void;
   loading: boolean;
 }) {
-  const summary = useMemo(() => itemSummary(record.items), [record.items]);
   const elapsed = Date.now() - parseTs(record.readyAt);
   return (
     <View style={styles.card}>
@@ -163,7 +483,7 @@ const ReadyCard = memo(function ReadyCard({
         <Text style={styles.timerReady}>{formatElapsed(elapsed)}</Text>
       </XStack>
       <Text style={styles.tableLabel}>{record.tableLabel || record.customerName || "Takeaway"}</Text>
-      <Text style={styles.itemSummary} numberOfLines={3}>{summary}</Text>
+      <Text style={styles.itemSummary} numberOfLines={3}>{itemSummary(record.items)}</Text>
       {record.canMarkDelivered ? (
         <Pressable
           style={({ pressed }) => [styles.actionBtn, styles.actionBtnDeliver, pressed && styles.pressed]}
@@ -195,7 +515,7 @@ const COLUMN_ICONS: Record<BoardColumn, keyof typeof Ionicons.glyphMap> = {
   ready: "checkmark-circle-outline",
 };
 
-const ColumnTabBar = memo(function ColumnTabBar({
+function ColumnTabBar({
   active,
   counts,
   onSelect,
@@ -204,9 +524,10 @@ const ColumnTabBar = memo(function ColumnTabBar({
   counts: Record<BoardColumn, number>;
   onSelect: (col: BoardColumn) => void;
 }) {
+  const columns: BoardColumn[] = ["queue", "processing", "ready"];
   return (
     <XStack style={styles.tabBar} gap={0}>
-      {BOARD_COLUMNS.map((col) => {
+      {columns.map((col) => {
         const isActive = col === active;
         return (
           <Pressable
@@ -236,7 +557,7 @@ const ColumnTabBar = memo(function ColumnTabBar({
       })}
     </XStack>
   );
-});
+}
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
@@ -251,12 +572,6 @@ export function KdsBoardScreen({ variant }: KdsBoardScreenProps) {
   const queueQ = useKdsBoardQueueQuery(enabled);
   const processingQ = useKdsBoardProcessingQuery(enabled);
   const readyQ = useKdsBoardReadyQuery(enabled);
-  const queueData = queueQ.data;
-  const processingData = processingQ.data;
-  const readyData = readyQ.data;
-  const refetchQueue = queueQ.refetch;
-  const refetchProcessing = processingQ.refetch;
-  const refetchReady = readyQ.refetch;
 
   const takeMutation = useTakeKdsBoardMutation();
   const finishMutation = useFinishKdsBoardMutation();
@@ -272,18 +587,18 @@ export function KdsBoardScreen({ variant }: KdsBoardScreenProps) {
 
   const counts: Record<BoardColumn, number> = useMemo(
     () => ({
-      queue: queueData?.length ?? 0,
-      processing: processingData?.length ?? 0,
-      ready: readyData?.length ?? 0,
+      queue: queueQ.data?.length ?? 0,
+      processing: processingQ.data?.length ?? 0,
+      ready: readyQ.data?.length ?? 0,
     }),
-    [queueData, processingData, readyData],
+    [queueQ.data, processingQ.data, readyQ.data],
   );
 
   const handleRefresh = useCallback(() => {
-    void refetchQueue();
-    void refetchProcessing();
-    void refetchReady();
-  }, [refetchQueue, refetchProcessing, refetchReady]);
+    void queueQ.refetch();
+    void processingQ.refetch();
+    void readyQ.refetch();
+  }, [queueQ, processingQ, readyQ]);
 
   const handleTake = useCallback(
     (id: string) => {
@@ -341,21 +656,21 @@ export function KdsBoardScreen({ variant }: KdsBoardScreenProps) {
     if (activeColumn === "queue") {
       if (isLoading) return [{ kind: "meta", id: "loading", variant: "loading", column: "queue" }];
       if (isError) return [{ kind: "meta", id: "error", variant: "error", column: "queue" }];
-      if (!queueData?.length) return [{ kind: "meta", id: "empty", variant: "empty", column: "queue" }];
-      return queueData.map((r) => ({ kind: "queue_card" as const, id: r.id, record: r }));
+      if (!queueQ.data?.length) return [{ kind: "meta", id: "empty", variant: "empty", column: "queue" }];
+      return queueQ.data.map((r) => ({ kind: "queue_card" as const, id: r.id, record: r }));
     }
     if (activeColumn === "processing") {
       if (isLoading) return [{ kind: "meta", id: "loading", variant: "loading", column: "processing" }];
       if (isError) return [{ kind: "meta", id: "error", variant: "error", column: "processing" }];
-      if (!processingData?.length) return [{ kind: "meta", id: "empty", variant: "empty", column: "processing" }];
-      return processingData.map((r) => ({ kind: "processing_card" as const, id: r.id, record: r }));
+      if (!processingQ.data?.length) return [{ kind: "meta", id: "empty", variant: "empty", column: "processing" }];
+      return processingQ.data.map((r) => ({ kind: "processing_card" as const, id: r.id, record: r }));
     }
     // ready
     if (isLoading) return [{ kind: "meta", id: "loading", variant: "loading", column: "ready" }];
     if (isError) return [{ kind: "meta", id: "error", variant: "error", column: "ready" }];
-    if (!readyData?.length) return [{ kind: "meta", id: "empty", variant: "empty", column: "ready" }];
-    return readyData.map((r) => ({ kind: "ready_card" as const, id: r.id, record: r }));
-  }, [activeColumn, isLoading, isError, queueData, processingData, readyData]);
+    if (!readyQ.data?.length) return [{ kind: "meta", id: "empty", variant: "empty", column: "ready" }];
+    return readyQ.data.map((r) => ({ kind: "ready_card" as const, id: r.id, record: r }));
+  }, [activeColumn, isLoading, isError, queueQ.data, processingQ.data, readyQ.data]);
 
   const renderItem = useCallback<ListRenderItem<BoardEntry>>(
     ({ item }) => {
@@ -415,9 +730,9 @@ export function KdsBoardScreen({ variant }: KdsBoardScreenProps) {
       // ready_card
       return (
         <ReadyCard
-          record={item.record}
+          record={(item as { kind: "ready_card"; id: string; record: KdsBoardReadyRecord }).record}
           onDeliver={handleDeliver}
-          loading={actionLoadingId === item.record.id}
+          loading={actionLoadingId === (item as { kind: "ready_card"; id: string; record: KdsBoardReadyRecord }).record.id}
         />
       );
     },
@@ -446,6 +761,7 @@ export function KdsBoardScreen({ variant }: KdsBoardScreenProps) {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         getItemType={getItemType}
+        estimatedItemSize={140}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         drawDistance={480}
@@ -647,3 +963,71 @@ const styles = StyleSheet.create({
     color: BrandColors.deep,
   },
 });
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+cd pos-kasir
+git add src/features/orders/screens/KdsBoardScreen.tsx
+git commit --no-gpg-sign -m "feat(kasir): add KdsBoardScreen with 3-column KDS state"
+```
+
+---
+
+## Task 6: Wire tabs to KdsBoardScreen
+
+**Files:**
+- Modify: `pos-kasir/src/app/tablet/(tabs)/siap-antar.tsx`
+- Modify: `pos-kasir/src/app/mobile/(tabs)/siap-antar.tsx`
+
+- [ ] **Step 1: Replace content of `pos-kasir/src/app/tablet/(tabs)/siap-antar.tsx`**
+
+```tsx
+// pos-kasir/src/app/tablet/(tabs)/siap-antar.tsx
+import React from "react";
+import { KdsBoardScreen } from "@/features/orders/screens/KdsBoardScreen";
+
+export default function TabletSiapAntarTab() {
+  return <KdsBoardScreen variant="tab" />;
+}
+```
+
+- [ ] **Step 2: Replace content of `pos-kasir/src/app/mobile/(tabs)/siap-antar.tsx`**
+
+```tsx
+// pos-kasir/src/app/mobile/(tabs)/siap-antar.tsx
+import React from "react";
+import { KdsBoardScreen } from "@/features/orders/screens/KdsBoardScreen";
+
+export default function MobileSiapAntarTab() {
+  return <KdsBoardScreen variant="tab" />;
+}
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+cd pos-kasir
+git add "src/app/tablet/(tabs)/siap-antar.tsx" "src/app/mobile/(tabs)/siap-antar.tsx"
+git commit --no-gpg-sign -m "feat(kasir): wire siap-antar tabs to KdsBoardScreen"
+```
+
+---
+
+## Verification Checklist
+
+After all tasks are complete:
+
+- [ ] Login sebagai kasir → buka tab "Siap Antar" → tampil ColumnTabBar dengan 3 tab
+- [ ] Tab "Antrian" menampilkan daftar pesanan dari `GET /kds/queue` (bukan 403)
+- [ ] Tab "Dimasak" menampilkan daftar dari `GET /kds/processing`
+- [ ] Tab "Siap Antar" menampilkan daftar dari `GET /kds/ready`
+- [ ] Tombol "Mulai Masak" berhasil hit `PATCH /kds/queue/:id/take` → pesanan pindah ke tab Dimasak
+- [ ] Tombol "Selesai Masak" berhasil hit `PATCH /kds/processing/:id/done` → pindah ke tab Siap Antar
+- [ ] Tombol "Sudah Diantar" dengan konfirmasi Alert → hit `POST /kds/ready/:id/deliver` → hilang dari list
+- [ ] Setelah aksi, semua 3 tab otomatis di-invalidate dan refresh
+- [ ] Error state tampil dengan pesan dan tombol retry jika API gagal
+- [ ] Empty state tampil jika kolom kosong
+- [ ] Polling 15s berjalan (bisa dicek dengan Network tab atau log)
+- [ ] KDS dashboard di `/koki` tetap berfungsi normal (tidak terpengaruh perubahan backend)
