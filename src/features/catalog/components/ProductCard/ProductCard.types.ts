@@ -10,6 +10,8 @@ export interface ProductCardProps {
   categoryIcon: React.ComponentProps<typeof Ionicons>["name"];
   categoryIconBg: string;
   categoryIconColor: string;
+  categoryLabel?: string;
+  sku?: string;
   stockStatus: ProductStockStatus;
   availabilityReason?: "ACTIVE" | "INACTIVE" | "OUT_OF_STOCK" | "NO_RECIPE" | "HIDDEN";
   onAdd: () => void;

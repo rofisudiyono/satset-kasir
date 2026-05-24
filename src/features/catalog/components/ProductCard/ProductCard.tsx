@@ -21,24 +21,15 @@ const DEFAULT_IMG_H = 110;
 const styles = StyleSheet.create({
   card: {
     backgroundColor: BrandColors.surface,
-    borderRadius: 18,
+    borderRadius: 14,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: BrandColors.border,
-    shadowColor: BrandColors.deep,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 2,
   },
   cardCompact: {
-    borderRadius: 20,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: ColorNeutral.neutral200,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 1,
+    borderColor: BrandColors.border,
   },
   cardEmpty: {
     opacity: 0.8,
@@ -81,22 +72,33 @@ const styles = StyleSheet.create({
   },
   addButtonEnabled: {
     backgroundColor: BrandColors.buttonSolid,
-    borderRadius: 17,
-    width: 34,
-    height: 34,
-  },
-  addButtonCompact: {
-    backgroundColor: BrandColors.tintStrong,
-    borderWidth: 0,
-    borderRadius: 999,
-    width: 32,
-    height: 32,
-  },
-  addButtonDisabled: {
-    backgroundColor: ColorNeutral.neutral200,
-    borderRadius: 14,
+    borderRadius: 8,
     width: 30,
     height: 30,
+  },
+  addButtonCompact: {
+    backgroundColor: BrandColors.tint,
+    borderRadius: 8,
+    width: 28,
+    height: 28,
+  },
+  addButtonDisabled: {
+    backgroundColor: BrandColors.border,
+    borderRadius: 8,
+    width: 28,
+    height: 28,
+  },
+  categoryPill: {
+    position: "absolute",
+    top: 7,
+    left: 7,
+    backgroundColor: "rgba(255,255,255,0.88)",
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  skuText: {
+    letterSpacing: 0.4,
   },
 });
 
@@ -107,6 +109,8 @@ export const ProductCard = React.memo(function ProductCard({
   categoryIcon,
   categoryIconBg,
   categoryIconColor,
+  categoryLabel,
+  sku,
   stockStatus,
   availabilityReason,
   onAdd,
@@ -180,6 +184,18 @@ export const ProductCard = React.memo(function ProductCard({
           />
         )}
 
+        {categoryLabel && (
+          <View style={styles.categoryPill}>
+            <TextCaption
+              fontWeight="600"
+              fontSize={10}
+              color={BrandColors.textMuted}
+            >
+              {categoryLabel}
+            </TextCaption>
+          </View>
+        )}
+
         {isLow && (
           <View style={[styles.stockBadge, styles.stockBadgeLow]}>
             <TextCaption
@@ -233,6 +249,17 @@ export const ProductCard = React.memo(function ProductCard({
         >
           {name}
         </TextBodyLg>
+
+        {sku && (
+          <TextCaption
+            style={styles.skuText}
+            color={BrandColors.textMuted}
+            fontSize={11}
+            numberOfLines={1}
+          >
+            SKU {sku}
+          </TextCaption>
+        )}
 
         <XStack alignItems="center" justifyContent="space-between">
           <TextBodySm
