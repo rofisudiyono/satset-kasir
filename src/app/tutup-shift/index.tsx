@@ -6,18 +6,12 @@ import { Alert, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import {
-  AppButton,
-  BottomBar,
-  DottedSeparator,
-  NumpadGrid,
-  PageHeader,
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-  TextH1,
-  TextH3,
-} from "@/components";
+import { AppButton } from "@/components/atoms/AppButton";
+import { BottomBar } from "@/components/layout/BottomBar";
+import { DottedSeparator } from "@/components/molecules/DottedSeparator/index";
+import { NumpadGrid } from "@/components/atoms/NumpadGrid";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { TextBodyLg, TextBodySm, TextCaption, TextH1, TextH3 } from "@/components/atoms/Typography";
 import { ShiftInfoBox } from "@/features/shift/components/ShiftInfoBox";
 import {
   isShiftStartedAtom,

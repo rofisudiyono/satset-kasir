@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 
-import { TextCaption } from "@/components";
+import { TextCaption } from "@/components/atoms/Typography";
 import { ColorBase, ColorNeutral } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
 

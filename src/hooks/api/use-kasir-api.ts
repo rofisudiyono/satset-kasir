@@ -12,12 +12,16 @@ import type {
 } from "@/lib/api/kasir.api";
 import type { CheckoutOrderBody, GetOrderHistoryParams } from "@/lib/api/types";
 
-import { kasirKeys } from "./query-keys";
+import { kasirKeys, kdsKeys } from "./query-keys";
 
 export { getApiErrorMessage };
 
 const orderHistoryPrefix = [...kasirKeys.all, "orders", "history"] as const;
 const orderDetailPrefix = [...kasirKeys.all, "orders", "detail"] as const;
+
+function invalidateKdsBoard(qc: ReturnType<typeof useQueryClient>) {
+  void qc.invalidateQueries({ queryKey: kdsKeys.board() });
+}
 
 export function useActiveShiftQuery(enabled: boolean) {
   return useQuery({
@@ -54,7 +58,7 @@ export function useCloseShiftMutation() {
     mutationFn: (body: CloseShiftBody) => kasirApi.closeShift(body),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: kasirKeys.activeShift() });
-      void qc.invalidateQueries({ queryKey: kasirKeys.readyOrders() });
+      invalidateKdsBoard(qc);
     },
   });
 }
@@ -64,7 +68,7 @@ export function useQueueOrderMutation() {
   return useMutation({
     mutationFn: (body: QueueOrderBody) => kasirApi.queueOrder(body),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: kasirKeys.readyOrders() });
+      invalidateKdsBoard(qc);
     },
   });
 }
@@ -74,7 +78,7 @@ export function useDeliverOrderMutation() {
   return useMutation({
     mutationFn: (orderId: string) => kasirApi.deliverPaidOrder(orderId),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: kasirKeys.readyOrders() });
+      invalidateKdsBoard(qc);
       void qc.invalidateQueries({ queryKey: orderHistoryPrefix });
       void qc.invalidateQueries({ queryKey: orderDetailPrefix });
     },

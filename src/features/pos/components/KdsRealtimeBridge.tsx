@@ -1,5 +1,8 @@
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useEffect } from "react";
+
+import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
+import { useAuth } from "@/lib/auth";
 
 import {
   applyKdsQueuedEventsAtom,
@@ -10,11 +13,17 @@ import {
 const KDS_POLL_INTERVAL_MS = 5_000;
 
 export function KdsRealtimeBridge() {
+  const { isLoggedIn } = useAuth();
+  const isShiftStarted = useAtomValue(isShiftStartedAtom);
   const applyQueuedEvents = useSetAtom(applyKdsQueuedEventsAtom);
   const ensureSeedData = useSetAtom(ensurePosSeedDataAtom);
   const expireWebOrders = useSetAtom(expireWebOrdersAtom);
 
+  const active = Boolean(isLoggedIn && isShiftStarted);
+
   useEffect(() => {
+    if (!active) return;
+
     ensureSeedData();
     expireWebOrders();
     applyQueuedEvents();
@@ -25,7 +34,7 @@ export function KdsRealtimeBridge() {
     }, KDS_POLL_INTERVAL_MS);
 
     return () => clearInterval(timer);
-  }, [applyQueuedEvents, ensureSeedData, expireWebOrders]);
+  }, [active, applyQueuedEvents, ensureSeedData, expireWebOrders]);
 
   return null;
 }

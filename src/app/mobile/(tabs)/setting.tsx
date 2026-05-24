@@ -14,7 +14,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { YStack } from "tamagui";
 
-import { PageHeader, TextBodySm } from "@/components";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { TextBodySm } from "@/components/atoms/Typography";
 import { isShiftStartedAtom, shiftDataAtom } from "@/features/shift/store/shift.store";
 import { kasirKeys } from "@/hooks/api/query-keys";
 import { ProfileCard, SettingRow } from "@/features/settings";

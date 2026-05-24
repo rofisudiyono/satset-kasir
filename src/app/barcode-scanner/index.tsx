@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { YStack } from "tamagui";
 
-import { TextBody, TextBodySm, TextH3 } from "@/components";
+import { TextBody, TextBodySm, TextH3 } from "@/components/atoms/Typography";
 import { scannedBarcodeAtom } from "@/features/cart/store/cart.store";
 import { catalogProducts } from "@/features/catalog/api/catalog.data";
 import { useDeviceProfile } from "@/hooks/use-device-profile";

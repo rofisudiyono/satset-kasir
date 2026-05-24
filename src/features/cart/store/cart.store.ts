@@ -16,6 +16,17 @@ export interface CartItem {
 
 export const cartAtom = atom<CartItem[]>([]);
 
+export const cartTotalItemsAtom = atom((get) =>
+  get(cartAtom).reduce((total, item) => total + item.quantity, 0),
+);
+
+export const cartTotalPriceAtom = atom((get) =>
+  get(cartAtom).reduce(
+    (total, item) => total + item.unitPrice * item.quantity,
+    0,
+  ),
+);
+
 // Signals the transaksi-baru page that a barcode was scanned
 export const scannedBarcodeAtom = atom<string | null>(null);
 
@@ -40,6 +51,8 @@ export interface HeldOrder {
 }
 
 export const heldOrdersAtom = atomWithMMKV<HeldOrder[]>("heldOrders", []);
+
+export const heldOrdersCountAtom = atom((get) => get(heldOrdersAtom).length);
 
 export type CustomerVisitStatus = "returning" | "new";
 

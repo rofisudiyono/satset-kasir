@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import { TextBodySm, TextCaption, TextH2 } from "@/components";
+import { TextBodySm, TextCaption, TextH2 } from "@/components/atoms/Typography";
 import {
   CartBar,
   CartPanel,
@@ -22,7 +22,10 @@ import {
 import { ColorNeutral } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
 
-import { useTransactionEntry } from "../shared/useTransactionEntry";
+import {
+  useCartBarTotals,
+  useTransactionCatalog,
+} from "../shared/useTransactionEntry";
 
 export function TransactionEntryPhoneScreen() {
   const [panelWidth, setPanelWidth] = useState(0);
@@ -33,8 +36,6 @@ export function TransactionEntryPhoneScreen() {
     setCategoryFilter,
     handleAddProduct,
     openScanner,
-    cartTotalItems,
-    cartTotalPrice,
     searchQuery,
     setSearchQuery,
     menusRefreshing,
@@ -48,7 +49,8 @@ export function TransactionEntryPhoneScreen() {
     isCartVisible,
     openCart,
     closeCart,
-  } = useTransactionEntry();
+  } = useTransactionCatalog();
+  const { cartTotalItems, cartTotalPrice } = useCartBarTotals();
 
   function handlePanelLayout(e: LayoutChangeEvent) {
     const w = e.nativeEvent.layout.width;

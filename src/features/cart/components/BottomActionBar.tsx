@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { XStack } from "tamagui";
 
-import { TextBodyLg } from "@/components";
+import { TextBodyLg } from "@/components/atoms/Typography";
 import { ColorBase, ColorNeutral, ColorSurface } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
 

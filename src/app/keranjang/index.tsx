@@ -14,19 +14,18 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import { AppButton, PageHeader } from "@/components";
+import { AppButton } from "@/components/atoms/AppButton";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { CartItemsCard } from "@/features/cart/components/CartItemsCard";
+import { CustomerInfoCard } from "@/features/cart/components/CustomerInfoCard";
+import { PriceSummaryCard } from "@/features/cart/components/PriceSummaryCard";
+import { PromoCard } from "@/features/cart/components/PromoCard";
 import {
-  CartItemsCard,
-  CustomerInfoCard,
-  PriceSummaryCard,
-  PromoCard,
   cartAtom,
   cartOrderDraftAtom,
-} from "@/features/cart";
-import {
   cartSnapshotAtom,
-  type CustomerVisitStatus,
   heldOrdersAtom,
+  type CustomerVisitStatus,
 } from "@/features/cart/store/cart.store";
 import { buildCheckoutOrderBody, buildPosOrderFromCart } from "@/features/pos/pos.utils";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
@@ -47,7 +46,10 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import type { KasirTable } from "@/lib/api/types";
 import { calculateTaxBreakdown } from "@/lib/tax";
 import { ColorBase, ColorDanger, ColorPrimary } from "@/themes/Colors";
+import { useDebouncedEffect } from "@/hooks/use-debounced-effect";
 import type { AppliedPromo, OrderType } from "@/types";
+
+const ORDER_DRAFT_DEBOUNCE_MS = 400;
 
 export default function KeranjangPage() {
   const router = useRouter();
@@ -145,25 +147,29 @@ export default function KeranjangPage() {
     }
   }, [customerName, customerVisitStatus]);
 
-  useEffect(() => {
-    setOrderDraft({
-      customerName: customerVisitStatus === "new" ? customerName : "",
+  useDebouncedEffect(
+    () => {
+      setOrderDraft({
+        customerName: customerVisitStatus === "new" ? customerName : "",
+        customerPhone,
+        orderNote,
+        customerVisitStatus,
+        orderType,
+        tableId: selectedTable?.id,
+        tableLabel: selectedTable?.label,
+      });
+    },
+    [
+      customerName,
       customerPhone,
-      orderNote,
       customerVisitStatus,
+      orderNote,
       orderType,
-      tableId: selectedTable?.id,
-      tableLabel: selectedTable?.label,
-    });
-  }, [
-    customerName,
-    customerPhone,
-    customerVisitStatus,
-    orderNote,
-    orderType,
-    selectedTable,
-    setOrderDraft,
-  ]);
+      selectedTable,
+      setOrderDraft,
+    ],
+    ORDER_DRAFT_DEBOUNCE_MS,
+  );
 
   useEffect(() => {
     if (isShiftStarted) return;

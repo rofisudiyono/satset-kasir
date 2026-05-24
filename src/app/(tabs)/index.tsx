@@ -14,13 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import {
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-  TextH1,
-  TextH2,
-} from "@/components";
+import { TextBodyLg, TextBodySm, TextCaption, TextH1, TextH2 } from "@/components/atoms/Typography";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import { usePendingWebOrdersQuery } from "@/hooks/api/use-kasir-api";
 import type { PendingWebOrder } from "@/lib/api/types";

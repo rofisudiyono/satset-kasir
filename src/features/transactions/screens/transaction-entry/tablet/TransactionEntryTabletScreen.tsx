@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { LayoutChangeEvent, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { TextBodySm, TextH2 } from "@/components";
+import { TextBodySm, TextH2 } from "@/components/atoms/Typography";
 import {
   CatalogSearchToolbar,
   CartPanel,
@@ -17,7 +17,7 @@ import {
 } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
 
-import { useTransactionEntry } from "../shared/useTransactionEntry";
+import { useTransactionCatalog } from "../shared/useTransactionEntry";
 
 export function TransactionEntryTabletScreen() {
   const [catalogPanelWidth, setCatalogPanelWidth] = useState(0);
@@ -35,7 +35,7 @@ export function TransactionEntryTabletScreen() {
     isVariantSheetVisible,
     closeVariantSheet,
     addToCart,
-  } = useTransactionEntry();
+  } = useTransactionCatalog();
 
   function handleCatalogLayout(event: LayoutChangeEvent) {
     const nextWidth = event.nativeEvent.layout.width;

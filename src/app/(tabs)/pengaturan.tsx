@@ -7,15 +7,10 @@ import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from "react-nat
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import {
-  AppButton,
-  AppInput,
-  PageHeader,
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-  TextH3,
-} from "@/components";
+import { AppButton } from "@/components/atoms/AppButton";
+import { AppInput } from "@/components/atoms/AppInput";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components/atoms/Typography";
 import {
   buildPrintableReceiptOrderFromKasirOrder,
   buildReceiptHtml,

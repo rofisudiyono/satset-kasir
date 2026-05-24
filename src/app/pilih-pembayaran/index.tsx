@@ -15,15 +15,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import {
-  AppButton,
-  PageHeader,
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-  TextH2,
-  TextH3,
-} from "@/components";
+import { AppButton } from "@/components/atoms/AppButton";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { TextBodyLg, TextBodySm, TextCaption, TextH2, TextH3 } from "@/components/atoms/Typography";
 import { cartAtom, cartSnapshotAtom } from "@/features/cart/store/cart.store";
 import { catalogStockAtom } from "@/features/catalog/store/catalog.store";
 import { paymentMethodOptions } from "@/features/payment/api/payment.data";

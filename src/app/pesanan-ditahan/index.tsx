@@ -14,13 +14,8 @@ import {
   heldOrdersAtom,
   type HeldOrder,
 } from "@/features/cart/store/cart.store";
-import {
-  PageHeader,
-  TextBody,
-  TextBodySm,
-  TextCaption,
-  TextH3,
-} from "@/components";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { TextBody, TextBodySm, TextCaption, TextH3 } from "@/components/atoms/Typography";
 import {
   ColorBase,
   ColorDanger,

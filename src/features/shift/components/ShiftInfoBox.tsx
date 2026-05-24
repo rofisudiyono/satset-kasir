@@ -1,7 +1,7 @@
 import React from "react";
 import { YStack } from "tamagui";
 
-import { TextBodyLg, TextBodySm } from "@/components";
+import { TextBodyLg, TextBodySm } from "@/components/atoms/Typography";
 import { BrandColors } from "@/themes/brand";
 
 interface ShiftInfoBoxProps {

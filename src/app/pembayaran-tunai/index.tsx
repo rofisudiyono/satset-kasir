@@ -12,16 +12,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import {
-  AppButton,
-  NumpadGrid,
-  PageHeader,
-  SuggestionChip,
-  TextBody,
-  TextBodySm,
-  TextCaption,
-  TextH1,
-} from "@/components";
+import { AppButton } from "@/components/atoms/AppButton";
+import { NumpadGrid } from "@/components/atoms/NumpadGrid";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { SuggestionChip } from "@/components/molecules/SuggestionChip";
+import { TextBody, TextBodySm, TextCaption, TextH1 } from "@/components/atoms/Typography";
 import { cartAtom, cartSnapshotAtom } from "@/features/cart/store/cart.store";
 import { catalogStockAtom } from "@/features/catalog/store/catalog.store";
 import {

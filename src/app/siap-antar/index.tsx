@@ -1,7 +1,7 @@
 import React from "react";
 
-import { SiapAntarScreen } from "@/features/orders/screens/SiapAntarScreen";
+import { KdsBoardScreen } from "@/features/orders/screens/KdsBoardScreen";
 
 export default function SiapAntarPage() {
-  return <SiapAntarScreen variant="stack" />;
+  return <KdsBoardScreen variant="stack" />;
 }

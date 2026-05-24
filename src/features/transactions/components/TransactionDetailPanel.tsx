@@ -3,14 +3,9 @@ import React from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import { XStack, YStack } from "tamagui";
 
-import {
-  AppButton,
-  ShadowCard,
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-  TextH3,
-} from "@/components";
+import { AppButton } from "@/components/atoms/AppButton";
+import { ShadowCard } from "@/components/atoms/ShadowCard";
+import { TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components/atoms/Typography";
 import { ColorBase, ColorNeutral } from "@/themes/Colors";
 import type { Transaction } from "@/types";
 

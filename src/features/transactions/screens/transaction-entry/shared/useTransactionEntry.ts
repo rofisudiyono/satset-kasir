@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   startTransition,
   useCallback,
@@ -11,7 +11,9 @@ import {
 
 import {
   cartAtom,
-  heldOrdersAtom,
+  cartTotalItemsAtom,
+  cartTotalPriceAtom,
+  heldOrdersCountAtom,
   scannedBarcodeAtom,
   type CartItem,
 } from "@/features/cart/store/cart.store";
@@ -103,16 +105,16 @@ function compareProductsByCashierPriority(
   return a.name.localeCompare(b.name, "id");
 }
 
-export function useTransactionEntry() {
+export function useTransactionCatalog() {
   const router = useRouter();
-  const [isShiftStarted] = useAtom(isShiftStartedAtom);
+  const isShiftStarted = useAtomValue(isShiftStartedAtom);
   const [categoryFilterState, setCategoryFilterState] =
     useState<CategoryFilter>("Semua");
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLowerCase());
-  const [cart, setCart] = useAtom(cartAtom);
+  const setCart = useSetAtom(cartAtom);
   const [scannedBarcode, setScannedBarcode] = useAtom(scannedBarcodeAtom);
-  const [heldOrders] = useAtom(heldOrdersAtom);
+  const heldOrdersCount = useAtomValue(heldOrdersCountAtom);
   const [variantProduct, setVariantProduct] = useState<CatalogProduct | null>(
     null,
   );
@@ -124,8 +126,7 @@ export function useTransactionEntry() {
     isFetching: menusFetching,
     isLoading: menusLoading,
     refetch: refetchMenus,
-  } =
-    useMenusQuery(isShiftStarted);
+  } = useMenusQuery(isShiftStarted);
 
   const catalogProducts = useMemo<CatalogProduct[]>(
     () =>
@@ -142,29 +143,28 @@ export function useTransactionEntry() {
 
   const addToCart = useCallback(
     (item: Omit<CartItem, "cartId">) => {
-      const existing = cart.find(
-        (cartItem) =>
-          cartItem.productId === item.productId &&
-          cartItem.variantLabel === item.variantLabel,
-      );
+      setCart((prev) => {
+        const existing = prev.find(
+          (cartItem) =>
+            cartItem.productId === item.productId &&
+            cartItem.variantLabel === item.variantLabel,
+        );
 
-      if (existing) {
-        setCart((prev) =>
-          prev.map((cartItem) =>
+        if (existing) {
+          return prev.map((cartItem) =>
             cartItem.cartId === existing.cartId
               ? { ...cartItem, quantity: cartItem.quantity + item.quantity }
               : cartItem,
-          ),
-        );
-        return;
-      }
+          );
+        }
 
-      setCart((prev) => [
-        ...prev,
-        { ...item, cartId: `${item.productId}-${Date.now()}` },
-      ]);
+        return [
+          ...prev,
+          { ...item, cartId: `${item.productId}-${Date.now()}` },
+        ];
+      });
     },
-    [cart, setCart],
+    [setCart],
   );
 
   const handleAddProduct = useCallback(
@@ -216,15 +216,6 @@ export function useTransactionEntry() {
     });
   }, [catalogProducts, categoryFilterState, deferredSearchQuery]);
 
-  const cartTotalItems = useMemo(
-    () => cart.reduce((total, item) => total + item.quantity, 0),
-    [cart],
-  );
-  const cartTotalPrice = useMemo(
-    () => cart.reduce((total, item) => total + item.unitPrice * item.quantity, 0),
-    [cart],
-  );
-
   const setCategoryFilter = useCallback((next: CategoryFilter) => {
     startTransition(() => {
       setCategoryFilterState(next);
@@ -241,9 +232,7 @@ export function useTransactionEntry() {
     setCategoryFilter,
     products: filteredProducts,
     handleAddProduct,
-    heldOrdersCount: heldOrders.length,
-    cartTotalItems,
-    cartTotalPrice,
+    heldOrdersCount,
     openScanner: () => router.push("/barcode-scanner" as never),
     openHeldOrders: () => router.push("/pesanan-ditahan" as never),
     isVariantSheetVisible,
@@ -254,4 +243,17 @@ export function useTransactionEntry() {
     openCart: () => setCartVisible(true),
     closeCart: () => setCartVisible(false),
   };
+}
+
+export function useCartBarTotals() {
+  const cartTotalItems = useAtomValue(cartTotalItemsAtom);
+  const cartTotalPrice = useAtomValue(cartTotalPriceAtom);
+  return { cartTotalItems, cartTotalPrice };
+}
+
+/** @deprecated Use useTransactionCatalog + useCartBarTotals instead. */
+export function useTransactionEntry() {
+  const catalog = useTransactionCatalog();
+  const { cartTotalItems, cartTotalPrice } = useCartBarTotals();
+  return { ...catalog, cartTotalItems, cartTotalPrice };
 }

@@ -148,6 +148,7 @@ export function ProductGrid({
       renderItem={renderItem}
       numColumns={numColumns}
       key={String(numColumns)}
+      estimatedItemSize={compact ? 180 : 200}
       contentContainerStyle={contentContainerStyle}
       ListHeaderComponent={omitListHeader ? undefined : ListHeaderComponent}
       refreshing={refreshing}

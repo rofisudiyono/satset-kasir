@@ -17,14 +17,9 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import {
-  AppButton,
-  PageHeader,
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-  TextH3,
-} from "@/components";
+import { AppButton } from "@/components/atoms/AppButton";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components/atoms/Typography";
 import {
   buildPrintableReceiptOrderFromKasirOrder,
   buildReceiptHtml,

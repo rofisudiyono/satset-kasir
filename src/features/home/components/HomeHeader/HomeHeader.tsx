@@ -3,13 +3,8 @@ import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import { XStack, YStack } from "tamagui";
 
-import {
-  IconButton,
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-  TextH3,
-} from "@/components";
+import { IconButton } from "@/components/atoms/IconButton";
+import { TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components/atoms/Typography";
 import { ColorNeutral } from "@/themes/Colors";
 
 const DAY_NAMES = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];

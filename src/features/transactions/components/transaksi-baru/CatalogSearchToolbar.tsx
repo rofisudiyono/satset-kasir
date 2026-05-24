@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, ScrollView, StyleSheet } from "react-native";
 import { XStack, YStack } from "tamagui";
 
-import { FilterChip } from "@/components";
+import { FilterChip } from "@/components/molecules/FilterChip";
 import { TextBodySm } from "@/components/atoms/Typography";
 import { categoryFilters } from "@/features/catalog/api/category.data";
 import { ColorBase, ColorNeutral } from "@/themes/Colors";

@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack } from "tamagui";
 
-import { PageHeader } from "@/components";
+import { PageHeader } from "@/components/molecules/PageHeader";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import { useAuth } from "@/lib/auth";
 import type {
@@ -27,9 +27,7 @@ import {
   getApiErrorMessage,
   useDeliverKdsBoardMutation,
   useFinishKdsBoardMutation,
-  useKdsBoardProcessingQuery,
-  useKdsBoardQueueQuery,
-  useKdsBoardReadyQuery,
+  useKdsBoardQuery,
   useTakeKdsBoardMutation,
 } from "@/hooks/api/use-kds-board-api";
 import { BrandColors } from "@/themes/brand";
@@ -104,13 +102,12 @@ const QueueCard = memo(function QueueCard({
   record,
   onTake,
   loading,
-  now,
 }: {
   record: KdsBoardQueueRecord;
   onTake: (id: string) => void;
   loading: boolean;
-  now: number;
 }) {
+  const now = useNowTick(1000);
   const summary = useMemo(() => itemSummary(record.items), [record.items]);
   const elapsed = now - parseTs(record.createdAt);
   const isSlow = elapsed > 15 * 60 * 1000;
@@ -139,13 +136,12 @@ const ProcessingCard = memo(function ProcessingCard({
   record,
   onFinish,
   loading,
-  now,
 }: {
   record: KdsBoardProcessingRecord;
   onFinish: (id: string) => void;
   loading: boolean;
-  now: number;
 }) {
+  const now = useNowTick(1000);
   const summary = useMemo(() => itemSummary(record.items), [record.items]);
   const elapsed = now - parseTs(record.createdAt);
   const cookElapsed = now - parseTs(record.startedCookingAt);
@@ -176,13 +172,12 @@ const ReadyCard = memo(function ReadyCard({
   record,
   onDeliver,
   loading,
-  now,
 }: {
   record: KdsBoardReadyRecord;
   onDeliver: (record: KdsBoardReadyRecord) => void;
   loading: boolean;
-  now: number;
 }) {
+  const now = useNowTick(1000);
   const summary = useMemo(() => itemSummary(record.items), [record.items]);
   const elapsed = now - parseTs(record.createdAt);
   const readyElapsed = now - parseTs(record.readyAt);
@@ -279,29 +274,26 @@ export function KdsBoardScreen({ variant }: KdsBoardScreenProps) {
   const isShiftStarted = useAtomValue(isShiftStartedAtom);
   const enabled = Boolean(isLoggedIn && isShiftStarted);
 
-  const now = useNowTick(1000);
-
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const queueQ = useKdsBoardQueueQuery(enabled);
-  const processingQ = useKdsBoardProcessingQuery(enabled);
-  const readyQ = useKdsBoardReadyQuery(enabled);
+  const boardQ = useKdsBoardQuery(enabled);
 
-  const queueData = queueQ.data;
-  const processingData = processingQ.data;
-  const readyData = readyQ.data;
+  const queueData = boardQ.data?.queue;
+  const processingData = boardQ.data?.processing;
+  const readyData = boardQ.data?.ready;
 
   const takeMutation = useTakeKdsBoardMutation();
   const finishMutation = useFinishKdsBoardMutation();
   const deliverMutation = useDeliverKdsBoardMutation();
 
-  const isLoading = queueQ.isLoading || processingQ.isLoading || readyQ.isLoading;
-  const isError = queueQ.isError || processingQ.isError || readyQ.isError;
+  const isLoading = boardQ.isLoading;
+  const isError = boardQ.isError;
   const errorMessage = useMemo(() => {
-    const err = queueQ.error ?? processingQ.error ?? readyQ.error;
-    return err ? getApiErrorMessage(err, "Gagal memuat data KDS.") : null;
-  }, [queueQ.error, processingQ.error, readyQ.error]);
+    return boardQ.error
+      ? getApiErrorMessage(boardQ.error, "Gagal memuat data KDS.")
+      : null;
+  }, [boardQ.error]);
 
   const counts: Record<BoardColumn, number> = useMemo(
     () => ({
@@ -314,9 +306,9 @@ export function KdsBoardScreen({ variant }: KdsBoardScreenProps) {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([queueQ.refetch(), processingQ.refetch(), readyQ.refetch()]);
+    await boardQ.refetch();
     setRefreshing(false);
-  }, [queueQ, processingQ, readyQ]);
+  }, [boardQ]);
 
   const handleTake = useCallback(
     (id: string) => {
@@ -432,11 +424,10 @@ export function KdsBoardScreen({ variant }: KdsBoardScreenProps) {
           record={item.record}
           onTake={handleTake}
           loading={actionLoadingId === item.record.id}
-          now={now}
         />
       );
     },
-    [actionLoadingId, handleTake, now, renderMetaItem],
+    [actionLoadingId, handleTake, renderMetaItem],
   );
 
   const renderProcessingItem = useCallback<ListRenderItem<ProcessingEntry>>(
@@ -447,11 +438,10 @@ export function KdsBoardScreen({ variant }: KdsBoardScreenProps) {
           record={item.record}
           onFinish={handleFinish}
           loading={actionLoadingId === item.record.id}
-          now={now}
         />
       );
     },
-    [actionLoadingId, handleFinish, now, renderMetaItem],
+    [actionLoadingId, handleFinish, renderMetaItem],
   );
 
   const renderReadyItem = useCallback<ListRenderItem<ReadyEntry>>(
@@ -462,11 +452,10 @@ export function KdsBoardScreen({ variant }: KdsBoardScreenProps) {
           record={item.record}
           onDeliver={handleDeliver}
           loading={actionLoadingId === item.record.id}
-          now={now}
         />
       );
     },
-    [actionLoadingId, handleDeliver, now, renderMetaItem],
+    [actionLoadingId, handleDeliver, renderMetaItem],
   );
 
   const keyExtractor = useCallback((item: { id: string }) => item.id, []);

@@ -5,13 +5,8 @@ import { XStack, YStack } from "tamagui";
 import { useOrderHistoryQuery } from "@/hooks/api/use-kasir-api";
 import { useAuth } from "@/lib/auth";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
-import {
-  ShadowCard,
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-  TextH3,
-} from "@/components";
+import { ShadowCard } from "@/components/atoms/ShadowCard";
+import { TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components/atoms/Typography";
 import { ColorNeutral } from "@/themes/Colors";
 import { StatusBadge } from "@/features/transactions/components/StatusBadge";
 import { mapKasirOrderToTransaction } from "@/features/pos/pos.utils";

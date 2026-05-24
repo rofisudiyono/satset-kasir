@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { XStack } from "tamagui";
 
-import { TextBodySm, TextCaption } from "@/components";
+import { TextBodySm, TextCaption } from "@/components/atoms/Typography";
 import {
   ColorBase,
   ColorGreen,

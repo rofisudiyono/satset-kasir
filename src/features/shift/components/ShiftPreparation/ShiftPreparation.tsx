@@ -2,12 +2,8 @@ import React from "react";
 import { View } from "react-native";
 import { XStack, YStack } from "tamagui";
 
-import {
-  ShadowCard,
-  TextBodyLg,
-  TextBodySm,
-  TextH3,
-} from "@/components";
+import { ShadowCard } from "@/components/atoms/ShadowCard";
+import { TextBodyLg, TextBodySm, TextH3 } from "@/components/atoms/Typography";
 import {
   ColorGreen,
   ColorNeutral,

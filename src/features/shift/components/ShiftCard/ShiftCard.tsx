@@ -4,12 +4,8 @@ import React from "react";
 import { XStack, YStack } from "tamagui";
 
 import { shiftDataAtom } from "@/features/shift/store/shift.store";
-import {
-  AppButton,
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-} from "@/components";
+import { AppButton } from "@/components/atoms/AppButton";
+import { TextBodyLg, TextBodySm, TextCaption } from "@/components/atoms/Typography";
 import {
   ColorBase,
   ColorNeutral,

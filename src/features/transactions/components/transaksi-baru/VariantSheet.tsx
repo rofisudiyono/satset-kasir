@@ -11,7 +11,7 @@ import { XStack, YStack } from "tamagui";
 
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/config/categoryStyles";
 import { type CartItem } from "@/features/cart/store/cart.store";
-import { TextBodyLg, TextBodySm, TextH3 } from "@/components";
+import { TextBodyLg, TextBodySm, TextH3 } from "@/components/atoms/Typography";
 import { ColorBase, ColorNeutral, ColorPrimary } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
 import type { CatalogProduct } from "@/types";

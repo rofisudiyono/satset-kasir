@@ -15,47 +15,40 @@ export { getApiErrorMessage };
 
 const POLL_INTERVAL = 15_000;
 
-export function useKdsBoardQueueQuery(enabled: boolean) {
+export type KdsBoardData = {
+  queue: Awaited<ReturnType<typeof fetchKdsBoardQueue>>;
+  processing: Awaited<ReturnType<typeof fetchKdsBoardProcessing>>;
+  ready: Awaited<ReturnType<typeof fetchKdsBoardReady>>;
+};
+
+async function fetchKdsBoard(): Promise<KdsBoardData> {
+  const [queue, processing, ready] = await Promise.all([
+    fetchKdsBoardQueue(),
+    fetchKdsBoardProcessing(),
+    fetchKdsBoardReady(),
+  ]);
+  return { queue, processing, ready };
+}
+
+export function useKdsBoardQuery(enabled: boolean) {
   return useQuery({
-    queryKey: kdsKeys.queue(),
-    queryFn: fetchKdsBoardQueue,
+    queryKey: kdsKeys.board(),
+    queryFn: fetchKdsBoard,
     enabled,
     staleTime: POLL_INTERVAL,
     refetchInterval: enabled ? POLL_INTERVAL : false,
   });
 }
 
-export function useKdsBoardProcessingQuery(enabled: boolean) {
-  return useQuery({
-    queryKey: kdsKeys.processing(),
-    queryFn: fetchKdsBoardProcessing,
-    enabled,
-    staleTime: POLL_INTERVAL,
-    refetchInterval: enabled ? POLL_INTERVAL : false,
-  });
-}
-
-export function useKdsBoardReadyQuery(enabled: boolean) {
-  return useQuery({
-    queryKey: kdsKeys.ready(),
-    queryFn: fetchKdsBoardReady,
-    enabled,
-    staleTime: POLL_INTERVAL,
-    refetchInterval: enabled ? POLL_INTERVAL : false,
-  });
-}
-
-function useInvalidateAllKds() {
+function useInvalidateKdsBoard() {
   const qc = useQueryClient();
   return () => {
-    void qc.invalidateQueries({ queryKey: kdsKeys.queue() });
-    void qc.invalidateQueries({ queryKey: kdsKeys.processing() });
-    void qc.invalidateQueries({ queryKey: kdsKeys.ready() });
+    void qc.invalidateQueries({ queryKey: kdsKeys.board() });
   };
 }
 
 export function useTakeKdsBoardMutation() {
-  const invalidate = useInvalidateAllKds();
+  const invalidate = useInvalidateKdsBoard();
   return useMutation({
     mutationFn: (id: string) => takeKdsBoardOrder(id),
     onSuccess: invalidate,
@@ -63,7 +56,7 @@ export function useTakeKdsBoardMutation() {
 }
 
 export function useFinishKdsBoardMutation() {
-  const invalidate = useInvalidateAllKds();
+  const invalidate = useInvalidateKdsBoard();
   return useMutation({
     mutationFn: (id: string) => finishKdsBoardOrder(id),
     onSuccess: invalidate,
@@ -71,7 +64,7 @@ export function useFinishKdsBoardMutation() {
 }
 
 export function useDeliverKdsBoardMutation() {
-  const invalidate = useInvalidateAllKds();
+  const invalidate = useInvalidateKdsBoard();
   return useMutation({
     mutationFn: (id: string) => deliverKdsBoardOrder(id),
     onSuccess: invalidate,

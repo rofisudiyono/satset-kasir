@@ -12,14 +12,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import {
-  PageHeader,
-  SectionCard,
-  TextBody,
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-} from "@/components";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { SectionCard } from "@/components/molecules/SectionCard";
+import { TextBody, TextBodyLg, TextBodySm, TextCaption } from "@/components/atoms/Typography";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import {
   ColorBase,

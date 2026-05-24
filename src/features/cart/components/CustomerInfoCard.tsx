@@ -11,7 +11,7 @@ import {
 } from "react-native";
 
 import { orderTypeOptions } from "@/features/payment/api/payment.data";
-import { TextBodySm, TextCaption } from "@/components";
+import { TextBodySm, TextCaption } from "@/components/atoms/Typography";
 import { ColorBase, ColorNeutral, ColorPrimary, ColorSurface } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
 import type { CustomerVisitStatus } from "@/features/cart/store/cart.store";

@@ -12,16 +12,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Separator, XStack, YStack } from "tamagui";
 
-import {
-  AppButton,
-  AppInput,
-  SectionCard,
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-  TextH3,
-  TextMicro,
-} from "@/components";
+import { AppButton } from "@/components/atoms/AppButton";
+import { AppInput } from "@/components/atoms/AppInput";
+import { SectionCard } from "@/components/molecules/SectionCard";
+import { TextBodyLg, TextBodySm, TextCaption, TextH3, TextMicro } from "@/components/atoms/Typography";
 import {
   ColorAccentOrange,
   ColorAccentPurple,

@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { FlashList, type ListRenderItem } from "@shopify/flash-list";
 import React, { useCallback, useState } from "react";
 import {
   Modal,
@@ -10,16 +11,22 @@ import {
 import { XStack, YStack } from "tamagui";
 
 import type { CartItem } from "@/features/cart/store/cart.store";
-import { TextBody, TextBodyLg, TextBodySm } from "@/components";
+import { TextBody, TextBodyLg, TextBodySm } from "@/components/atoms/Typography";
 import { ColorBase, ColorNeutral, ColorSurface } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
 import { CartItemRow } from "./CartItemRow";
+
+const CART_ITEM_ESTIMATED_HEIGHT = 120;
 
 interface CartItemsCardProps {
   cart: CartItem[];
   onUpdateQty: (cartId: string, qty: number) => void;
   onRemove: (cartId: string) => void;
   onUpdateNote: (cartId: string, note: string) => void;
+}
+
+function CartDivider() {
+  return <View style={styles.divider} />;
 }
 
 export function CartItemsCard({
@@ -55,6 +62,23 @@ export function CartItemsCard({
     setNoteInput("");
   }, [activeNoteCartId, noteInput, onUpdateNote]);
 
+  const renderItem = useCallback<ListRenderItem<CartItem>>(
+    ({ item, index }) => (
+      <>
+        <CartItemRow
+          item={item}
+          onUpdateQty={onUpdateQty}
+          onRemove={onRemove}
+          onOpenNote={handleOpenNote}
+        />
+        {index < cart.length - 1 ? <CartDivider /> : null}
+      </>
+    ),
+    [cart.length, handleOpenNote, onRemove, onUpdateQty],
+  );
+
+  const keyExtractor = useCallback((item: CartItem) => item.cartId, []);
+
   return (
     <>
       <View style={styles.card}>
@@ -68,21 +92,16 @@ export function CartItemsCard({
             <TextBody color="$colorSecondary">Keranjang masih kosong</TextBody>
           </YStack>
         ) : (
-          cart.map((item, index) => (
-            <React.Fragment key={item.cartId}>
-              <CartItemRow
-                item={item}
-                onUpdateQty={onUpdateQty}
-                onRemove={onRemove}
-                onOpenNote={handleOpenNote}
-              />
-              {index < cart.length - 1 && <View style={styles.divider} />}
-            </React.Fragment>
-          ))
+          <FlashList
+            data={cart}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            estimatedItemSize={CART_ITEM_ESTIMATED_HEIGHT}
+            scrollEnabled={false}
+          />
         )}
       </View>
 
-      {/* Centralized note modal */}
       <Modal
         visible={activeNoteCartId !== null}
         transparent

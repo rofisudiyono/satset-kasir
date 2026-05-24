@@ -15,18 +15,17 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { YStack } from "tamagui";
 
-import { TextBodyLg, TextBodySm, TextCaption, TextH2, TextH3 } from "@/components";
+import { TextBodyLg, TextBodySm, TextCaption, TextH2, TextH3 } from "@/components/atoms/Typography";
+import { CustomerInfoCard, type CustomerInfoValidationErrors } from "@/features/cart/components/CustomerInfoCard";
+import { PriceSummaryCard } from "@/features/cart/components/PriceSummaryCard";
 import {
   cartAtom,
   cartCheckoutContextAtom,
   cartOrderDraftAtom,
   cartSnapshotAtom,
-  CustomerInfoCard,
-  type CustomerInfoValidationErrors,
-  type CustomerVisitStatus,
   heldOrdersAtom,
-  PriceSummaryCard,
-} from "@/features/cart";
+  type CustomerVisitStatus,
+} from "@/features/cart/store/cart.store";
 import {
   buildCheckoutOrderBody,
   buildPosOrderFromCart,

@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter } from "expo-router";
-import { useAtom, useSetAtom } from "jotai";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useAtom } from "jotai";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Image,
   Alert,
@@ -16,15 +16,17 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import { AvatarBadge, IconButton, TextBodySm, TextCaption, TextH3 } from "@/components";
+import { AvatarBadge } from "@/components/atoms/AvatarBadge";
+import { IconButton } from "@/components/atoms/IconButton";
+import { TextBodySm, TextCaption, TextH3 } from "@/components/atoms/Typography";
 import { ShiftInfoBanner } from "@/components/molecules/ShiftInfoBanner";
 import { useAuth } from "@/lib/auth";
+import { useKdsBoardQuery } from "@/hooks/api/use-kds-board-api";
 import {
   usePendingWebOrdersQuery,
-  useReadyOrdersQuery,
   useTenantInfoQuery,
 } from "@/hooks/api/use-kasir-api";
-import { kasirKeys } from "@/hooks/api/query-keys";
+import { kasirKeys, kdsKeys } from "@/hooks/api/query-keys";
 import { API_BASE_URL } from "@/config/env";
 import {
   getHistoryRoute,
@@ -35,10 +37,6 @@ import {
   getOpenShiftRoute,
   getSiapAntarRoute,
 } from "@/lib/routing/device-routes";
-import {
-  ensurePosSeedDataAtom,
-  posOrdersAtom,
-} from "@/features/pos/store/pos.store";
 import {
   isShiftStartedAtom,
   shiftDataAtom,
@@ -72,32 +70,10 @@ export function TopNavHeader() {
   const { width } = useWindowDimensions();
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
   const [shiftData] = useAtom(shiftDataAtom);
-  const [posOrders] = useAtom(posOrdersAtom);
-  const ensurePosSeedData = useSetAtom(ensurePosSeedDataAtom);
   const [staffDetailVisible, setStaffDetailVisible] = useState(false);
   const isTabletNamespace = getNamespaceFromPathname(pathname) === "tablet";
 
-  useEffect(() => {
-    ensurePosSeedData();
-  }, [ensurePosSeedData]);
-
-  const readyOrders = useMemo(() => {
-    return posOrders.filter((order) => {
-      if (order.fulfillment !== "READY") return false;
-      if (order.status === "CANCELLED" || order.status === "EXPIRED") {
-        return false;
-      }
-      if (!shiftData?.openedAt) return true;
-      if (order.shiftId && shiftData.shiftId) {
-        return order.shiftId === shiftData.shiftId;
-      }
-      return order.createdAt >= shiftData.openedAt;
-    });
-  }, [posOrders, shiftData?.openedAt, shiftData?.shiftId]);
-
-  const readyOrdersQuery = useReadyOrdersQuery(
-    Boolean(isLoggedIn && isShiftStarted),
-  );
+  const kdsBoardQuery = useKdsBoardQuery(Boolean(isLoggedIn && isShiftStarted));
   const pendingWebOrdersQuery = usePendingWebOrdersQuery(
     Boolean(isLoggedIn && isShiftStarted),
   );
@@ -119,18 +95,16 @@ export function TopNavHeader() {
   ]);
 
   const displayReadyCount = useMemo(() => {
-    const localCount = readyOrders.length;
-    if (!isLoggedIn || !isShiftStarted) return localCount;
-    if (readyOrdersQuery.isSuccess && Array.isArray(readyOrdersQuery.data)) {
-      return readyOrdersQuery.data.length;
+    if (!isLoggedIn || !isShiftStarted) return 0;
+    if (kdsBoardQuery.isSuccess && Array.isArray(kdsBoardQuery.data?.ready)) {
+      return kdsBoardQuery.data.ready.length;
     }
-    return localCount;
+    return 0;
   }, [
     isLoggedIn,
     isShiftStarted,
-    readyOrders.length,
-    readyOrdersQuery.isSuccess,
-    readyOrdersQuery.data,
+    kdsBoardQuery.isSuccess,
+    kdsBoardQuery.data?.ready,
   ]);
 
   const navItems: NavItem[] = [
@@ -274,7 +248,7 @@ export function TopNavHeader() {
         return;
       }
 
-      await queryClient.invalidateQueries({ queryKey: kasirKeys.readyOrders() });
+      await queryClient.invalidateQueries({ queryKey: kdsKeys.board() });
     } finally {
       setIsRefreshing(false);
     }
@@ -452,7 +426,7 @@ export function TopNavHeader() {
             onPress={() => router.push(siapAntarHref as never)}
           >
             <Ionicons
-              name={displayReadyCount > 0 ? "bag-check" : "bag-check-outline"}
+              name="restaurant-outline"
               size={16}
               color={
                 isSiapAntarTabActive
@@ -468,20 +442,9 @@ export function TopNavHeader() {
                   : BrandColors.textMuted
               }
             >
-              Siap Diantar
+            Status Dapur
             </TextBodySm>
-            <TextCaption
-              color={
-                isSiapAntarTabActive
-                  ? BrandColors.deep
-                  : HEADER_TEXT_MUTED
-              }
-              fontWeight="600"
-            >
-              {displayReadyCount > 0
-                ? `${displayReadyCount} READY`
-                : "Belum ada READY"}
-            </TextCaption>
+            
           </TouchableOpacity>
 
           {/* <View style={styles.comingSoonChip}>

@@ -3,7 +3,8 @@ import React from "react";
 import { TouchableOpacity } from "react-native";
 import { XStack } from "tamagui";
 
-import { ShadowCard, TextBodyLg, TextBodySm } from "@/components";
+import { ShadowCard } from "@/components/atoms/ShadowCard";
+import { TextBodyLg, TextBodySm } from "@/components/atoms/Typography";
 import { ColorDanger, ColorNeutral, ColorPrimary } from "@/themes/Colors";
 import type { Transaction } from "@/types";
 

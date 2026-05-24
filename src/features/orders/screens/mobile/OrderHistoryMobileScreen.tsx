@@ -20,13 +20,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import {
-  AppInput,
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-  TextH3,
-} from "@/components";
+import { AppInput } from "@/components/atoms/AppInput";
+import { TextBodyLg, TextBodySm, TextCaption, TextH3 } from "@/components/atoms/Typography";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import { useOrderHistoryQuery } from "@/hooks/api/use-kasir-api";
 import type { KasirOrder } from "@/lib/api/types";

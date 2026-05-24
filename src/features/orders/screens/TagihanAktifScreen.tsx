@@ -7,12 +7,8 @@ import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import {
-  PageHeader,
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-} from "@/components";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { TextBodyLg, TextBodySm, TextCaption } from "@/components/atoms/Typography";
 import {
   getApiErrorMessage,
   useUnpaidOrdersQuery,

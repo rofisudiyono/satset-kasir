@@ -5,7 +5,7 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { YStack } from "tamagui";
 
-import { TextBodySm, TextCaption, TextH3 } from "@/components";
+import { TextBodySm, TextCaption, TextH3 } from "@/components/atoms/Typography";
 import { isShiftStartedAtom, shiftDataAtom } from "@/features/shift/store/shift.store";
 import { ColorBase } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";

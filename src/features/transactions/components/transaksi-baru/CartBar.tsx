@@ -3,7 +3,7 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { YStack } from "tamagui";
 
-import { TextBodyLg, TextBodySm } from "@/components";
+import { TextBodyLg, TextBodySm } from "@/components/atoms/Typography";
 import { ColorBase } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
 import { formatPrice } from "@/utils";

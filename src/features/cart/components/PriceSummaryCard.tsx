@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { XStack } from "tamagui";
 
-import { TextBody, TextH3 } from "@/components";
+import { TextBody, TextH3 } from "@/components/atoms/Typography";
 import { ColorBase, ColorGreen, ColorNeutral, ColorSurface } from "@/themes/Colors";
 import { formatPrice } from "@/utils";
 

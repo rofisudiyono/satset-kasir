@@ -4,7 +4,7 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { TextBodySm, TextCaption } from "@/components";
+import { TextBodySm, TextCaption } from "@/components/atoms/Typography";
 import {
   ColorBase,
   ColorNeutral,

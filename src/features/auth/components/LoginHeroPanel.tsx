@@ -1,5 +1,6 @@
+import { Image } from "expo-image";
 import React from "react";
-import { Image, StyleSheet, Text as RNText, View } from "react-native";
+import { StyleSheet, Text as RNText, View } from "react-native";
 import { Text, XStack, YStack } from "tamagui";
 
 import { LoginHeroBackground } from "@/features/auth/components/LoginHeroBackground";
@@ -31,7 +32,7 @@ export function LoginHeroPanel({ padding = 48 }: LoginHeroPanelProps) {
               <Image
                 source={require("../../../../assets/images/satset_1024.png")}
                 style={styles.logo}
-                resizeMode="contain"
+                contentFit="contain"
               />
             </View>
             <YStack>

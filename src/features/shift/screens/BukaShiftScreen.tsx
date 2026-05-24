@@ -6,16 +6,11 @@ import { Alert, StyleSheet, TextInput, TouchableOpacity, View } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView, XStack, YStack } from "tamagui";
 
-import {
-  AppButton,
-  BottomBar,
-  NumpadGrid,
-  PageHeader,
-  TextBodySm,
-  TextCaption,
-  TextH1,
-  TextH3,
-} from "@/components";
+import { AppButton } from "@/components/atoms/AppButton";
+import { BottomBar } from "@/components/layout/BottomBar";
+import { NumpadGrid } from "@/components/atoms/NumpadGrid";
+import { PageHeader } from "@/components/molecules/PageHeader";
+import { TextBodySm, TextCaption, TextH1, TextH3 } from "@/components/atoms/Typography";
 import {
   isShiftStartedAtom,
   shiftDataAtom,

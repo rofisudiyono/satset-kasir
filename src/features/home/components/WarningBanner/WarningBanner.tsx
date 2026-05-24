@@ -3,7 +3,7 @@ import React from "react";
 import { TouchableOpacity } from "react-native";
 import { XStack } from "tamagui";
 
-import { TextBodySm } from "@/components";
+import { TextBodySm } from "@/components/atoms/Typography";
 import { ColorAccentOrange } from "@/themes/Colors";
 
 import { WarningBannerProps } from "./WarningBanner.types";

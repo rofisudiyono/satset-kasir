@@ -13,19 +13,12 @@ import {
 } from "react-native";
 import { YStack } from "tamagui";
 
-import { TextH3 } from "@/components";
-import {
-  BottomActionBar,
-  CartItemsCard,
-  cartCheckoutContextAtom,
-  PriceSummaryCard,
-  PromoCard,
-} from "@/features/cart";
-import {
-  cartAtom,
-  cartOrderDraftAtom,
-  type CustomerVisitStatus,
-} from "@/features/cart/store/cart.store";
+import { TextH3 } from "@/components/atoms/Typography";
+import { BottomActionBar } from "@/features/cart/components/BottomActionBar";
+import { CartItemsCard } from "@/features/cart/components/CartItemsCard";
+import { PriceSummaryCard } from "@/features/cart/components/PriceSummaryCard";
+import { PromoCard } from "@/features/cart/components/PromoCard";
+import { cartCheckoutContextAtom, cartAtom, cartOrderDraftAtom, type CustomerVisitStatus } from "@/features/cart/store/cart.store";
 import {
   useTablesQuery,
   useTaxSettingsQuery,
@@ -37,7 +30,10 @@ import { shiftDataAtom } from "@/features/shift/store/shift.store";
 import type { KasirTable } from "@/lib/api/types";
 import { ColorBase, ColorDanger, ColorNeutral, ColorSurface } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
+import { useDebouncedEffect } from "@/hooks/use-debounced-effect";
 import type { AppliedPromo, OrderType } from "@/types";
+
+const ORDER_DRAFT_DEBOUNCE_MS = 400;
 
 type CartPanelProps = {
   compact?: boolean;
@@ -90,25 +86,29 @@ export function CartPanel({ compact = false }: CartPanelProps) {
     }
   }, [customerName, customerVisitStatus]);
 
-  React.useEffect(() => {
-    setOrderDraft({
-      customerName: customerVisitStatus === "new" ? customerName : "",
+  useDebouncedEffect(
+    () => {
+      setOrderDraft({
+        customerName: customerVisitStatus === "new" ? customerName : "",
+        customerPhone,
+        orderNote,
+        customerVisitStatus,
+        orderType,
+        tableId: selectedTable?.id,
+        tableLabel: selectedTable?.label,
+      });
+    },
+    [
+      customerName,
       customerPhone,
-      orderNote,
       customerVisitStatus,
+      orderNote,
       orderType,
-      tableId: selectedTable?.id,
-      tableLabel: selectedTable?.label,
-    });
-  }, [
-    customerName,
-    customerPhone,
-    customerVisitStatus,
-    orderNote,
-    orderType,
-    selectedTable,
-    setOrderDraft,
-  ]);
+      selectedTable,
+      setOrderDraft,
+    ],
+    ORDER_DRAFT_DEBOUNCE_MS,
+  );
 
   function handleUpdateQty(cartId: string, qty: number) {
     setCart((prev) =>
