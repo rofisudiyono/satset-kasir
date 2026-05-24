@@ -44,7 +44,7 @@ export function SearchBar({
         color={ColorNeutral.neutral400}
       />
       <TextInput
-        style={{ flex: 1, fontSize: 15, color: "#1a1a1a", padding: 0 }}
+        style={{ flex: 1, fontSize: 15, color: ColorNeutral.neutral900, padding: 0 }}
         placeholder={placeholder}
         placeholderTextColor={ColorNeutral.neutral400}
         value={value}
