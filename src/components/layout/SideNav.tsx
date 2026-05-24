@@ -6,13 +6,11 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { YStack } from "tamagui";
 
 import { TextBodySm, TextCaption, TextH3 } from "@/components";
-import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
-import {
-  ColorBase,
-  ColorNeutral,
-  ColorPrimary,
-  ColorSuccess,
-} from "@/themes/Colors";
+import { isShiftStartedAtom, shiftDataAtom } from "@/features/shift/store/shift.store";
+import { ColorBase } from "@/themes/Colors";
+import { BrandColors } from "@/themes/brand";
+import { AvatarBadge } from "@/components/atoms/AvatarBadge";
+import { ShiftInfoBanner } from "@/components/molecules/ShiftInfoBanner";
 
 type NavItem = {
   label: string;
@@ -57,6 +55,10 @@ export function SideNav() {
   const router = useRouter();
   const pathname = usePathname();
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
+  const [shiftData] = useAtom(shiftDataAtom);
+  const cashierName = shiftData?.cashierName ?? "Kasir";
+  const shiftSlot = shiftData?.slot ?? "PAGI";
+  const shiftStartTime = shiftData?.startTime ?? undefined;
 
   function isActive(item: NavItem) {
     if (item.segment === "/") return pathname === "/";
@@ -74,13 +76,55 @@ export function SideNav() {
       {/* Brand */}
       <View style={styles.brand}>
         <View style={styles.brandIcon}>
-          <Ionicons name="storefront" size={22} color={ColorBase.white} />
+          <Ionicons name="storefront" size={22} color={BrandColors.deep} />
         </View>
-        <YStack gap={2}>
-          <TextH3 fontWeight="700">Toko Makmur</TextH3>
-          <TextCaption color="$colorSecondary">Budi Santoso</TextCaption>
+        <YStack gap={2} flex={1}>
+          <TextH3 fontWeight="700" color={BrandColors.text}>Toko</TextH3>
+          <TextCaption color={BrandColors.textMuted} numberOfLines={1}>
+            Kasir App
+          </TextCaption>
         </YStack>
       </View>
+
+      {/* Shift info */}
+      <View style={styles.shiftBannerRow}>
+        <ShiftInfoBanner
+          slot={shiftSlot}
+          startTime={shiftStartTime}
+          isActive={isShiftStarted}
+        />
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={[
+            styles.shiftBtnCompact,
+            isShiftStarted ? styles.shiftBtnCompactOpen : styles.shiftBtnCompactClosed,
+          ]}
+          onPress={() =>
+            router.push(isShiftStarted ? "/tutup-shift" : "/buka-shift")
+          }
+        >
+          <TextBodySm
+            fontWeight="700"
+            color={isShiftStarted ? ColorBase.white : BrandColors.textMuted}
+            fontSize={11}
+          >
+            {isShiftStarted ? "Tutup Shift" : "Buka Shift"}
+          </TextBodySm>
+        </TouchableOpacity>
+      </View>
+
+      {/* Kasir info */}
+      <View style={styles.kasirRow}>
+        <AvatarBadge name={cashierName} size={32} />
+        <YStack gap={1} flex={1}>
+          <TextBodySm fontWeight="600" color={BrandColors.text} numberOfLines={1}>
+            {cashierName}
+          </TextBodySm>
+          <TextCaption color={BrandColors.textMuted}>Kasir</TextCaption>
+        </YStack>
+      </View>
+
+      <View style={styles.separator} />
 
       {/* Nav items */}
       <YStack flex={1} gap={4} paddingTop={8}>
@@ -96,13 +140,11 @@ export function SideNav() {
               <Ionicons
                 name={active ? item.iconActive : item.icon}
                 size={20}
-                color={
-                  active ? ColorPrimary.primary600 : ColorNeutral.neutral500
-                }
+                color={active ? BrandColors.deep : BrandColors.textMuted}
               />
               <TextBodySm
                 fontWeight={active ? "700" : "400"}
-                color={active ? "$primary" : "$colorSecondary"}
+                color={active ? BrandColors.deep : BrandColors.textMuted}
               >
                 {item.label}
               </TextBodySm>
@@ -111,50 +153,19 @@ export function SideNav() {
         })}
       </YStack>
 
-      {/* Shift button */}
+      {/* Footer: Siap Antar, Reservasi */}
       <View style={styles.footer}>
-        <View style={styles.reservationBadge}>
-          <Ionicons
-            name="calendar-clear-outline"
-            size={14}
-            color={ColorNeutral.neutral500}
-          />
-          <TextCaption color="$colorSecondary">
-            Reservasi segera hadir
-          </TextCaption>
-        </View>
-
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={[
-            styles.shiftBtn,
-            isShiftStarted ? styles.shiftBtnOpen : styles.shiftBtnClosed,
-          ]}
-          onPress={() =>
-            router.push(isShiftStarted ? "/tutup-shift" : "/buka-shift")
-          }
-        >
-          <Ionicons
-            name={isShiftStarted ? "moon-outline" : "sunny-outline"}
-            size={16}
-            color={isShiftStarted ? ColorBase.white : ColorNeutral.neutral600}
-          />
-          <TextBodySm
-            fontWeight="600"
-            color={isShiftStarted ? ColorBase.white : "$colorSecondary"}
-          >
-            {isShiftStarted ? "Tutup Shift" : "Buka Shift"}
-          </TextBodySm>
+        <TouchableOpacity style={styles.footerRow} onPress={() => router.push("/siap-antar" as never)}>
+          <Ionicons name="bag-check-outline" size={16} color={BrandColors.textMuted} />
+          <TextBodySm color={BrandColors.textMuted} flex={1}>Siap Diantar</TextBodySm>
         </TouchableOpacity>
-
-        {isShiftStarted && (
-          <View style={styles.shiftBadge}>
-            <View style={styles.shiftDot} />
-            <TextCaption color={ColorSuccess.success600} fontWeight="600">
-              Shift Aktif
-            </TextCaption>
-          </View>
-        )}
+        <View style={styles.footerRow}>
+          <Ionicons name="calendar-clear-outline" size={16} color={BrandColors.textMuted} />
+          <YStack flex={1} gap={1}>
+            <TextBodySm color={BrandColors.textMuted}>Reservasi</TextBodySm>
+            <TextCaption color="rgba(23,31,27,0.35)">Segera hadir</TextCaption>
+          </YStack>
+        </View>
       </View>
     </View>
   );
@@ -164,10 +175,10 @@ const styles = StyleSheet.create({
   container: {
     width: 220,
     height: "100%",
-    backgroundColor: ColorBase.white,
+    backgroundColor: BrandColors.surface,
     borderRightWidth: 1,
-    borderRightColor: ColorNeutral.neutral200,
-    paddingVertical: 24,
+    borderRightColor: BrandColors.border,
+    paddingVertical: 20,
     paddingHorizontal: 12,
   },
   brand: {
@@ -175,66 +186,73 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     paddingHorizontal: 8,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   brandIcon: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: ColorPrimary.primary600,
+    backgroundColor: BrandColors.tint,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+  },
+  shiftBannerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
+    marginBottom: 10,
+  },
+  shiftBtnCompact: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  shiftBtnCompactOpen: {
+    backgroundColor: BrandColors.coral,
+  },
+  shiftBtnCompactClosed: {
+    backgroundColor: BrandColors.tint,
+  },
+  kasirRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 8,
+    marginBottom: 14,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: BrandColors.border,
+    marginHorizontal: 8,
+    marginBottom: 8,
   },
   navItem: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 12,
   },
   navItemActive: {
-    backgroundColor: ColorPrimary.primary50,
+    backgroundColor: BrandColors.tint,
   },
   footer: {
-    gap: 8,
-    paddingTop: 16,
+    gap: 4,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: ColorNeutral.neutral100,
+    borderTopColor: BrandColors.border,
+    marginTop: 8,
   },
-  reservationBadge: {
+  footerRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: ColorNeutral.neutral100,
-  },
-  shiftBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
     gap: 8,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  shiftBtnOpen: {
-    backgroundColor: ColorPrimary.primary600,
-  },
-  shiftBtnClosed: {
-    backgroundColor: ColorNeutral.neutral100,
-  },
-  shiftBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-  },
-  shiftDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: ColorSuccess.success500,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 10,
   },
 });
