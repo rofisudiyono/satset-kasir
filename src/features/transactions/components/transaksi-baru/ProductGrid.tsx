@@ -13,11 +13,13 @@ import type { CatalogProduct, CategoryFilter } from "@/types";
 
 import { CatalogSearchToolbar } from "./CatalogSearchToolbar";
 
-const GAP = 12;
-const COMPACT_GAP = 10;
+const COLUMN_GAP = 14;
+const COMPACT_COLUMN_GAP = 14;
+const ROW_GAP = 14;
+const COMPACT_ROW_GAP = 14;
 const TABLET_COLS = 3;
 const H_PAD = 16;
-const COMPACT_H_PAD = 12;
+const COMPACT_H_PAD = 16;
 
 type Props = {
   products: CatalogProduct[];
@@ -62,16 +64,23 @@ export function ProductGrid({
   const horizontalPaddingTotal = hPadSingle * 2;
 
   const containerWidth = availableWidth ?? screenWidth;
-  const itemGap = compact ? COMPACT_GAP : GAP;
+  const columnGap = compact ? COMPACT_COLUMN_GAP : COLUMN_GAP;
+  const rowGap = compact ? COMPACT_ROW_GAP : ROW_GAP;
   const cardWidth =
-    (containerWidth - horizontalPaddingTotal - itemGap * (numColumns - 1)) /
+    (containerWidth - horizontalPaddingTotal - columnGap * (numColumns - 1)) /
     numColumns;
 
   const renderItem = useCallback<ListRenderItem<CatalogProduct>>(
     ({ item, index }) => {
       const isLastInRow = index % numColumns === numColumns - 1;
+      const isLastRow = index >= products.length - numColumns;
       return (
-        <View style={!isLastInRow ? { marginRight: itemGap } : undefined}>
+        <View
+          style={[
+            !isLastInRow ? { marginRight: columnGap } : undefined,
+            !isLastRow ? { marginBottom: rowGap } : undefined,
+          ]}
+        >
           <ProductCard
             name={item.name}
             imageUrl={item.imageUrl}
@@ -90,7 +99,7 @@ export function ProductGrid({
         </View>
       );
     },
-    [cardWidth, compact, itemGap, numColumns, onAddProduct],
+    [cardWidth, columnGap, compact, numColumns, onAddProduct, products.length, rowGap],
   );
 
   const keyExtractor = useCallback((item: CatalogProduct) => item.id, []);
@@ -101,12 +110,11 @@ export function ProductGrid({
     () => [
       styles.listContent,
       {
-        gap: itemGap,
         paddingBottom: contentBottomInset,
         paddingHorizontal: horizontalPad,
       },
     ],
-    [contentBottomInset, itemGap, horizontalPad],
+    [contentBottomInset, horizontalPad],
   );
 
   const ListHeaderComponent = useCallback(
@@ -157,7 +165,7 @@ const styles = StyleSheet.create({
   list: {
     flex: 1,
     backgroundColor: "transparent",
-    paddingTop: 16,
+    paddingTop: 12,
   },
   listContent: {},
 });

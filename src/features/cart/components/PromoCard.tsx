@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   promoInput: {
     fontSize: 14,
     color: ColorNeutral.neutral900,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
   },
   promoApplyBtn: {
     backgroundColor: BrandColors.buttonSolid,

@@ -1,31 +1,21 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useSetAtom } from "jotai";
 import React, { useState } from "react";
 import {
   Alert,
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { XStack, YStack } from "tamagui";
 
-import {
-  AppButton,
-  AppInput,
-  TextBodyLg,
-  TextBodySm,
-  TextCaption,
-  TextH1,
-  TextH2,
-  TextH3,
-} from "@/components";
 import { PrinterTestModal } from "@/components/molecules/PrinterTestModal";
+import { LoginFormCard } from "@/features/auth/components/LoginFormCard";
+import { LoginHeroPanel } from "@/features/auth/components/LoginHeroPanel";
+import { loginLayoutSplit } from "@/features/auth/login-background";
+import { LoginColors } from "@/features/auth/login-styles";
 import {
   isShiftStartedAtom,
   shiftDataAtom,
@@ -42,8 +32,6 @@ import {
   getHomeRoute,
 } from "@/lib/routing/device-routes";
 import { queryClient } from "@/providers/query-client";
-import { ColorBase, ColorNeutral } from "@/themes/Colors";
-import { BrandColors } from "@/themes/brand";
 
 const KASIR_ROLES = new Set(["kasir", "admin_coffee"]);
 
@@ -58,7 +46,6 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
   const isTablet = variant === "tablet";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showPrinterTest, setShowPrinterTest] = useState(false);
   const setIsShiftStarted = useSetAtom(isShiftStartedAtom);
@@ -114,310 +101,45 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
     }
   };
 
+  const formCard = (
+    <LoginFormCard
+      email={email}
+      password={password}
+      showPassword={showPassword}
+      isSubmitting={isLoginPending}
+      showMobileBrand={!isTablet}
+      onEmailChange={setEmail}
+      onPasswordChange={setPassword}
+      onTogglePassword={() => setShowPassword((value) => !value)}
+      onSubmit={() => void handleLogin()}
+      onPrinterTest={() => setShowPrinterTest(true)}
+    />
+  );
+
   if (isTablet) {
     return (
-      <View style={{ flex: 1 }}>
+      <View style={styles.tabletRoot}>
         <SafeAreaView style={styles.tabletScreen} edges={["top", "bottom"]}>
-          <View style={[styles.brandPanel, { backgroundColor: BrandColors.buttonSolid }]}>
-            <View style={styles.decorCircle1} />
-            <View style={styles.decorCircle2} />
-            <View style={styles.decorCircle3} />
-
-            <YStack
-              flex={1}
-              justifyContent="center"
-              padding={isLargeTablet ? 48 : 36}
-              gap="$6"
-            >
-              <XStack alignItems="center" gap="$3">
-                <View style={styles.tabletLogoFrame}>
-                  <Image
-                    source={require("../../../../assets/images/satset_1024.png")}
-                    style={styles.tabletLogo}
-                    resizeMode="contain"
-                  />
-                </View>
-                <YStack gap={2}>
-                  <TextH2 color={ColorBase.white} fontWeight="900">
-                    SATSET
-                  </TextH2>
-                  <TextCaption
-                    color={BrandColors.accentOnDark}
-                    fontWeight="700"
-                  >
-                    Akselerasi Bisnis Tanpa Batas
-                  </TextCaption>
-                </YStack>
-              </XStack>
-
-              <YStack gap="$2">
-                <TextH1
-                  color={ColorBase.white}
-                  fontWeight="700"
-                  lineHeight={32}
-                >
-                  Satset POS{"\n"}Kasir
-                </TextH1>
-                <TextBodyLg color="rgba(240,253,232,0.72)" lineHeight={22}>
-                  Kelola transaksi outlet dengan cepat dan efisien. Satset POS
-                  membantu shift, pesanan, dan pembayaran tetap real-time.
-                </TextBodyLg>
-              </YStack>
-
-              <YStack gap="$3" marginTop="$2">
-                <XStack
-                  backgroundColor="rgba(240,253,232,0.12)"
-                  borderRadius="$4"
-                  padding="$3"
-                  gap="$3"
-                  alignItems="center"
-                  borderWidth={1}
-                  borderColor="rgba(218,247,166,0.22)"
-                >
-                  <YStack
-                    width={38}
-                    height={38}
-                    borderRadius={19}
-                    backgroundColor="rgba(240,253,232,0.16)"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <Ionicons
-                      name="sunny-outline"
-                      size={18}
-                      color={BrandColors.accentOnDark}
-                    />
-                  </YStack>
-                  <YStack flex={1} gap={2}>
-                    <TextBodySm fontWeight="700" color={ColorBase.white}>
-                      Buka shift
-                    </TextBodySm>
-                    <TextCaption color="rgba(240,253,232,0.68)" lineHeight={16}>
-                      Login untuk mulai shift dan catat modal awal kas.
-                    </TextCaption>
-                  </YStack>
-                </XStack>
-
-                <XStack
-                  backgroundColor="rgba(240,253,232,0.12)"
-                  borderRadius="$4"
-                  padding="$3"
-                  gap="$3"
-                  alignItems="center"
-                  borderWidth={1}
-                  borderColor="rgba(218,247,166,0.22)"
-                >
-                  <YStack
-                    width={38}
-                    height={38}
-                    borderRadius={19}
-                    backgroundColor="rgba(240,253,232,0.16)"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <Ionicons
-                      name="help-circle-outline"
-                      size={18}
-                      color="rgba(255,255,255,0.85)"
-                    />
-                  </YStack>
-                  <YStack flex={1} gap={2}>
-                    <TextBodySm fontWeight="700" color={ColorBase.white}>
-                      Butuh bantuan?
-                    </TextBodySm>
-                    <TextCaption color="rgba(240,253,232,0.68)" lineHeight={16}>
-                      Hubungi supervisor jika akun tidak bisa diakses.
-                    </TextCaption>
-                  </YStack>
-                </XStack>
-              </YStack>
-            </YStack>
-
-            <YStack padding={isLargeTablet ? 48 : 36} paddingTop={0}>
-              <TextCaption color="rgba(240,253,232,0.38)">
-                Est. 2026 • Modern POS Ecosystem
-              </TextCaption>
-            </YStack>
+          <View style={styles.heroColumn}>
+            <LoginHeroPanel padding={isLargeTablet ? 64 : 48} />
           </View>
 
-          <KeyboardAvoidingView
-            style={styles.formPanelWrapper}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
-          >
-            <ScrollView
-              contentContainerStyle={styles.formPanelScroll}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              keyboardDismissMode="on-drag"
-              automaticallyAdjustKeyboardInsets
+          <View style={styles.formColumn}>
+            <KeyboardAvoidingView
+              style={styles.formPanelWrapper}
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
             >
-              <YStack
-                padding={isLargeTablet ? 56 : 40}
-                maxWidth={500}
-                alignSelf="center"
-                width="100%"
-                gap="$5"
+              <ScrollView
+                contentContainerStyle={styles.formPanelScroll}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                automaticallyAdjustKeyboardInsets
               >
-                <XStack
-                  backgroundColor={BrandColors.tint}
-                  borderRadius="$4"
-                  padding="$3"
-                  alignItems="center"
-                  gap="$3"
-                  borderWidth={1}
-                  borderColor={BrandColors.border}
-                >
-                  <YStack
-                    width={38}
-                    height={38}
-                    borderRadius={19}
-                    backgroundColor={BrandColors.tintStrong}
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <Ionicons
-                      name="person-outline"
-                      size={18}
-                      color={BrandColors.text}
-                    />
-                  </YStack>
-                  <YStack flex={1}>
-                    <TextBodyLg fontWeight="600">Mode Kasir</TextBodyLg>
-                    <TextBodySm color="$colorSecondary">
-                      Akun staf operasional toko
-                    </TextBodySm>
-                  </YStack>
-                  <AppButton variant="ghost" size="sm">
-                    Ganti
-                  </AppButton>
-                </XStack>
-
-                <YStack gap="$1.5">
-                  <TextH2 fontWeight="700">Login Satset POS Kasir</TextH2>
-                  <TextBodySm color="$colorSecondary" lineHeight={20}>
-                    Login untuk mengelola transaksi outlet Satset dan membuka
-                    shift kasir.
-                  </TextBodySm>
-                </YStack>
-
-                <YStack gap="$3">
-                  <AppInput
-                    label="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Email kasir aktif"
-                    hint="Email kasir aktif"
-                    leftIcon={
-                      <Ionicons
-                        name="mail-outline"
-                        size={16}
-                        color={ColorNeutral.neutral400}
-                      />
-                    }
-                    keyboardType="email-address"
-                  />
-                  <AppInput
-                    label="Password"
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="Minimal 8 karakter"
-                    hint="Minimal 8 karakter"
-                    leftIcon={
-                      <Ionicons
-                        name="lock-closed-outline"
-                        size={16}
-                        color={ColorNeutral.neutral400}
-                      />
-                    }
-                    rightIcon={
-                      <TouchableOpacity
-                        onPress={() => setShowPassword(!showPassword)}
-                      >
-                        <Ionicons
-                          name={
-                            showPassword ? "eye-off-outline" : "eye-outline"
-                          }
-                          size={18}
-                          color={ColorNeutral.neutral400}
-                        />
-                      </TouchableOpacity>
-                    }
-                    secureTextEntry={!showPassword}
-                  />
-                </YStack>
-
-                <XStack alignItems="center" justifyContent="space-between">
-                  <TouchableOpacity
-                    onPress={() => setRememberMe(!rememberMe)}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 8,
-                    }}
-                  >
-                    <YStack
-                      width={20}
-                      height={20}
-                      borderRadius={4}
-                      backgroundColor={
-                        rememberMe ? BrandColors.sage : ColorBase.transparent
-                      }
-                      borderWidth={2}
-                      borderColor={
-                        rememberMe ? BrandColors.sage : "$borderColor"
-                      }
-                      alignItems="center"
-                      justifyContent="center"
-                    >
-                      {rememberMe && (
-                        <TextBodySm color={ColorBase.white}>✓</TextBodySm>
-                      )}
-                    </YStack>
-                    <TextBodySm color="$colorSecondary">
-                      Ingat sesi perangkat ini
-                    </TextBodySm>
-                  </TouchableOpacity>
-                  <TouchableOpacity>
-                    <TextBodySm fontWeight="600" color={BrandColors.text}>
-                      Lupa password?
-                    </TextBodySm>
-                  </TouchableOpacity>
-                </XStack>
-
-                <AppButton
-                  onPress={() => void handleLogin()}
-                  variant="brand"
-                  size="lg"
-                  fullWidth
-                  disabled={isLoginPending}
-                  title={isLoginPending ? "Memproses…" : "Masuk Sekarang"}
-                  icon={
-                    <Ionicons
-                      name="log-in-outline"
-                      size={18}
-                      color={ColorBase.white}
-                    />
-                  }
-                />
-
-                <TouchableOpacity
-                  style={styles.printerTestButton}
-                  activeOpacity={0.7}
-                  onPress={() => setShowPrinterTest(true)}
-                >
-                  <Ionicons
-                    name="print-outline"
-                    size={16}
-                    color={ColorNeutral.neutral500}
-                  />
-                  <TextBodySm color="$colorSecondary" style={{ marginLeft: 6 }}>
-                    Test Printer
-                  </TextBodySm>
-                </TouchableOpacity>
-              </YStack>
-            </ScrollView>
-          </KeyboardAvoidingView>
+                <View style={styles.formPanelInner}>{formCard}</View>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </View>
         </SafeAreaView>
 
         <PrinterTestModal
@@ -429,258 +151,22 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
   }
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={styles.mobileScreen} edges={["top", "bottom"]}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.mobileKeyboard}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <ScrollView
-          contentContainerStyle={styles.mobileScrollContent}
+          contentContainerStyle={[
+            styles.mobileScrollContent,
+            { paddingHorizontal: horizontalPadding },
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           automaticallyAdjustKeyboardInsets
         >
-          <YStack
-            alignItems="center"
-            paddingTop="$5"
-            paddingBottom="$3"
-            gap="$1"
-            paddingHorizontal={horizontalPadding}
-          >
-            <YStack
-              width={56}
-              height={56}
-              borderRadius="$4"
-              backgroundColor={BrandColors.surface}
-              alignItems="center"
-              justifyContent="center"
-              borderWidth={1}
-              borderColor={BrandColors.border}
-            >
-              <Image
-                source={require("../../../../assets/images/satset_1024.png")}
-                style={styles.mobileLogo}
-                resizeMode="contain"
-              />
-            </YStack>
-            <TextH3 fontWeight="700" marginTop="$2">
-              Satset POS Kasir
-            </TextH3>
-            <TextBodySm color="$colorSecondary">
-              Login untuk mulai transaksi Satset hari ini
-            </TextBodySm>
-          </YStack>
-
-          <YStack
-            width="100%"
-            alignSelf="center"
-            paddingHorizontal={horizontalPadding}
-          >
-            <YStack
-              backgroundColor="$background"
-              borderRadius="$6"
-              padding="$4"
-              gap="$4"
-              shadowColor={ColorNeutral.neutralShadow}
-              shadowOpacity={0.18}
-              shadowRadius={14}
-              shadowOffset={{ width: 0, height: 4 }}
-              elevation={3}
-              borderWidth={1}
-              borderColor={BrandColors.border}
-            >
-              <XStack
-                backgroundColor={BrandColors.tint}
-                borderRadius="$4"
-                padding="$3"
-                alignItems="center"
-                gap="$3"
-              >
-                <YStack
-                  width={36}
-                  height={36}
-                  borderRadius={18}
-                  backgroundColor={BrandColors.tintStrong}
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <Ionicons
-                    name="person-outline"
-                    size={18}
-                    color={BrandColors.text}
-                  />
-                </YStack>
-                <YStack flex={1}>
-                  <TextBodyLg fontWeight="600">Mode Kasir</TextBodyLg>
-                  <TextBodySm color="$colorSecondary">
-                    Akun staf operasional toko
-                  </TextBodySm>
-                </YStack>
-                <AppButton variant="ghost" size="sm">
-                  Ganti
-                </AppButton>
-              </XStack>
-
-              <YStack gap="$1">
-                <TextH3 fontWeight="700">Login Satset POS Kasir</TextH3>
-                <TextBodySm color="$colorSecondary" lineHeight={18}>
-                  Login untuk mengelola transaksi outlet Satset dan membuka
-                  shift kasir.
-                </TextBodySm>
-              </YStack>
-
-              <YStack gap="$3">
-                <AppInput
-                  label="Email"
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="Email kasir aktif"
-                  hint="Email kasir aktif"
-                  leftIcon={
-                    <Ionicons
-                      name="mail-outline"
-                      size={16}
-                      color={ColorNeutral.neutral400}
-                    />
-                  }
-                  keyboardType="email-address"
-                />
-                <AppInput
-                  label="Password"
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Minimal 8 karakter"
-                  hint="Minimal 8 karakter"
-                  leftIcon={
-                    <Ionicons
-                      name="lock-closed-outline"
-                      size={16}
-                      color={ColorNeutral.neutral400}
-                    />
-                  }
-                  rightIcon={
-                    <TouchableOpacity
-                      onPress={() => setShowPassword(!showPassword)}
-                    >
-                      <Ionicons
-                        name={showPassword ? "eye-off-outline" : "eye-outline"}
-                        size={18}
-                        color={ColorNeutral.neutral400}
-                      />
-                    </TouchableOpacity>
-                  }
-                  secureTextEntry={!showPassword}
-                />
-              </YStack>
-
-              <XStack alignItems="center" justifyContent="space-between">
-                <TouchableOpacity
-                  onPress={() => setRememberMe(!rememberMe)}
-                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-                >
-                  <YStack
-                    width={20}
-                    height={20}
-                    borderRadius={4}
-                    backgroundColor={
-                      rememberMe ? BrandColors.sage : ColorBase.transparent
-                    }
-                    borderWidth={2}
-                    borderColor={rememberMe ? BrandColors.sage : "$borderColor"}
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    {rememberMe && (
-                      <TextBodySm color={ColorBase.white}>✓</TextBodySm>
-                    )}
-                  </YStack>
-                  <TextBodySm color="$colorSecondary">
-                    Ingat sesi perangkat ini
-                  </TextBodySm>
-                </TouchableOpacity>
-                <TouchableOpacity>
-                  <TextBodySm fontWeight="600" color={BrandColors.text}>
-                    Lupa password?
-                  </TextBodySm>
-                </TouchableOpacity>
-              </XStack>
-
-              <AppButton
-                onPress={() => void handleLogin()}
-                variant="brand"
-                size="lg"
-                fullWidth
-                disabled={isLoginPending}
-                title={isLoginPending ? "Memproses…" : "Masuk Sekarang"}
-                icon={
-                  <Ionicons
-                    name="log-in-outline"
-                    size={18}
-                    color={ColorBase.white}
-                  />
-                }
-              />
-
-              <TouchableOpacity
-                style={styles.printerTestButton}
-                activeOpacity={0.7}
-                onPress={() => setShowPrinterTest(true)}
-              >
-                <Ionicons
-                  name="print-outline"
-                  size={16}
-                  color={ColorNeutral.neutral500}
-                />
-                <TextBodySm color="$colorSecondary" style={{ marginLeft: 6 }}>
-                  Test Printer
-                </TextBodySm>
-              </TouchableOpacity>
-            </YStack>
-
-            <XStack gap="$3" marginTop="$3">
-              <YStack
-                flex={1}
-                backgroundColor="$backgroundSecondary"
-                borderRadius="$4"
-                padding="$3"
-                gap={4}
-              >
-                <Ionicons
-                  name="help-circle-outline"
-                  size={20}
-                  color={ColorNeutral.neutral500}
-                />
-                <TextBodySm fontWeight="600" textAlign="center">
-                  Butuh bantuan?
-                </TextBodySm>
-                <TextCaption color="$colorSecondary" textAlign="center">
-                  Hubungi supervisor outlet
-                </TextCaption>
-              </YStack>
-
-              <YStack
-                flex={1}
-                backgroundColor="$backgroundSecondary"
-                borderRadius="$4"
-                padding="$3"
-                gap={4}
-              >
-                <Ionicons
-                  name="sunny-outline"
-                  size={20}
-                  color={BrandColors.lime}
-                />
-                <TextBodySm fontWeight="600" textAlign="center">
-                  Buka Shift
-                </TextBodySm>
-                <TextCaption color="$colorSecondary" textAlign="center">
-                  Catat modal awal sebelum jualan
-                </TextCaption>
-              </YStack>
-            </XStack>
-          </YStack>
+          <View style={styles.mobileFormWrap}>{formCard}</View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -693,86 +179,49 @@ export function LoginScreen({ variant }: { variant: LoginScreenVariant }) {
 }
 
 const styles = StyleSheet.create({
-  screen: {
+  tabletRoot: {
     flex: 1,
-    backgroundColor: BrandColors.canvas,
   },
   tabletScreen: {
     flex: 1,
     flexDirection: "row",
-    backgroundColor: BrandColors.surface,
+    backgroundColor: LoginColors.ink50,
   },
-  brandPanel: {
-    flex: 1,
-    backgroundColor: BrandColors.deep,
-    overflow: "hidden",
+  heroColumn: {
+    flex: loginLayoutSplit.heroFlex,
+  },
+  formColumn: {
+    flex: loginLayoutSplit.formFlex,
   },
   formPanelWrapper: {
     flex: 1,
-    backgroundColor: BrandColors.surface,
+    backgroundColor: LoginColors.ink50,
   },
   formPanelScroll: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingVertical: 24,
-    paddingBottom: 48,
+    paddingVertical: 48,
+    paddingHorizontal: 48,
+  },
+  formPanelInner: {
+    width: "100%",
+    alignItems: "center",
+  },
+  mobileScreen: {
+    flex: 1,
+    backgroundColor: LoginColors.ink50,
+  },
+  mobileKeyboard: {
+    flex: 1,
   },
   mobileScrollContent: {
     flexGrow: 1,
-    paddingBottom: 32,
-  },
-  printerTestButton: {
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-  },
-  tabletLogoFrame: {
-    width: 72,
-    height: 72,
-    borderRadius: 20,
-    backgroundColor: "rgba(253,255,250,0.92)",
-    borderWidth: 1,
-    borderColor: "rgba(218,247,166,0.34)",
-    alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
+    paddingVertical: 24,
+    paddingBottom: 40,
   },
-  tabletLogo: {
-    width: 62,
-    height: 62,
-  },
-  mobileLogo: {
-    width: 46,
-    height: 46,
-  },
-  decorCircle1: {
-    position: "absolute",
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    backgroundColor: "rgba(218,247,166,0.12)",
-    top: -70,
-    right: -50,
-  },
-  decorCircle2: {
-    position: "absolute",
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: "rgba(240,253,232,0.1)",
-    bottom: 80,
-    left: -40,
-  },
-  decorCircle3: {
-    position: "absolute",
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "rgba(218,247,166,0.1)",
-    bottom: -10,
-    right: 90,
+  mobileFormWrap: {
+    width: "100%",
+    alignItems: "center",
   },
 });

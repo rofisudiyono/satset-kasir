@@ -16,9 +16,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
-import { IconButton, TextBodySm, TextCaption, TextH3 } from "@/components";
+import { AvatarBadge, IconButton, TextBodySm, TextCaption, TextH3 } from "@/components";
+import { ShiftInfoBanner } from "@/components/molecules/ShiftInfoBanner";
 import { useAuth } from "@/lib/auth";
-import { useTenantInfoQuery, useReadyOrdersQuery } from "@/hooks/api/use-kasir-api";
+import {
+  usePendingWebOrdersQuery,
+  useReadyOrdersQuery,
+  useTenantInfoQuery,
+} from "@/hooks/api/use-kasir-api";
 import { kasirKeys } from "@/hooks/api/query-keys";
 import { API_BASE_URL } from "@/config/env";
 import {
@@ -43,7 +48,6 @@ import {
   ColorDanger,
   ColorNeutral,
   ColorPrimary,
-  ColorSuccess,
 } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
 
@@ -94,6 +98,25 @@ export function TopNavHeader() {
   const readyOrdersQuery = useReadyOrdersQuery(
     Boolean(isLoggedIn && isShiftStarted),
   );
+  const pendingWebOrdersQuery = usePendingWebOrdersQuery(
+    Boolean(isLoggedIn && isShiftStarted),
+  );
+
+  const displayWebOrderCount = useMemo(() => {
+    if (!isLoggedIn || !isShiftStarted) return 0;
+    if (
+      pendingWebOrdersQuery.isSuccess &&
+      Array.isArray(pendingWebOrdersQuery.data)
+    ) {
+      return pendingWebOrdersQuery.data.length;
+    }
+    return 0;
+  }, [
+    isLoggedIn,
+    isShiftStarted,
+    pendingWebOrdersQuery.data,
+    pendingWebOrdersQuery.isSuccess,
+  ]);
 
   const displayReadyCount = useMemo(() => {
     const localCount = readyOrders.length;
@@ -263,13 +286,14 @@ export function TopNavHeader() {
   const branchName = tenantInfo?.branchName ?? null;
   const logoUri = tenantInfo?.logoPath ? `${API_BASE_URL}${tenantInfo.logoPath}` : null;
   const cashierLabel = shiftData?.cashierName ?? "Kasir 01";
-  const shiftLabel = shiftData?.slot ?? "SHIFT";
+  const shiftSlot = shiftData?.slot ?? "PAGI";
+  const shiftStartTime = shiftData?.startTime;
   const shellMaxWidth = width >= 1360 ? 1480 : width >= 1024 ? 1240 : width;
 
   return (
     <View style={styles.wrapper}>
       <SafeAreaView edges={["top"]} style={styles.safeArea}>
-        <View style={[styles.shell, { maxWidth: shellMaxWidth }]}>
+        <View style={[styles.topShell, { maxWidth: shellMaxWidth }]}>
         <XStack style={styles.topRow}>
           <XStack alignItems="center" gap="$3" flex={1}>
             <View style={styles.brandIcon}>
@@ -288,9 +312,17 @@ export function TopNavHeader() {
               <TextH3 fontWeight="700" color={BrandColors.text}>
                 {tenantName ?? branchName ?? "—"}
               </TextH3>
-              <TextCaption color={HEADER_TEXT_SECONDARY}>
-                {branchName && tenantName ? `${branchName} • ` : ""}{cashierLabel}
-              </TextCaption>
+              <XStack alignItems="center" gap={4}>
+                <Ionicons
+                  name="location-outline"
+                  size={12}
+                  color={HEADER_TEXT_SECONDARY}
+                />
+                <TextCaption color={HEADER_TEXT_SECONDARY}>
+                  {branchName && tenantName ? `${branchName} • ` : ""}
+                  {cashierLabel}
+                </TextCaption>
+              </XStack>
             </YStack>
           </XStack>
 
@@ -300,15 +332,11 @@ export function TopNavHeader() {
             flexWrap="wrap"
             justifyContent="flex-end"
           >
-            <View style={styles.shiftPill}>
-              <TextCaption color={BrandColors.textMuted} fontWeight="700">
-                Shift
-              </TextCaption>
-              <TextBodySm fontWeight="700" color={BrandColors.text}>
-                {shiftLabel}
-                {isShiftStarted ? " • Aktif" : " • Belum buka"}
-              </TextBodySm>
-            </View>
+            <ShiftInfoBanner
+              slot={shiftSlot}
+              startTime={shiftStartTime}
+              isActive={isShiftStarted}
+            />
 
             <TouchableOpacity
               activeOpacity={0.85}
@@ -327,82 +355,99 @@ export function TopNavHeader() {
               }
             >
               <Ionicons
-                name={isShiftStarted ? "log-out-outline" : "play-outline"}
+                name={isShiftStarted ? "flame-outline" : "play-outline"}
                 size={18}
-                color={isShiftStarted ? ColorBase.white : BrandColors.deep}
+                color={isShiftStarted ? BrandColors.coral : BrandColors.deep}
               />
-              <TextBodySm fontWeight="700" color={isShiftStarted ? ColorBase.white : BrandColors.deep}>
+              <TextBodySm
+                fontWeight="700"
+                color={isShiftStarted ? BrandColors.coral : BrandColors.deep}
+              >
                 {isShiftStarted ? "Tutup Shift" : "Buka Shift"}
               </TextBodySm>
             </TouchableOpacity>
 
             <View style={styles.actionGroup}>
-              <View>
+              <TouchableOpacity activeOpacity={0.85} style={styles.actionCircle}>
                 <IconButton
                   iconName="notifications-outline"
-                  shape="square"
-                  size={38}
+                  size={34}
                   iconSize={18}
                   iconColor={BrandColors.textMuted}
-                  bg={BrandColors.tint}
+                  bg={BrandColors.surface}
                 />
                 <View style={styles.alertDot} />
-              </View>
-              <IconButton
-                iconName="bluetooth-outline"
-                shape="square"
-                size={38}
-                iconSize={18}
-                iconColor={BrandColors.textMuted}
-                bg={BrandColors.tint}
-                onPress={() => router.push("/bluetooth-printer" as never)}
-              />
-              <IconButton
-                iconName="person-outline"
-                shape="square"
-                size={38}
-                iconSize={18}
-                iconColor={BrandColors.textMuted}
-                bg={BrandColors.tint}
+              </TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.85} style={styles.actionCircle}>
+                <IconButton
+                  iconName="bluetooth-outline"
+                  size={34}
+                  iconSize={18}
+                  iconColor={BrandColors.textMuted}
+                  bg={BrandColors.surface}
+                  onPress={() => router.push("/bluetooth-printer" as never)}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.staffChip}
                 onPress={() => setStaffDetailVisible(true)}
-              />
+              >
+                <AvatarBadge name={cashierLabel} size={30} bg={BrandColors.buttonSolid} textColor="#fff" />
+                <YStack gap={1}>
+                  <TextBodySm fontWeight="700" color={BrandColors.text} numberOfLines={1}>
+                    {cashierLabel}
+                  </TextBodySm>
+                  <TextCaption color={BrandColors.textMuted}>Kasir</TextCaption>
+                </YStack>
+              </TouchableOpacity>
             </View>
           </XStack>
         </XStack>
+        </View>
 
-        <XStack style={styles.navRow} flexWrap="wrap">
-          {navItems.map((item) => {
-            const active = isActive(item);
-            return (
-              <TouchableOpacity
-                key={item.label}
-                activeOpacity={0.8}
-                style={[styles.navChip, active && styles.navChipActive]}
-                onPress={() => router.push(item.href as never)}
-              >
-                <Ionicons
-                  name={active ? item.iconActive : item.icon}
-                  size={16}
-                  color={active ? ColorBase.white : BrandColors.textMuted}
-                />
-                <TextBodySm
-                  fontWeight="700"
-                  color={active ? ColorBase.white : BrandColors.textMuted}
+        <View style={styles.sectionDivider} />
+
+        <View style={[styles.navShell, { maxWidth: shellMaxWidth }]}>
+        <XStack style={styles.navRow} alignItems="center">
+          <XStack style={styles.navItems} flexWrap="wrap" flex={1}>
+            {navItems.map((item) => {
+              const active = isActive(item);
+              const isWebOrders = item.label === "Pesanan Web";
+              return (
+                <TouchableOpacity
+                  key={item.label}
+                  activeOpacity={0.8}
+                  style={[styles.navChip, active && styles.navChipActive]}
+                  onPress={() => router.push(item.href as never)}
                 >
-                  {item.label}
-                </TextBodySm>
-              </TouchableOpacity>
-            );
-          })}
+                  <Ionicons
+                    name={active ? item.iconActive : item.icon}
+                    size={16}
+                    color={active ? ColorBase.white : BrandColors.textMuted}
+                  />
+                  <TextBodySm
+                    fontWeight="700"
+                    color={active ? ColorBase.white : BrandColors.textMuted}
+                  >
+                    {item.label}
+                  </TextBodySm>
+                  {isWebOrders && displayWebOrderCount > 0 ? (
+                    <View style={styles.navCountBadge}>
+                      <TextCaption fontWeight="700" color={ColorBase.white} fontSize={10}>
+                        {displayWebOrderCount}
+                      </TextCaption>
+                    </View>
+                  ) : null}
+                </TouchableOpacity>
+              );
+            })}
 
           <TouchableOpacity
             activeOpacity={0.85}
             style={[
               styles.readyChip,
-              isSiapAntarTabActive && styles.navChipActive,
-              !isSiapAntarTabActive &&
-                displayReadyCount > 0 &&
-                styles.readyChipActive,
+              isSiapAntarTabActive && styles.readyChipActive,
             ]}
             onPress={() => router.push(siapAntarHref as never)}
           >
@@ -412,9 +457,7 @@ export function TopNavHeader() {
               color={
                 isSiapAntarTabActive
                   ? BrandColors.deep
-                  : displayReadyCount > 0
-                    ? ColorSuccess.success600
-                    : BrandColors.textMuted
+                  : BrandColors.textMuted
               }
             />
             <TextBodySm
@@ -422,9 +465,7 @@ export function TopNavHeader() {
               color={
                 isSiapAntarTabActive
                   ? BrandColors.deep
-                  : displayReadyCount > 0
-                    ? ColorSuccess.success600
-                    : BrandColors.textMuted
+                  : BrandColors.textMuted
               }
             >
               Siap Diantar
@@ -433,17 +474,30 @@ export function TopNavHeader() {
               color={
                 isSiapAntarTabActive
                   ? BrandColors.deep
-                  : displayReadyCount > 0
-                    ? ColorSuccess.success600
-                    : HEADER_TEXT_MUTED
+                  : HEADER_TEXT_MUTED
               }
-              fontWeight={displayReadyCount > 0 ? "700" : "500"}
+              fontWeight="600"
             >
               {displayReadyCount > 0
-                ? `${displayReadyCount} READY dari KDS`
+                ? `${displayReadyCount} READY`
                 : "Belum ada READY"}
             </TextCaption>
           </TouchableOpacity>
+
+          {/* <View style={styles.comingSoonChip}>
+            <Ionicons
+              name="calendar-clear-outline"
+              size={16}
+              color={BrandColors.textMuted}
+            />
+            <TextBodySm fontWeight="700" color={BrandColors.textMuted}>
+              Reservasi
+            </TextBodySm>
+            <TextCaption color={HEADER_TEXT_MUTED}>
+              Segera hadir
+            </TextCaption>
+          </View> */}
+          </XStack>
 
           {refreshTarget ? (
             <TouchableOpacity
@@ -467,20 +521,6 @@ export function TopNavHeader() {
               </TextBodySm>
             </TouchableOpacity>
           ) : null}
-
-          <View style={styles.comingSoonChip}>
-            <Ionicons
-              name="calendar-clear-outline"
-              size={16}
-              color={BrandColors.textMuted}
-            />
-            <TextBodySm fontWeight="700" color={BrandColors.textMuted}>
-              Reservasi
-            </TextBodySm>
-            <TextCaption color={HEADER_TEXT_MUTED}>
-              Segera hadir
-            </TextCaption>
-          </View>
         </XStack>
         </View>
       </SafeAreaView>
@@ -601,21 +641,31 @@ const styles = StyleSheet.create({
   safeArea: {
     backgroundColor: "transparent",
   },
-  shell: {
+  topShell: {
     width: "100%",
     alignSelf: "center",
     backgroundColor: "transparent",
-    paddingHorizontal: 14,
-    paddingBottom: 12,
+    paddingHorizontal: 16,
+  },
+  navShell: {
+    width: "100%",
+    alignSelf: "center",
+    backgroundColor: "transparent",
+    paddingHorizontal: 16,
+  },
+  sectionDivider: {
+    height: 1,
+    width: "100%",
+    backgroundColor: ColorNeutral.neutral200,
   },
   topRow: {
     alignItems: "center",
     justifyContent: "space-between",
     flexWrap: "wrap",
     paddingHorizontal: 0,
-    paddingTop: 8,
-    paddingBottom: 10,
-    gap: 14,
+    paddingTop: 6,
+    paddingBottom: 8,
+    gap: 12,
   },
   brandIcon: {
     width: 40,
@@ -633,26 +683,26 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 12,
   },
-  shiftPill: {
-    minWidth: 166,
-    height: 38,
+  staffChip: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
     gap: 8,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: BrandColors.tint,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    paddingRight: 12,
+    borderRadius: 999,
+    backgroundColor: BrandColors.surface,
     borderWidth: 1,
-    borderColor: BrandColors.border,
+    borderColor: ColorNeutral.neutral200,
+    maxWidth: 176,
   },
   primaryAction: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    height: 38,
+    height: 36,
     paddingHorizontal: 14,
-    borderRadius: 12,
+    borderRadius: 999,
   },
   primaryActionNeutral: {
     backgroundColor: BrandColors.tint,
@@ -660,33 +710,51 @@ const styles = StyleSheet.create({
     borderColor: BrandColors.border,
   },
   primaryActionDanger: {
-    backgroundColor: BrandColors.coral,
+    backgroundColor: "#FFF0F0",
+    borderWidth: 1,
+    borderColor: "rgba(220, 80, 60, 0.22)",
   },
   actionGroup: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
+  },
+  actionCircle: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: BrandColors.border,
+    backgroundColor: BrandColors.surface,
   },
   alertDot: {
     position: "absolute",
-    top: -1,
-    right: -1,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    top: 0,
+    right: 0,
+    width: 9,
+    height: 9,
+    borderRadius: 999,
     backgroundColor: BrandColors.coral,
     borderWidth: 2,
     borderColor: BrandColors.surface,
   },
   navRow: {
+    gap: 10,
+    alignItems: "center",
+    paddingHorizontal: 0,
+    paddingVertical: 10,
+  },
+  navItems: {
     gap: 8,
     alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    backgroundColor: BrandColors.canvas,
-    borderWidth: 1,
-    borderColor: BrandColors.border,
-    borderRadius: 18,
+    flex: 1,
+  },
+  navCountBadge: {
+    minWidth: 18,
+    height: 18,
+    borderRadius: 999,
+    paddingHorizontal: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: BrandColors.coral,
   },
   navChip: {
     flexDirection: "row",
@@ -696,12 +764,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: "transparent",
+    backgroundColor: BrandColors.surface,
     borderWidth: 1,
-    borderColor: "transparent",
+    borderColor: ColorNeutral.neutral200,
   },
   navChipActive: {
     backgroundColor: BrandColors.buttonSolid,
+    borderColor: BrandColors.buttonSolid,
   },
   readyChip: {
     flexDirection: "row",
@@ -711,12 +780,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: "transparent",
+    backgroundColor: BrandColors.surface,
     borderWidth: 1,
-    borderColor: "transparent",
+    borderColor: ColorNeutral.neutral200,
   },
   readyChipActive: {
-    backgroundColor: "rgba(4,120,87,0.12)",
+    backgroundColor: "rgba(4, 120, 87, 0.12)",
+    borderColor: "rgba(4, 120, 87, 0.24)",
   },
   refreshChip: {
     flexDirection: "row",
@@ -726,9 +796,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: BrandColors.tint,
+    backgroundColor: BrandColors.surface,
     borderWidth: 1,
-    borderColor: BrandColors.border,
+    borderColor: ColorNeutral.neutral200,
   },
   refreshChipDisabled: {
     opacity: 0.55,
@@ -741,7 +811,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: "transparent",
+    backgroundColor: BrandColors.surface,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
   },
   // Modal / Staff popup
   modalOverlay: {

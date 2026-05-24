@@ -97,6 +97,9 @@ export function getApiErrorMessage(
   if (axios.isAxiosError<ApiErrorBody>(error)) {
     const msg = error.response?.data?.message;
     if (typeof msg === "string" && msg.length > 0) return msg;
+    if (!error.response) {
+      return "Tidak bisa terhubung ke server API. Pastikan satset-api berjalan dan URL API benar.";
+    }
   }
   if (error instanceof Error && error.message) return error.message;
   return fallback;

@@ -3,22 +3,21 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 
 import { BrandColors } from "@/themes/brand";
-import { TextBodySm, TextCaption } from "@/components/atoms/Typography";
+import { TextCaption } from "@/components/atoms/Typography";
 
 export interface ShiftInfoBannerProps {
-  slot: string;       // e.g. "PAGI"
-  startTime?: string; // e.g. "07:30"
+  slot: string;
+  startTime?: string;
   isActive: boolean;
 }
 
 export function ShiftInfoBanner({ slot, startTime, isActive }: ShiftInfoBannerProps) {
   return (
     <View style={styles.row}>
-      <View style={styles.slotPill}>
-        <TextCaption fontWeight="700" color={BrandColors.deep} fontSize={10}>
-          {slot}
-        </TextCaption>
-      </View>
+      <View style={styles.dot} />
+      <TextCaption fontWeight="700" color={BrandColors.deep} fontSize={11}>
+        {slot}
+      </TextCaption>
       <TextCaption color={BrandColors.textMuted} fontSize={11}>
         {isActive && startTime ? `Aktif sejak ${startTime}` : "Belum buka"}
       </TextCaption>
@@ -30,12 +29,12 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
   },
-  slotPill: {
-    backgroundColor: BrandColors.tint,
+  dot: {
+    width: 8,
+    height: 8,
     borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    backgroundColor: BrandColors.deep,
   },
 });

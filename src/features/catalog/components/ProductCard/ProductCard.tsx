@@ -77,10 +77,10 @@ const styles = StyleSheet.create({
     height: 30,
   },
   addButtonCompact: {
-    backgroundColor: BrandColors.tint,
-    borderRadius: 8,
-    width: 28,
-    height: 28,
+    backgroundColor: BrandColors.buttonSolid,
+    borderRadius: 999,
+    width: 30,
+    height: 30,
   },
   addButtonDisabled: {
     backgroundColor: BrandColors.border,
@@ -281,13 +281,11 @@ export const ProductCard = React.memo(function ProductCard({
           >
             <Ionicons
               name="add"
-              size={compact ? 17 : 20}
+              size={compact ? 18 : 20}
               color={
                 isDisabled
                   ? ColorNeutral.neutral400
-                  : compact
-                    ? BrandColors.deep
-                    : ColorBase.white
+                  : ColorBase.white
               }
             />
           </Pressable>

@@ -77,8 +77,8 @@ const variantStyles: Record<
     pressOpacity: 0.85,
   },
   dangerDeep: {
-    bg: "#8B2020",
-    border: "#8B2020",
+    bg: "#be123c",
+    border: "#be123c",
     labelColor: ColorBase.white,
     pressOpacity: 0.85,
   },

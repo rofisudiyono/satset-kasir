@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 14,
     color: ColorNeutral.neutral900,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: "PlusJakartaSans_400Regular",
   },
   inputError: {
     borderColor: ColorPrimary.primary600,

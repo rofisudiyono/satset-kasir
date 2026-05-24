@@ -1,5 +1,5 @@
 /**
- * Typography atoms — Poppins typeface
+ * Typography atoms — Plus Jakarta Sans typeface
  *
  * Section 4 of the design spec.
  * Each component maps directly to a font-size token and weight.

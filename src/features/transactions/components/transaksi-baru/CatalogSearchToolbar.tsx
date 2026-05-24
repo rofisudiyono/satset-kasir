@@ -11,7 +11,7 @@ import type { CategoryFilter } from "@/types";
 
 import { SearchBar } from "./SearchBar";
 
-const COMPACT_H_PAD = 12;
+const COMPACT_H_PAD = 16;
 
 export type CatalogSearchToolbarProps = {
   compact: boolean;
@@ -38,10 +38,10 @@ export function CatalogSearchToolbar({
 }: CatalogSearchToolbarProps) {
   return (
     <YStack
-      gap={dense ? 8 : 12}
+      gap={dense ? 10 : 12}
       paddingHorizontal={paddingHorizontal}
-      paddingTop={dense ? 4 : 0}
-      paddingBottom={dense ? 6 : 12}
+      paddingTop={dense ? 8 : 0}
+      paddingBottom={dense ? 10 : 12}
     >
       <SearchBar
         value={searchValue}

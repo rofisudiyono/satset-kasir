@@ -173,7 +173,7 @@ export function AppInput({
           flex: 1,
           height: "100%",
           fontSize: dimensions.fontSize,
-          fontFamily: "Poppins_400Regular",
+          fontFamily: "PlusJakartaSans_400Regular",
           color: textColor,
           padding: 0,
           margin: 0,

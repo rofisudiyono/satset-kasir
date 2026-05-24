@@ -58,7 +58,7 @@ export function TransactionEntryTabletScreen() {
                   Input Manual
                 </TextH2>
                 <TextBodySm color={ColorNeutral.neutral500} marginTop={2}>
-                  Pilih menu dan tambah item ke keranjang
+                  Pilih menu lalu tambah ke keranjang
                 </TextBodySm>
               </View>
             </View>
@@ -99,7 +99,7 @@ export function TransactionEntryTabletScreen() {
               onBarcodePress={openScanner}
               categoryFilter={categoryFilter}
               onCategoryChange={setCategoryFilter}
-              paddingHorizontal={18}
+              paddingHorizontal={16}
             />
           </View>
 
@@ -112,10 +112,10 @@ export function TransactionEntryTabletScreen() {
                 onAddProduct={handleAddProduct}
                 availableWidth={catalogPanelWidth}
                 numColumns={4}
-                contentBottomInset={24}
+                contentBottomInset={20}
                 compact
                 omitListHeader
-                listContentPaddingH={18}
+                listContentPaddingH={16}
               />
             ) : null}
           </View>
@@ -146,10 +146,10 @@ const styles = StyleSheet.create({
   splitLayout: {
     flex: 1,
     flexDirection: "row",
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 14,
-    gap: 12,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 16,
+    gap: 14,
   },
   catalogPanel: {
     flex: 0.65,
@@ -165,9 +165,9 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   catalogHeader: {
-    paddingHorizontal: 18,
-    paddingTop: 10,
-    paddingBottom: 6,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 10,
     backgroundColor: BrandColors.surfaceWarm,
     borderBottomWidth: 0,
     flexDirection: "row",
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   },
   sectionMarker: {
     width: 4,
-    height: 34,
+    height: 38,
     borderRadius: 999,
     backgroundColor: BrandColors.buttonSolid,
   },
