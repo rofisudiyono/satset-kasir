@@ -14,7 +14,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import { XStack, YStack } from "tamagui";
 
 import { IconButton, TextBodySm, TextCaption, TextH3 } from "@/components";
@@ -58,8 +57,8 @@ type NavItem = {
 
 type RefreshTarget = "web-orders" | "input-manual" | "history" | "ready-orders";
 
-const HEADER_TEXT_SECONDARY = "rgba(255,255,255,0.88)";
-const HEADER_TEXT_MUTED = "rgba(255,255,255,0.58)";
+const HEADER_TEXT_SECONDARY = BrandColors.textMuted;
+const HEADER_TEXT_MUTED = "rgba(23,31,27,0.35)";
 
 export function TopNavHeader() {
   const router = useRouter();
@@ -269,16 +268,6 @@ export function TopNavHeader() {
 
   return (
     <View style={styles.wrapper}>
-      <LinearGradient
-        colors={[
-          BrandColors.headerGradientTop,
-          BrandColors.headerGradientMid,
-          BrandColors.headerGradientBottom,
-        ]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradientBg}
-      />
       <SafeAreaView edges={["top"]} style={styles.safeArea}>
         <View style={[styles.shell, { maxWidth: shellMaxWidth }]}>
         <XStack style={styles.topRow}>
@@ -291,12 +280,12 @@ export function TopNavHeader() {
                   resizeMode="cover"
                 />
               ) : (
-                <Ionicons name="cafe-outline" size={22} color={ColorBase.white} />
+                <Ionicons name="cafe-outline" size={22} color={BrandColors.deep} />
               )}
             </View>
 
             <YStack gap={2} flex={1}>
-              <TextH3 fontWeight="700" color={ColorBase.white}>
+              <TextH3 fontWeight="700" color={BrandColors.text}>
                 {tenantName ?? branchName ?? "—"}
               </TextH3>
               <TextCaption color={HEADER_TEXT_SECONDARY}>
@@ -312,10 +301,10 @@ export function TopNavHeader() {
             justifyContent="flex-end"
           >
             <View style={styles.shiftPill}>
-              <TextCaption color={HEADER_TEXT_SECONDARY} fontWeight="700">
+              <TextCaption color={BrandColors.textMuted} fontWeight="700">
                 Shift
               </TextCaption>
-              <TextBodySm fontWeight="700" color={ColorBase.white}>
+              <TextBodySm fontWeight="700" color={BrandColors.text}>
                 {shiftLabel}
                 {isShiftStarted ? " • Aktif" : " • Belum buka"}
               </TextBodySm>
@@ -340,9 +329,9 @@ export function TopNavHeader() {
               <Ionicons
                 name={isShiftStarted ? "log-out-outline" : "play-outline"}
                 size={18}
-                color={ColorBase.white}
+                color={isShiftStarted ? ColorBase.white : BrandColors.deep}
               />
-              <TextBodySm fontWeight="700" color={ColorBase.white}>
+              <TextBodySm fontWeight="700" color={isShiftStarted ? ColorBase.white : BrandColors.deep}>
                 {isShiftStarted ? "Tutup Shift" : "Buka Shift"}
               </TextBodySm>
             </TouchableOpacity>
@@ -354,8 +343,8 @@ export function TopNavHeader() {
                   shape="square"
                   size={38}
                   iconSize={18}
-                  iconColor={ColorBase.white}
-                  bg="rgba(255,255,255,0.14)"
+                  iconColor={BrandColors.textMuted}
+                  bg={BrandColors.tint}
                 />
                 <View style={styles.alertDot} />
               </View>
@@ -364,8 +353,8 @@ export function TopNavHeader() {
                 shape="square"
                 size={38}
                 iconSize={18}
-                iconColor={ColorBase.white}
-                bg="rgba(255,255,255,0.14)"
+                iconColor={BrandColors.textMuted}
+                bg={BrandColors.tint}
                 onPress={() => router.push("/bluetooth-printer" as never)}
               />
               <IconButton
@@ -373,8 +362,8 @@ export function TopNavHeader() {
                 shape="square"
                 size={38}
                 iconSize={18}
-                iconColor={ColorBase.white}
-                bg="rgba(255,255,255,0.14)"
+                iconColor={BrandColors.textMuted}
+                bg={BrandColors.tint}
                 onPress={() => setStaffDetailVisible(true)}
               />
             </View>
@@ -394,13 +383,11 @@ export function TopNavHeader() {
                 <Ionicons
                   name={active ? item.iconActive : item.icon}
                   size={16}
-                  color={
-                    active ? ColorBase.white : HEADER_TEXT_SECONDARY
-                  }
+                  color={active ? ColorBase.white : BrandColors.textMuted}
                 />
                 <TextBodySm
                   fontWeight="700"
-                  color={active ? ColorBase.white : HEADER_TEXT_SECONDARY}
+                  color={active ? ColorBase.white : BrandColors.textMuted}
                 >
                   {item.label}
                 </TextBodySm>
@@ -424,20 +411,20 @@ export function TopNavHeader() {
               size={16}
               color={
                 isSiapAntarTabActive
-                  ? ColorBase.white
+                  ? BrandColors.deep
                   : displayReadyCount > 0
                     ? ColorSuccess.success600
-                    : HEADER_TEXT_MUTED
+                    : BrandColors.textMuted
               }
             />
             <TextBodySm
               fontWeight="700"
               color={
                 isSiapAntarTabActive
-                  ? ColorBase.white
+                  ? BrandColors.deep
                   : displayReadyCount > 0
                     ? ColorSuccess.success600
-                    : HEADER_TEXT_SECONDARY
+                    : BrandColors.textMuted
               }
             >
               Siap Diantar
@@ -445,7 +432,7 @@ export function TopNavHeader() {
             <TextCaption
               color={
                 isSiapAntarTabActive
-                  ? ColorBase.white
+                  ? BrandColors.deep
                   : displayReadyCount > 0
                     ? ColorSuccess.success600
                     : HEADER_TEXT_MUTED
@@ -473,9 +460,9 @@ export function TopNavHeader() {
               <Ionicons
                 name={isRefreshing ? "sync" : "refresh-outline"}
                 size={16}
-                color={ColorBase.white}
+                color={BrandColors.deep}
               />
-              <TextBodySm fontWeight="700" color={ColorBase.white}>
+              <TextBodySm fontWeight="700" color={BrandColors.deep}>
                 Refresh
               </TextBodySm>
             </TouchableOpacity>
@@ -485,9 +472,9 @@ export function TopNavHeader() {
             <Ionicons
               name="calendar-clear-outline"
               size={16}
-              color={ColorSuccess.success600}
+              color={BrandColors.textMuted}
             />
-            <TextBodySm fontWeight="700" color={ColorBase.white}>
+            <TextBodySm fontWeight="700" color={BrandColors.textMuted}>
               Reservasi
             </TextBodySm>
             <TextCaption color={HEADER_TEXT_MUTED}>
@@ -607,9 +594,9 @@ export function TopNavHeader() {
 const styles = StyleSheet.create({
   wrapper: {
     position: "relative",
-  },
-  gradientBg: {
-    ...StyleSheet.absoluteFillObject,
+    backgroundColor: BrandColors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: BrandColors.border,
   },
   safeArea: {
     backgroundColor: "transparent",
@@ -636,9 +623,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.16)",
+    backgroundColor: BrandColors.tint,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.28)",
+    borderColor: BrandColors.border,
     overflow: "hidden",
   },
   brandLogo: {
@@ -655,9 +642,9 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 14,
     borderRadius: 12,
-    backgroundColor: "rgba(88,155,127,0.28)",
+    backgroundColor: BrandColors.tint,
     borderWidth: 1,
-    borderColor: "rgba(168,212,196,0.55)",
+    borderColor: BrandColors.border,
   },
   primaryAction: {
     flexDirection: "row",
@@ -668,9 +655,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   primaryActionNeutral: {
-    backgroundColor: "rgba(255,255,255,0.14)",
+    backgroundColor: BrandColors.tint,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.26)",
+    borderColor: BrandColors.border,
   },
   primaryActionDanger: {
     backgroundColor: BrandColors.coral,
@@ -689,76 +676,72 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: BrandColors.coral,
     borderWidth: 2,
-    borderColor: BrandColors.headerGradientBottom,
+    borderColor: BrandColors.surface,
   },
   navRow: {
     gap: 8,
     alignItems: "center",
     paddingHorizontal: 8,
-    paddingVertical: 8,
-    backgroundColor: "rgba(88,155,127,0.22)",
+    paddingVertical: 6,
+    backgroundColor: BrandColors.canvas,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderColor: BrandColors.border,
     borderRadius: 18,
   },
   navChip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
-    minHeight: 38,
+    minHeight: 34,
     paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
     backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: "transparent",
   },
   navChipActive: {
     backgroundColor: BrandColors.buttonSolid,
-    borderColor: "rgba(255,255,255,0.35)",
   },
   readyChip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
-    minHeight: 38,
+    minHeight: 34,
     paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
     backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: "transparent",
   },
   readyChipActive: {
-    backgroundColor: "rgba(111,175,148,0.35)",
-    borderColor: "rgba(255,255,255,0.28)",
+    backgroundColor: "rgba(4,120,87,0.12)",
   },
   refreshChip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
-    minHeight: 38,
+    minHeight: 34,
     paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: 12,
-    backgroundColor: "rgba(111,175,148,0.32)",
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: BrandColors.tint,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.26)",
+    borderColor: BrandColors.border,
   },
   refreshChipDisabled: {
-    opacity: 0.72,
+    opacity: 0.55,
   },
   comingSoonChip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
-    minHeight: 38,
+    minHeight: 34,
     paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
     backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "transparent",
   },
   // Modal / Staff popup
   modalOverlay: {
