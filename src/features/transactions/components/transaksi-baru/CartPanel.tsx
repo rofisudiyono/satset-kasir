@@ -17,33 +17,22 @@ import { TextH3 } from "@/components";
 import {
   BottomActionBar,
   CartItemsCard,
-  CustomerInfoCard,
-  type CustomerInfoValidationErrors,
+  cartCheckoutContextAtom,
   PriceSummaryCard,
   PromoCard,
 } from "@/features/cart";
 import {
   cartAtom,
   cartOrderDraftAtom,
-  cartSnapshotAtom,
   type CustomerVisitStatus,
-  heldOrdersAtom,
 } from "@/features/cart/store/cart.store";
 import {
-  useCheckoutMutation,
   useTablesQuery,
   useTaxSettingsQuery,
-  useTenantInfoQuery,
   useValidatePromoMutation,
 } from "@/hooks/api/use-kasir-api";
-import {
-  buildCheckoutOrderBody,
-  buildPosOrderFromCart,
-  mapOrderTypeToServiceMode,
-} from "@/features/pos/pos.utils";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { calculateTaxBreakdown } from "@/lib/tax";
-import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { shiftDataAtom } from "@/features/shift/store/shift.store";
 import type { KasirTable } from "@/lib/api/types";
 import { ColorBase, ColorDanger, ColorNeutral, ColorSurface } from "@/themes/Colors";
@@ -58,10 +47,8 @@ export function CartPanel({ compact = false }: CartPanelProps) {
   const router = useRouter();
   const [cart, setCart] = useAtom(cartAtom);
   const [orderDraft, setOrderDraft] = useAtom(cartOrderDraftAtom);
-  const [, setHeldOrders] = useAtom(heldOrdersAtom);
-  const [, setCartSnapshot] = useAtom(cartSnapshotAtom);
-  const [posOrders, setPosOrders] = useAtom(posOrdersAtom);
   const [shiftData] = useAtom(shiftDataAtom);
+  const [, setCheckoutContext] = useAtom(cartCheckoutContextAtom);
 
   const [customerName, setCustomerName] = useState(orderDraft.customerName);
   const [customerPhone, setCustomerPhone] = useState(orderDraft.customerPhone ?? "");
@@ -74,14 +61,9 @@ export function CartPanel({ compact = false }: CartPanelProps) {
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const [promoEnabled, setPromoEnabled] = useState(false);
   const [promoLoading, setPromoLoading] = useState(false);
-  const [validationErrors, setValidationErrors] =
-    useState<CustomerInfoValidationErrors>({});
   const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(true);
-  const { data: tenantInfo } = useTenantInfoQuery(Boolean(shiftData?.shiftId));
   const { data: taxSettings } = useTaxSettingsQuery(Boolean(shiftData?.shiftId));
-  const checkoutMutation = useCheckoutMutation();
   const validatePromoMutation = useValidatePromoMutation();
-  const isPostPay = tenantInfo?.defaultPaymentTiming === "POSTPAY";
 
   const subtotal = cart.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
   const discount = appliedPromo && promoEnabled ? appliedPromo.discount : 0;
@@ -127,24 +109,6 @@ export function CartPanel({ compact = false }: CartPanelProps) {
     selectedTable,
     setOrderDraft,
   ]);
-
-  function validateCustomerInfo() {
-    const nextErrors: CustomerInfoValidationErrors = {};
-    if (!customerVisitStatus) {
-      nextErrors.visitStatus = "Pilih status pelanggan sebelum melanjutkan.";
-    }
-    if (!customerPhone.trim()) {
-      nextErrors.customerPhone = "Nomor HP wajib diisi.";
-    }
-    if (customerVisitStatus === "new" && !customerName.trim()) {
-      nextErrors.customerName = "Nama pelanggan baru wajib diisi.";
-    }
-    if (orderType === "Dine In" && !selectedTable) {
-      nextErrors.table = "Pilih meja aktif untuk order dine-in.";
-    }
-    setValidationErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  }
 
   function handleUpdateQty(cartId: string, qty: number) {
     setCart((prev) =>
@@ -204,132 +168,25 @@ export function CartPanel({ compact = false }: CartPanelProps) {
     }
   }
 
-  function handleHoldOrder() {
-    if (cart.length === 0) return;
-    if (!validateCustomerInfo()) return;
-
-    const resolvedCustomerName = customerVisitStatus === "new" ? customerName : "";
-    const resolvedCustomerVisitStatus = customerVisitStatus ?? "returning";
-    const label = resolvedCustomerName || customerPhone || selectedTable?.label || orderType;
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString("id-ID", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    const held = {
-      id: `hold-${Date.now()}`,
-      items: [...cart],
-      customerName: resolvedCustomerName,
-      customerPhone,
-      orderNote,
-      customerVisitStatus: resolvedCustomerVisitStatus,
-      tableId: selectedTable?.id,
-      tableLabel: selectedTable?.label,
-      tableNumber: selectedTable?.label ?? "",
-      orderType,
-      createdAt: timeStr,
-      label,
-    };
-    setHeldOrders((prev) => [held, ...prev]);
-    setCart([]);
-    setCustomerName("");
-    setCustomerPhone("");
-    setOrderNote("");
-    setCustomerVisitStatus(null);
-    setOrderType("Dine In");
-    setSelectedTable(null);
-    setOrderDraft({
-      customerName: "",
-      customerPhone: "",
-      orderNote: "",
-      customerVisitStatus: null,
-      orderType: "Dine In",
-      tableId: undefined,
-      tableLabel: undefined,
-    });
-    Alert.alert("Pesanan Ditahan", `Pesanan "${label}" telah ditahan.`);
+  function persistCheckoutContext() {
+    setCheckoutContext({ appliedPromo, promoEnabled });
   }
 
-  async function handlePay() {
+  function handleOpenHoldPage() {
     if (cart.length === 0) return;
-    if (!validateCustomerInfo()) return;
-
-    setCartSnapshot([...cart]);
-    const orderId = `#ORD-${String(posOrders.length + 1).padStart(4, "0")}`;
-    const tableLabel =
-      selectedTable?.label ||
-      (orderType === "Dine In"
-        ? "Dine In"
-        : orderType === "Take Away"
-          ? "Takeaway"
-          : "Delivery");
-    const resolvedCustomerName = customerVisitStatus === "new" ? customerName : "";
-
-    if (isPostPay) {
-      try {
-        await checkoutMutation.mutateAsync(
-          buildCheckoutOrderBody({
-            cart,
-            orderType: mapOrderTypeToServiceMode(orderType),
-            tableId: selectedTable?.id,
-            customerName: resolvedCustomerName,
-            customerPhone,
-            orderNote,
-            tableLabel,
-            promoCode: promoEnabled ? appliedPromo?.code : undefined,
-            promoId: promoEnabled ? appliedPromo?.promoId : undefined,
-          }),
-        );
-        setCart([]);
-        setOrderDraft({
-          customerName: "",
-          customerPhone: "",
-          orderNote: "",
-          customerVisitStatus: null,
-          orderType: "Dine In",
-          tableId: undefined,
-          tableLabel: undefined,
-        });
-        Alert.alert("Pesanan Masuk Dapur", `Meja ${tableLabel} — bayar setelah selesai makan.`);
-      } catch (error) {
-        Alert.alert("Gagal", getApiErrorMessage(error, "Transaksi tidak berhasil dikirim ke server."));
-      }
-      return;
-    }
-
-    const order = buildPosOrderFromCart({
-      orderId,
-      shiftId: shiftData?.shiftId,
-      cart,
-      tableId: selectedTable?.id,
-      customerName: resolvedCustomerName,
-      customerPhone,
-      orderNote,
-      tableLabel,
-      orderType,
-      discountAmount: discount,
-      taxAmount: ppn,
-      grandTotal: total,
-      promoCode: promoEnabled ? appliedPromo?.code : undefined,
-      promoId: promoEnabled ? appliedPromo?.promoId : undefined,
-    });
-
-    setPosOrders((prev) => [order, ...prev]);
-    setOrderDraft({
-      customerName: resolvedCustomerName,
-      customerPhone,
-      orderNote,
-      customerVisitStatus,
-      orderType,
-      tableId: selectedTable?.id,
-      tableLabel: selectedTable?.label,
-    });
-
+    persistCheckoutContext();
     router.push({
-      pathname: "/pilih-pembayaran",
-      params: {
-        orderId,
-      },
+      pathname: "/order-info",
+      params: { mode: "hold" },
+    });
+  }
+
+  function handleOpenPayPage() {
+    if (cart.length === 0) return;
+    persistCheckoutContext();
+    router.push({
+      pathname: "/order-info",
+      params: { mode: "pay" },
     });
   }
 
@@ -374,69 +231,38 @@ export function CartPanel({ compact = false }: CartPanelProps) {
             paddingHorizontal={compact ? 12 : 16}
             paddingTop={compact ? 10 : 12}
           >
-          <CartItemsCard
-            cart={cart}
-            onUpdateQty={handleUpdateQty}
-            onRemove={handleRemove}
-            onUpdateNote={handleUpdateNote}
-          />
-          <CustomerInfoCard
-            customerVisitStatus={customerVisitStatus}
-            onCustomerVisitStatusChange={(value) => {
-              setCustomerVisitStatus(value);
-              setValidationErrors((prev) => ({ ...prev, visitStatus: undefined }));
-            }}
-            customerName={customerName}
-            onCustomerNameChange={(value) => {
-              setCustomerName(value);
-              setValidationErrors((prev) => ({ ...prev, customerName: undefined }));
-            }}
-            customerPhone={customerPhone}
-            onCustomerPhoneChange={(value) => {
-              setCustomerPhone(value);
-              setValidationErrors((prev) => ({ ...prev, customerPhone: undefined }));
-            }}
-            orderNote={orderNote}
-            onOrderNoteChange={setOrderNote}
-            orderType={orderType}
-            onOrderTypeChange={(value) => {
-              setOrderType(value);
-              setValidationErrors((prev) => ({ ...prev, table: undefined }));
-            }}
-            selectedTableId={selectedTable?.id}
-            selectedTableLabel={selectedTable?.label}
-            tables={tables}
-            isTablesLoading={isTablesLoading}
-            onSelectTable={(table) => {
-              setSelectedTable(table);
-              setValidationErrors((prev) => ({ ...prev, table: undefined }));
-            }}
-            validationErrors={validationErrors}
-          />
-          <PromoCard
-            promoCode={promoCode}
-            onPromoCodeChange={setPromoCode}
-            onApplyPromo={() => { void handleApplyPromo(); }}
-            appliedPromo={appliedPromo}
-            promoEnabled={promoEnabled}
-            onTogglePromo={() => setPromoEnabled((v) => !v)}
-            isLoading={promoLoading}
-          />
-          <PriceSummaryCard
-            subtotal={subtotal}
-            discount={discount}
-            ppn={ppn}
-            total={total}
-            taxLabel={taxSettings?.label ?? "PPN"}
-            taxRate={taxBreakdown.rate}
-          />
-        </YStack>
-      </ScrollView>
+            <CartItemsCard
+              cart={cart}
+              onUpdateQty={handleUpdateQty}
+              onRemove={handleRemove}
+              onUpdateNote={handleUpdateNote}
+            />
+            <PromoCard
+              promoCode={promoCode}
+              onPromoCodeChange={setPromoCode}
+              onApplyPromo={() => {
+                void handleApplyPromo();
+              }}
+              appliedPromo={appliedPromo}
+              promoEnabled={promoEnabled}
+              onTogglePromo={() => setPromoEnabled((v) => !v)}
+              isLoading={promoLoading}
+            />
+            <PriceSummaryCard
+              subtotal={subtotal}
+              discount={discount}
+              ppn={ppn}
+              total={total}
+              taxLabel={taxSettings?.label ?? "PPN"}
+              taxRate={taxBreakdown.rate}
+            />
+          </YStack>
+        </ScrollView>
 
         <BottomActionBar
           cartLength={cart.length}
-          onHoldOrder={handleHoldOrder}
-          onPay={handlePay}
+          onHoldOrder={handleOpenHoldPage}
+          onPay={handleOpenPayPage}
           compact={compact}
         />
       </KeyboardAvoidingView>

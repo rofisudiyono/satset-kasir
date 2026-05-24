@@ -68,7 +68,7 @@ export default function PilihPembayaranPage() {
     [orders, params.orderId],
   );
 
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("qris");
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("tunai");
   const [mode, setMode] = useState<PaymentFlowMode>("full");
   const [amountInput, setAmountInput] = useState("");
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);

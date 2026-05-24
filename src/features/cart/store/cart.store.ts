@@ -1,5 +1,5 @@
 import { atomWithMMKV } from "@/store/storage";
-import type { OrderType, ProductCategory } from "@/types";
+import type { AppliedPromo, OrderType, ProductCategory } from "@/types";
 import { atom } from "jotai";
 
 export interface CartItem {
@@ -61,4 +61,12 @@ export const cartOrderDraftAtom = atomWithMMKV<CartOrderDraft>("cartOrderDraft",
   orderType: "Dine In",
   tableId: undefined,
   tableLabel: undefined,
+});
+
+export const cartCheckoutContextAtom = atom<{
+  appliedPromo: AppliedPromo | null;
+  promoEnabled: boolean;
+}>({
+  appliedPromo: null,
+  promoEnabled: false,
 });
