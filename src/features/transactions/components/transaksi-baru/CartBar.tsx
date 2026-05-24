@@ -25,19 +25,19 @@ export function CartBar({ totalItems, totalPrice, onPress }: Props) {
         style={styles.cartBarInner}
       >
         <View style={styles.cartBarIcon}>
-          <Ionicons name="bag-outline" size={20} color={BrandColors.text} />
+          <Ionicons name="bag-outline" size={20} color={ColorBase.white} />
         </View>
         <YStack flex={1} gap={1}>
-          <TextBodySm color={BrandColors.textMuted} fontWeight="600">
+          <TextBodySm color="rgba(255,255,255,0.75)" fontWeight="600">
             {totalItems} item dipilih
           </TextBodySm>
-          <TextBodyLg fontWeight="800" color={BrandColors.text}>
+          <TextBodyLg fontWeight="800" color={ColorBase.white}>
             {formatPrice(totalPrice)}
           </TextBodyLg>
         </YStack>
         <View style={styles.cartBarButton}>
           <TextBodyLg fontWeight="700" color={ColorBase.white}>
-            Proses
+            Bayar
           </TextBodyLg>
           <Ionicons name="arrow-forward" size={16} color={ColorBase.white} />
         </View>
@@ -58,35 +58,24 @@ const styles = StyleSheet.create({
     backgroundColor: BrandColors.surface,
     borderTopWidth: 1,
     borderTopColor: BrandColors.border,
-    shadowColor: BrandColors.deep,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 8,
   },
   cartBarInner: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: BrandColors.tint,
-    borderRadius: 16,
+    backgroundColor: BrandColors.buttonSolid,
+    borderRadius: 14,
     padding: 12,
-    borderWidth: 1,
-    borderColor: BrandColors.borderStrong,
   },
   cartBarIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: BrandColors.tintStrong,
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: "rgba(255,255,255,0.18)",
     alignItems: "center",
     justifyContent: "center",
   },
   cartBarButton: {
-    backgroundColor: BrandColors.buttonSolid,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 42,
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
