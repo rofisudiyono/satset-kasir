@@ -1,5 +1,4 @@
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import { XStack, YStack } from "tamagui";
@@ -11,22 +10,12 @@ import {
   TextCaption,
   TextH3,
 } from "@/components";
-import { ColorBase, ColorPrimary } from "@/themes/Colors";
+import { ColorNeutral } from "@/themes/Colors";
 
 const DAY_NAMES = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 const MONTH_NAMES = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "Mei",
-  "Jun",
-  "Jul",
-  "Agu",
-  "Sep",
-  "Okt",
-  "Nov",
-  "Des",
+  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+  "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
 ];
 
 function formatDate(date: Date) {
@@ -52,58 +41,59 @@ export function HomeHeader() {
   }, []);
 
   return (
-    <LinearGradient
-      colors={[ColorPrimary.primary700, ColorPrimary.primary900]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={{ borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}
+    <XStack
+      backgroundColor="$backgroundTertiary"
+      borderBottomWidth={1}
+      borderBottomColor="$borderColor"
+      paddingHorizontal="$4"
+      paddingTop="$4"
+      paddingBottom="$3"
+      alignItems="center"
+      gap="$3"
+      flexWrap="wrap"
     >
-      <XStack
-        paddingHorizontal="$4"
-        paddingTop="$4"
-        paddingBottom="$3"
-        alignItems="center"
-        gap="$3"
-        flexWrap="wrap"
-      >
       <YStack
         width={48}
         height={48}
         borderRadius={24}
-        backgroundColor="rgba(255,255,255,0.14)"
+        backgroundColor="$background"
+        borderWidth={1}
+        borderColor="$borderColor"
         alignItems="center"
         justifyContent="center"
         overflow="hidden"
       >
         <Image
           source={require("../../../../../assets/images/satset_1024.png")}
-          style={{ width: 48, height: 48 }}
+          style={{ width: 40, height: 40 }}
           contentFit="cover"
         />
       </YStack>
+
       <YStack flex={1} minWidth={160}>
-        <TextH3 fontWeight="800" color={ColorBase.white}>
+        <TextH3 fontWeight="800" color="$color">
           Budi Santoso
         </TextH3>
-        <TextBodySm color="rgba(255,255,255,0.78)">Toko Makmur</TextBodySm>
+        <TextBodySm color="$colorSecondary">Toko Makmur</TextBodySm>
       </YStack>
+
       <View style={{ marginLeft: "auto" }}>
         <YStack alignItems="flex-end" gap={2}>
-          <TextCaption color="rgba(255,255,255,0.72)">{formatDate(now)}</TextCaption>
-          <TextBodyLg fontWeight="800" color={ColorBase.white}>
+          <TextCaption color="$colorSecondary">{formatDate(now)}</TextCaption>
+          <TextBodyLg fontWeight="800" color="$color">
             {formatTime(now)}
           </TextBodyLg>
         </YStack>
       </View>
+
       <View>
         <IconButton
           iconName="notifications-outline"
           size={40}
-          bg="rgba(255,255,255,0.16)"
-          iconColor={ColorBase.white}
+          bg="$backgroundSecondary"
+          iconColor={ColorNeutral.neutral500}
         />
       </View>
-      </XStack>
-    </LinearGradient>
+    </XStack>
   );
 }
