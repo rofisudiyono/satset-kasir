@@ -18,6 +18,21 @@ export interface VariantGroup {
   options: VariantOption[];
 }
 
+export interface ModifierOption {
+  id: string;
+  label: string;
+  extraPrice: number;
+}
+
+export interface ModifierGroup {
+  id: string;
+  name: string;
+  isRequired: boolean;
+  minSelect: number;
+  maxSelect: number;
+  options: ModifierOption[];
+}
+
 export interface CatalogProduct {
   id: string;
   name: string;
@@ -28,6 +43,7 @@ export interface CatalogProduct {
   isAvailable?: boolean;
   availabilityReason?: "ACTIVE" | "INACTIVE" | "OUT_OF_STOCK" | "NO_RECIPE" | "HIDDEN";
   variants?: VariantGroup[];
+  modifierGroups?: ModifierGroup[];
   sku?: string;
   barcode?: string;
 }
