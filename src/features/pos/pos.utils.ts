@@ -228,6 +228,9 @@ export function buildCheckoutOrderBody(params: {
       menuVariantId: item.variantId,
       qty: item.quantity,
       note: item.note?.trim() || undefined,
+      modifiers: item.modifiers?.map((m) => ({
+        modifierOptionId: m.modifierOptionId,
+      })),
     })),
     payments: params.payment
       ? [
