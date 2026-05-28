@@ -73,6 +73,21 @@ export type KasirMenuVariant = {
   isActive: boolean;
 };
 
+export type KasirModifierOption = {
+  id: string;
+  label: string;
+  extraPrice: number;
+};
+
+export type KasirModifierGroup = {
+  id: string;
+  name: string;
+  isRequired: boolean;
+  minSelect: number;
+  maxSelect: number;
+  options: KasirModifierOption[];
+};
+
 export type KasirMenu = {
   id: string;
   sku?: string | null;
@@ -87,6 +102,7 @@ export type KasirMenu = {
   availabilityReason: "ACTIVE" | "INACTIVE" | "OUT_OF_STOCK" | "NO_RECIPE" | "HIDDEN";
   hasVariants: boolean;
   variants: KasirMenuVariant[];
+  modifierGroups: KasirModifierGroup[];
 };
 
 export type KasirTable = {
