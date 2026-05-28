@@ -2,6 +2,12 @@ import { atomWithMMKV } from "@/store/storage";
 import type { AppliedPromo, OrderType, ProductCategory } from "@/types";
 import { atom } from "jotai";
 
+export interface CartItemModifier {
+  modifierOptionId: string;
+  label: string;
+  extraPrice: number;
+}
+
 export interface CartItem {
   cartId: string;
   productId: string;   // maps to menuId on backend
@@ -9,6 +15,7 @@ export interface CartItem {
   category: ProductCategory;
   variantId?: string;  // maps to menuVariantId on backend (UUID)
   variantLabel?: string;
+  modifiers?: CartItemModifier[];
   note?: string;
   quantity: number;
   unitPrice: number;
