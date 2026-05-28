@@ -88,6 +88,7 @@ function mapMenuToCatalogProduct(menu: KasirMenu): CatalogProduct {
     isAvailable: menu.isAvailable,
     availabilityReason: menu.availabilityReason,
     variants,
+    modifierGroups: menu.modifierGroups.length > 0 ? menu.modifierGroups : undefined,
     sku: menu.sku ?? undefined,
     barcode: menuWithBarcode.barcode ?? undefined,
   };
@@ -144,10 +145,17 @@ export function useTransactionCatalog() {
   const addToCart = useCallback(
     (item: Omit<CartItem, "cartId">) => {
       setCart((prev) => {
+        const modifierKey = item.modifiers
+          ? item.modifiers.map((m) => m.modifierOptionId).sort().join(",")
+          : "";
+
         const existing = prev.find(
           (cartItem) =>
             cartItem.productId === item.productId &&
-            cartItem.variantLabel === item.variantLabel,
+            cartItem.variantLabel === item.variantLabel &&
+            (cartItem.modifiers
+              ? cartItem.modifiers.map((m) => m.modifierOptionId).sort().join(",")
+              : "") === modifierKey,
         );
 
         if (existing) {
