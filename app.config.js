@@ -130,6 +130,13 @@ module.exports = {
       "expo-router",
       "expo-sharing",
     ],
+    runtimeVersion: {
+      policy: "appVersion",
+    },
+    updates: {
+      url: "https://u.expo.dev/3eb2941c-0277-491c-9b99-7b175d41d822",
+      checkAutomatically: "ON_LOAD",
+    },
     experiments: {
       typedRoutes: true,
       reactCompiler: true,

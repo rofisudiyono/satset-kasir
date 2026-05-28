@@ -130,6 +130,14 @@
       }
     }
   },
+  "update": {
+    "production": {
+      "branch": "production"
+    },
+    "staging": {
+      "branch": "staging"
+    }
+  },
   "submit": {
     "production": {}
   }
