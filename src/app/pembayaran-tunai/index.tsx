@@ -29,8 +29,11 @@ import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import {
   getApiErrorMessage,
   useCheckoutMutation,
+  useCollectBillPaymentMutation,
+  useCollectPaymentMutation,
 } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
+import { getTagihanAktifRoute } from "@/lib/routing/device-routes";
 import {
   ColorBase,
   ColorGreen,
@@ -49,10 +52,14 @@ export default function PembayaranTunaiPage() {
   const { isTablet, contentMaxWidth, horizontalPadding } =
     useResponsiveLayout();
   const checkoutMutation = useCheckoutMutation();
+  const collectPaymentMutation = useCollectPaymentMutation();
+  const collectBillPaymentMutation = useCollectBillPaymentMutation();
   const params = useLocalSearchParams<{
     orderId: string;
     amountToPay: string;
     paymentLabel?: string;
+    collectOrderId?: string;
+    collectBillId?: string;
   }>();
 
   const order = useMemo(
@@ -68,7 +75,11 @@ export default function PembayaranTunaiPage() {
     router.replace("/buka-shift" as never);
   }, [isShiftStarted, router]);
 
-  if (!order) {
+  const isCollectBillMode = !!params.collectBillId;
+  const isCollectOrderMode = !!params.collectOrderId;
+  const isCollectMode = isCollectBillMode || isCollectOrderMode;
+
+  if (!order && !isCollectMode) {
     return (
       <SafeAreaView
         style={styles.container}
@@ -88,7 +99,9 @@ export default function PembayaranTunaiPage() {
   const receivedAmount = Number(inputValue);
   const change = receivedAmount - amountToPay;
   const isEnough = receivedAmount >= amountToPay;
-  const remainingBeforePayment = calculateOrderRemainingAmount(currentOrder);
+  const remainingBeforePayment = isCollectMode
+    ? amountToPay
+    : calculateOrderRemainingAmount(currentOrder!);
   const suggestions = getCashSuggestions(amountToPay);
   const isCompactMobile = !isTablet;
 
@@ -114,6 +127,38 @@ export default function PembayaranTunaiPage() {
   }
 
   async function handleConfirm() {
+    if (isCollectMode) {
+      try {
+        if (isCollectBillMode && params.collectBillId) {
+          await collectBillPaymentMutation.mutateAsync({
+            billId: params.collectBillId,
+            body: {
+              method: "CASH",
+              amountPaid: amountToPay,
+              amountReceived: receivedAmount,
+              label: params.paymentLabel || "Tunai",
+            },
+          });
+        } else if (isCollectOrderMode && params.collectOrderId) {
+          await collectPaymentMutation.mutateAsync({
+            orderId: params.collectOrderId,
+            body: {
+              payments: [{
+                method: "CASH",
+                amountPaid: amountToPay,
+                amountReceived: receivedAmount,
+                label: params.paymentLabel || "Tunai",
+              }],
+            },
+          });
+        }
+        router.replace(getTagihanAktifRoute(isTablet) as never);
+      } catch (error) {
+        Alert.alert("Gagal", getApiErrorMessage(error, "Pembayaran tidak berhasil."));
+      }
+      return;
+    }
+
     if (cartSnapshot.length === 0) {
       applyLocalPayment();
       return;
@@ -123,14 +168,14 @@ export default function PembayaranTunaiPage() {
       const serverOrder = await checkoutMutation.mutateAsync(
         buildCheckoutOrderBody({
           cart: cartSnapshot,
-          orderType: currentOrder.serviceMode ?? "DINE_IN",
-          tableId: currentOrder.tableId,
-          customerName: currentOrder.customerName,
-          customerPhone: currentOrder.customerPhone,
-          orderNote: currentOrder.orderNote,
-          tableLabel: currentOrder.tableLabel,
-          promoCode: currentOrder.promoCode,
-          promoId: currentOrder.promoId,
+          orderType: currentOrder!.serviceMode ?? "DINE_IN",
+          tableId: currentOrder!.tableId,
+          customerName: currentOrder!.customerName,
+          customerPhone: currentOrder!.customerPhone,
+          orderNote: currentOrder!.orderNote,
+          tableLabel: currentOrder!.tableLabel,
+          promoCode: currentOrder!.promoCode,
+          promoId: currentOrder!.promoId,
           payment: {
             method: "tunai",
             amountPaid: amountToPay,
@@ -320,7 +365,7 @@ export default function PembayaranTunaiPage() {
           title="Konfirmasi Pembayaran Tunai"
           variant="success"
           onPress={handleConfirm}
-          disabled={!isEnough || checkoutMutation.isPending}
+          disabled={!isEnough || checkoutMutation.isPending || collectPaymentMutation.isPending || collectBillPaymentMutation.isPending}
         />
       </View>
     </View>

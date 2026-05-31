@@ -69,8 +69,52 @@ export function CustomerInfoCard({
 
   return (
     <View style={styles.card}>
-      <TextCaption color="$colorSecondary" marginBottom={8}>
-        Pernah mengunjungi kami sebelumnya?
+      <View style={styles.customerFields}>
+        <View>
+          <TextCaption color="$colorSecondary" marginBottom={6}>
+            Atas Nama <TextCaption color={ColorNeutral.neutral400}>(opsional)</TextCaption>
+          </TextCaption>
+          <TextInput
+            value={customerName}
+            onChangeText={onCustomerNameChange}
+            placeholder="Nama pemesan"
+            placeholderTextColor={ColorNeutral.neutral400}
+            style={styles.inputField}
+          />
+        </View>
+
+        <View>
+          <TextCaption color="$colorSecondary" marginBottom={6}>
+            Nomor HP <TextCaption color={ColorNeutral.neutral400}>(opsional)</TextCaption>
+          </TextCaption>
+          <TextInput
+            value={customerPhone}
+            onChangeText={onCustomerPhoneChange}
+            placeholder="Nomor HP pelanggan"
+            placeholderTextColor={ColorNeutral.neutral400}
+            style={styles.inputField}
+            keyboardType="phone-pad"
+          />
+        </View>
+
+        <View>
+          <TextCaption color="$colorSecondary" marginBottom={6}>
+            Catatan Pesanan <TextCaption color={ColorNeutral.neutral400}>(opsional)</TextCaption>
+          </TextCaption>
+          <TextInput
+            value={orderNote}
+            onChangeText={onOrderNoteChange}
+            placeholder="Catatan pesanan"
+            placeholderTextColor={ColorNeutral.neutral400}
+            multiline
+            textAlignVertical="top"
+            style={[styles.inputField, styles.noteField]}
+          />
+        </View>
+      </View>
+
+      <TextCaption color="$colorSecondary" marginBottom={8} marginTop={12}>
+        Pernah mengunjungi kami? <TextCaption color={ColorNeutral.neutral400}>(opsional)</TextCaption>
       </TextCaption>
       <View style={styles.visitControl}>
         <TouchableOpacity
@@ -78,7 +122,6 @@ export function CustomerInfoCard({
           style={[
             styles.visitOption,
             customerVisitStatus === "returning" && styles.visitOptionActive,
-            validationErrors.visitStatus && styles.inputError,
           ]}
           onPress={() => onCustomerVisitStatusChange("returning")}
         >
@@ -107,7 +150,6 @@ export function CustomerInfoCard({
           style={[
             styles.visitOption,
             customerVisitStatus === "new" && styles.visitOptionActive,
-            validationErrors.visitStatus && styles.inputError,
           ]}
           onPress={() => onCustomerVisitStatusChange("new")}
         >
@@ -132,81 +174,6 @@ export function CustomerInfoCard({
           </TextBodySm>
         </TouchableOpacity>
       </View>
-      {validationErrors.visitStatus ? (
-        <TextCaption color={ColorPrimary.primary700} marginTop={6}>
-          {validationErrors.visitStatus}
-        </TextCaption>
-      ) : null}
-
-      {customerVisitStatus ? (
-        <View style={styles.customerFields}>
-          {customerVisitStatus === "new" ? (
-            <View>
-              <TextCaption color="$colorSecondary" marginBottom={6}>
-                Nama Pelanggan
-              </TextCaption>
-              <TextInput
-                value={customerName}
-                onChangeText={onCustomerNameChange}
-                placeholder="Nama lengkap"
-                placeholderTextColor={ColorNeutral.neutral400}
-                style={[
-                  styles.inputField,
-                  validationErrors.customerName && styles.inputError,
-                ]}
-              />
-              {validationErrors.customerName ? (
-                <TextCaption color={ColorPrimary.primary700} marginTop={6}>
-                  {validationErrors.customerName}
-                </TextCaption>
-              ) : null}
-            </View>
-          ) : null}
-
-          <View>
-            <TextCaption color="$colorSecondary" marginBottom={6}>
-              Nomor HP
-            </TextCaption>
-            <TextInput
-              value={customerPhone}
-              onChangeText={onCustomerPhoneChange}
-              placeholder="Nomor HP"
-              placeholderTextColor={ColorNeutral.neutral400}
-              style={[
-                styles.inputField,
-                validationErrors.customerPhone && styles.inputError,
-              ]}
-              keyboardType="phone-pad"
-            />
-            <TextCaption
-              color={
-                validationErrors.customerPhone
-                  ? ColorPrimary.primary700
-                  : ColorNeutral.neutral500
-              }
-              marginTop={6}
-            >
-              {validationErrors.customerPhone ||
-                "Gunakan nomor WhatsApp aktif untuk memudahkan konfirmasi pesanan."}
-            </TextCaption>
-          </View>
-
-          <View>
-            <TextCaption color="$colorSecondary" marginBottom={6}>
-              Catatan Pesanan
-            </TextCaption>
-            <TextInput
-              value={orderNote}
-              onChangeText={onOrderNoteChange}
-              placeholder="Catatan pesanan"
-              placeholderTextColor={ColorNeutral.neutral400}
-              multiline
-              textAlignVertical="top"
-              style={[styles.inputField, styles.noteField]}
-            />
-          </View>
-        </View>
-      ) : null}
 
       <TextCaption color="$colorSecondary" marginBottom={8} marginTop={12}>
         Mode Layanan

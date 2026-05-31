@@ -30,12 +30,18 @@ import {
   calculateOrderRemainingAmount,
   getPaymentMethodLabel,
   getSelectedItemsAmount,
+  mapPaymentMethodToCheckoutMethod,
 } from "@/features/pos/pos.utils";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
-import { getApiErrorMessage, useCheckoutMutation, useCollectPaymentMutation } from "@/hooks/api/use-kasir-api";
+import {
+  getApiErrorMessage,
+  useCheckoutMutation,
+  useCollectBillPaymentMutation,
+  useCollectPaymentMutation,
+} from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
-import { getInputManualRoute } from "@/lib/routing/device-routes";
+import { getInputManualRoute, getTagihanAktifRoute } from "@/lib/routing/device-routes";
 import { ColorBase, ColorNeutral } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
 import type { PaymentMethod } from "@/types";
@@ -52,11 +58,14 @@ export default function PilihPembayaranPage() {
   const [cartSnapshot, setCartSnapshot] = useAtom(cartSnapshotAtom);
   const [, setCatalogStock] = useAtom(catalogStockAtom);
   const { isTablet, contentMaxWidth, horizontalPadding } = useResponsiveLayout();
-  const params = useLocalSearchParams<{ orderId: string; collectOrderId?: string; grandTotal?: string }>();
-  const isCollectMode = !!params.collectOrderId;
+  const params = useLocalSearchParams<{ orderId: string; collectOrderId?: string; collectBillId?: string; grandTotal?: string }>();
+  const isCollectOrderMode = !!params.collectOrderId;
+  const isCollectBillMode = !!params.collectBillId;
+  const isCollectMode = isCollectOrderMode || isCollectBillMode;
   const collectGrandTotal = params.grandTotal ? Number(params.grandTotal) : 0;
   const checkoutMutation = useCheckoutMutation();
   const collectPaymentMutation = useCollectPaymentMutation();
+  const collectBillPaymentMutation = useCollectBillPaymentMutation();
 
   const order = useMemo(
     () => orders.find((item) => item.id === params.orderId),
@@ -95,33 +104,45 @@ export default function PilihPembayaranPage() {
   }, [isTablet, order]);
 
   if (isCollectMode) {
-    async function handleCollectProcess() {
-      if (!params.collectOrderId) return;
-      const method = selectedMethod;
+    function handleCollectProcess() {
+      if (selectedMethod === "tunai") {
+        router.push({
+          pathname: "/pembayaran-tunai",
+          params: {
+            amountToPay: String(collectGrandTotal),
+            paymentLabel: "Tagihan",
+            ...(isCollectBillMode && params.collectBillId ? { collectBillId: params.collectBillId } : {}),
+            ...(isCollectOrderMode && params.collectOrderId ? { collectOrderId: params.collectOrderId } : {}),
+          },
+        });
+        return;
+      }
+
+      const apiMethod = mapPaymentMethodToCheckoutMethod(selectedMethod);
       Alert.alert(
         "Konfirmasi Pembayaran",
-        `${getPaymentMethodLabel(method)} sebesar ${formatPrice(collectGrandTotal)}`,
+        `${getPaymentMethodLabel(selectedMethod)} sebesar ${formatPrice(collectGrandTotal)}`,
         [
           { text: "Batal", style: "cancel" },
           {
             text: "Konfirmasi",
             onPress: async () => {
               try {
-                await collectPaymentMutation.mutateAsync({
-                  orderId: params.collectOrderId!,
-                  body: {
-                    payments: [
-                      {
-                        method: method as "CASH" | "QRIS" | "TRANSFER" | "DEBIT" | "CREDIT" | "EWALLET",
-                        amountPaid: collectGrandTotal,
-                        label: "Tagihan",
-                      },
-                    ],
-                  },
-                });
-                Alert.alert("Pembayaran Berhasil", "Tagihan telah dicatat.", [
-                  { text: "OK", onPress: () => router.back() },
-                ]);
+                const amountReceived = undefined;
+                if (isCollectBillMode && params.collectBillId) {
+                  await collectBillPaymentMutation.mutateAsync({
+                    billId: params.collectBillId,
+                    body: { method: apiMethod, amountPaid: collectGrandTotal, amountReceived, label: "Tagihan" },
+                  });
+                } else if (params.collectOrderId) {
+                  await collectPaymentMutation.mutateAsync({
+                    orderId: params.collectOrderId,
+                    body: {
+                      payments: [{ method: apiMethod, amountPaid: collectGrandTotal, amountReceived, label: "Tagihan" }],
+                    },
+                  });
+                }
+                router.replace(getTagihanAktifRoute(isTablet) as never);
               } catch (error) {
                 Alert.alert("Gagal", getApiErrorMessage(error, "Pembayaran tidak berhasil."));
               }
@@ -157,7 +178,7 @@ export default function PilihPembayaranPage() {
               fullWidth
               title={`Bayar ${formatPrice(collectGrandTotal)}`}
               onPress={handleCollectProcess}
-              disabled={collectPaymentMutation.isPending}
+              disabled={collectPaymentMutation.isPending || collectBillPaymentMutation.isPending}
             />
           </View>
         </View>

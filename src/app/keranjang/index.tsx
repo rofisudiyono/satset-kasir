@@ -21,6 +21,8 @@ import { CustomerInfoCard } from "@/features/cart/components/CustomerInfoCard";
 import { PriceSummaryCard } from "@/features/cart/components/PriceSummaryCard";
 import { PromoCard } from "@/features/cart/components/PromoCard";
 import {
+  activeBillContextAtom,
+  activeBillIdAtom,
   cartAtom,
   cartOrderDraftAtom,
   cartSnapshotAtom,
@@ -35,7 +37,9 @@ import {
 } from "@/features/shift/store/shift.store";
 import {
   useActivePromosQuery,
+  useAddOrderToBillMutation,
   useCheckoutMutation,
+  useCreateBillMutation,
   useTablesQuery,
   useTaxSettingsQuery,
   useTenantInfoQuery,
@@ -45,7 +49,7 @@ import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { getApiErrorMessage } from "@/lib/api/client";
 import type { KasirTable } from "@/lib/api/types";
 import { calculateTaxBreakdown } from "@/lib/tax";
-import { ColorBase, ColorDanger, ColorPrimary } from "@/themes/Colors";
+import { ColorBase, ColorDanger } from "@/themes/Colors";
 import { useDebouncedEffect } from "@/hooks/use-debounced-effect";
 import type { AppliedPromo, OrderType } from "@/types";
 
@@ -55,6 +59,8 @@ export default function KeranjangPage() {
   const router = useRouter();
   const [cart, setCart] = useAtom(cartAtom);
   const [orderDraft, setOrderDraft] = useAtom(cartOrderDraftAtom);
+  const [activeBillId, setActiveBillId] = useAtom(activeBillIdAtom);
+  const [, setActiveBillContext] = useAtom(activeBillContextAtom);
   const [, setHeldOrders] = useAtom(heldOrdersAtom);
   const [, setCartSnapshot] = useAtom(cartSnapshotAtom);
   const [isShiftStarted] = useAtom(isShiftStartedAtom);
@@ -72,7 +78,10 @@ export default function KeranjangPage() {
   const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(isShiftStarted);
   const { data: tenantInfo } = useTenantInfoQuery(isShiftStarted);
   const checkoutMutation = useCheckoutMutation();
+  const createBillMutation = useCreateBillMutation();
+  const addOrderToBillMutation = useAddOrderToBillMutation();
   const isPostPay = tenantInfo?.defaultPaymentTiming === 'POSTPAY';
+  const isBillMode = Boolean(activeBillId);
 
   // ─── Promo & Tax ────────────────────────────────────────────────────────────
   const { data: taxSettings } = useTaxSettingsQuery(isShiftStarted);
@@ -141,16 +150,10 @@ export default function KeranjangPage() {
     }
   }, [orderType]);
 
-  useEffect(() => {
-    if (customerVisitStatus === "returning" && customerName) {
-      setCustomerName("");
-    }
-  }, [customerName, customerVisitStatus]);
-
   useDebouncedEffect(
     () => {
       setOrderDraft({
-        customerName: customerVisitStatus === "new" ? customerName : "",
+        customerName,
         customerPhone,
         orderNote,
         customerVisitStatus,
@@ -211,18 +214,6 @@ export default function KeranjangPage() {
   }
 
   function validateCustomerInfo() {
-    if (!customerVisitStatus) {
-      Alert.alert("Lengkapi data pemesan", "Pilih apakah pelanggan sudah pernah mengunjungi atau belum.");
-      return false;
-    }
-    if (!customerPhone.trim()) {
-      Alert.alert("Nomor HP wajib diisi", "Masukkan nomor HP pelanggan sebelum melanjutkan.");
-      return false;
-    }
-    if (customerVisitStatus === "new" && !customerName.trim()) {
-      Alert.alert("Nama wajib diisi", "Masukkan nama pelanggan baru sebelum melanjutkan.");
-      return false;
-    }
     return true;
   }
 
@@ -271,7 +262,7 @@ export default function KeranjangPage() {
       return;
     }
 
-    const resolvedCustomerName = customerVisitStatus === "new" ? customerName : "";
+    const resolvedCustomerName = customerName;
     const resolvedCustomerVisitStatus = customerVisitStatus ?? "returning";
     const label = resolvedCustomerName || customerPhone || selectedTable?.label || orderType;
     const now = new Date();
@@ -330,12 +321,13 @@ export default function KeranjangPage() {
         : orderType === "Take Away"
           ? "Takeaway"
           : "Delivery");
-    const resolvedCustomerName = customerVisitStatus === "new" ? customerName : "";
+    const resolvedCustomerName = customerName;
 
-    if (isPostPay) {
+    if (isBillMode && activeBillId) {
       try {
-        await checkoutMutation.mutateAsync(
-          buildCheckoutOrderBody({
+        await addOrderToBillMutation.mutateAsync({
+          billId: activeBillId,
+          body: buildCheckoutOrderBody({
             cart,
             orderType: orderType === "Dine In" ? "DINE_IN" : orderType === "Take Away" ? "TAKEAWAY" : "DELIVERY",
             tableId: selectedTable?.id,
@@ -346,10 +338,68 @@ export default function KeranjangPage() {
             promoCode: promoEnabled ? appliedPromo?.code : undefined,
             promoId: promoEnabled ? appliedPromo?.promoId : undefined,
           }),
+        });
+        setCart([]);
+        setActiveBillId(null);
+        setActiveBillContext(null);
+        setOrderDraft({ customerName: "", customerPhone: "", orderNote: "", customerVisitStatus: null, orderType: "Dine In", tableId: undefined, tableLabel: undefined });
+        Alert.alert("Pesanan Ditambahkan", `Pesanan berhasil ditambahkan ke tagihan.`, [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } catch (error) {
+        Alert.alert("Gagal", getApiErrorMessage(error, "Pesanan tidak berhasil ditambahkan ke tagihan."));
+      }
+      return;
+    }
+
+    if (isPostPay && orderType === "Dine In") {
+      try {
+        const bill = await createBillMutation.mutateAsync({
+          label: tableLabel,
+          tableId: selectedTable?.id,
+        });
+        await addOrderToBillMutation.mutateAsync({
+          billId: bill.id,
+          body: buildCheckoutOrderBody({
+            cart,
+            orderType: "DINE_IN",
+            tableId: selectedTable?.id,
+            customerName: resolvedCustomerName,
+            customerPhone,
+            orderNote,
+            tableLabel,
+            promoCode: promoEnabled ? appliedPromo?.code : undefined,
+            promoId: promoEnabled ? appliedPromo?.promoId : undefined,
+          }),
+        });
+        setCart([]);
+        setOrderDraft({ customerName: "", customerPhone: "", orderNote: "", customerVisitStatus: null, orderType: "Dine In", tableId: undefined, tableLabel: undefined });
+        Alert.alert("Pesanan Masuk Dapur", `Tagihan ${tableLabel} dibuka — bayar setelah selesai makan.`, [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } catch (error) {
+        Alert.alert("Gagal", getApiErrorMessage(error, "Transaksi tidak berhasil dikirim ke server."));
+      }
+      return;
+    }
+
+    if (isPostPay) {
+      try {
+        await checkoutMutation.mutateAsync(
+          buildCheckoutOrderBody({
+            cart,
+            orderType: orderType === "Take Away" ? "TAKEAWAY" : "DELIVERY",
+            customerName: resolvedCustomerName,
+            customerPhone,
+            orderNote,
+            tableLabel,
+            promoCode: promoEnabled ? appliedPromo?.code : undefined,
+            promoId: promoEnabled ? appliedPromo?.promoId : undefined,
+          }),
         );
         setCart([]);
         setOrderDraft({ customerName: "", customerPhone: "", orderNote: "", customerVisitStatus: null, orderType: "Dine In", tableId: undefined, tableLabel: undefined });
-        Alert.alert("Pesanan Masuk Dapur", `Meja ${tableLabel} — bayar setelah selesai makan.`, [
+        Alert.alert("Pesanan Masuk Dapur", `${tableLabel} — bayar setelah selesai.`, [
           { text: "OK", onPress: () => router.back() },
         ]);
       } catch (error) {
@@ -499,38 +549,21 @@ export default function KeranjangPage() {
               taxRate={taxBreakdown.rate}
             />
 
-            <YStack gap={8}>
-              <AppButton
-                variant="primary"
-                size="lg"
-                fullWidth
-                title="Bayar Sekarang"
-                disabled={cart.length === 0}
-                onPress={handlePay}
-                icon={
-                  <Ionicons
-                    name="card-outline"
-                    size={18}
-                    color={ColorBase.white}
-                  />
-                }
-              />
-              <AppButton
-                variant="outline"
-                size="md"
-                fullWidth
-                title="Tahan Pesanan"
-                disabled={cart.length === 0}
-                onPress={handleHoldOrder}
-                icon={
-                  <Ionicons
-                    name="pause-circle-outline"
-                    size={16}
-                    color={ColorPrimary.primary600}
-                  />
-                }
-              />
-            </YStack>
+            <AppButton
+              variant="primary"
+              size="lg"
+              fullWidth
+              title={isBillMode ? "Tambah ke Tagihan" : "Bayar Sekarang"}
+              disabled={cart.length === 0}
+              onPress={handlePay}
+              icon={
+                <Ionicons
+                  name={isBillMode ? "add-circle-outline" : "card-outline"}
+                  size={18}
+                  color={ColorBase.white}
+                />
+              }
+            />
           </YStack>
         </ScrollView>
       </XStack>

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { useState } from "react";
 import {
   Alert,
@@ -18,13 +18,15 @@ import { BottomActionBar } from "@/features/cart/components/BottomActionBar";
 import { CartItemsCard } from "@/features/cart/components/CartItemsCard";
 import { PriceSummaryCard } from "@/features/cart/components/PriceSummaryCard";
 import { PromoCard } from "@/features/cart/components/PromoCard";
-import { cartCheckoutContextAtom, cartAtom, cartOrderDraftAtom, type CustomerVisitStatus } from "@/features/cart/store/cart.store";
+import { activeBillContextAtom, activeBillIdAtom, cartCheckoutContextAtom, cartAtom, cartOrderDraftAtom, type CustomerVisitStatus } from "@/features/cart/store/cart.store";
 import {
+  useAddOrderToBillMutation,
   useTablesQuery,
   useTaxSettingsQuery,
   useValidatePromoMutation,
 } from "@/hooks/api/use-kasir-api";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { buildCheckoutOrderBody } from "@/features/pos/pos.utils";
 import { calculateTaxBreakdown } from "@/lib/tax";
 import { shiftDataAtom } from "@/features/shift/store/shift.store";
 import type { KasirTable } from "@/lib/api/types";
@@ -45,6 +47,12 @@ export function CartPanel({ compact = false }: CartPanelProps) {
   const [orderDraft, setOrderDraft] = useAtom(cartOrderDraftAtom);
   const [shiftData] = useAtom(shiftDataAtom);
   const [, setCheckoutContext] = useAtom(cartCheckoutContextAtom);
+  const activeBillId = useAtomValue(activeBillIdAtom);
+  const setActiveBillId = useSetAtom(activeBillIdAtom);
+  const activeBillContext = useAtomValue(activeBillContextAtom);
+  const setActiveBillContext = useSetAtom(activeBillContextAtom);
+  const isBillMode = Boolean(activeBillId);
+  const addOrderToBillMutation = useAddOrderToBillMutation();
 
   const [customerName, setCustomerName] = useState(orderDraft.customerName);
   const [customerPhone, setCustomerPhone] = useState(orderDraft.customerPhone ?? "");
@@ -80,16 +88,10 @@ export function CartPanel({ compact = false }: CartPanelProps) {
     }
   }, [orderType]);
 
-  React.useEffect(() => {
-    if (customerVisitStatus === "returning" && customerName) {
-      setCustomerName("");
-    }
-  }, [customerName, customerVisitStatus]);
-
   useDebouncedEffect(
     () => {
       setOrderDraft({
-        customerName: customerVisitStatus === "new" ? customerName : "",
+        customerName,
         customerPhone,
         orderNote,
         customerVisitStatus,
@@ -190,6 +192,37 @@ export function CartPanel({ compact = false }: CartPanelProps) {
     });
   }
 
+  async function handleAddToBill() {
+    if (cart.length === 0 || !activeBillId) return;
+    const billId = activeBillId;
+    try {
+      await addOrderToBillMutation.mutateAsync({
+        billId,
+        body: buildCheckoutOrderBody({
+          cart,
+          orderType: "DINE_IN",
+          tableId: activeBillContext?.tableId ?? undefined,
+          tableLabel: activeBillContext?.tableLabel ?? undefined,
+        }),
+      });
+      setCart([]);
+      setActiveBillId(null);
+      setActiveBillContext(null);
+      setOrderDraft({
+        customerName: "",
+        customerPhone: "",
+        orderNote: "",
+        customerVisitStatus: null,
+        orderType: "Dine In",
+        tableId: undefined,
+        tableLabel: undefined,
+      });
+      router.push(`/tagihan/${billId}` as never);
+    } catch (error) {
+      Alert.alert("Gagal", getApiErrorMessage(error, "Pesanan tidak berhasil ditambahkan ke tagihan."));
+    }
+  }
+
   return (
     <View style={[styles.container, compact && styles.containerCompact]}>
       <View style={[styles.header, compact && styles.headerCompact]}>
@@ -262,8 +295,10 @@ export function CartPanel({ compact = false }: CartPanelProps) {
         <BottomActionBar
           cartLength={cart.length}
           onHoldOrder={handleOpenHoldPage}
-          onPay={handleOpenPayPage}
+          onPay={isBillMode ? () => { void handleAddToBill(); } : handleOpenPayPage}
           compact={compact}
+          isBillMode={isBillMode}
+          isLoading={addOrderToBillMutation.isPending}
         />
       </KeyboardAvoidingView>
     </View>

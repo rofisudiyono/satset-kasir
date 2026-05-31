@@ -19,6 +19,8 @@ import { TextBodyLg, TextBodySm, TextCaption, TextH2, TextH3 } from "@/component
 import { CustomerInfoCard, type CustomerInfoValidationErrors } from "@/features/cart/components/CustomerInfoCard";
 import { PriceSummaryCard } from "@/features/cart/components/PriceSummaryCard";
 import {
+  activeBillContextAtom,
+  activeBillIdAtom,
   cartAtom,
   cartCheckoutContextAtom,
   cartOrderDraftAtom,
@@ -34,7 +36,9 @@ import {
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { shiftDataAtom } from "@/features/shift/store/shift.store";
 import {
+  useAddOrderToBillMutation,
   useCheckoutMutation,
+  useCreateBillMutation,
   useTablesQuery,
   useTaxSettingsQuery,
   useTenantInfoQuery,
@@ -67,13 +71,19 @@ export default function OrderInfoPage() {
   const [, setHeldOrders] = useAtom(heldOrdersAtom);
   const [posOrders, setPosOrders] = useAtom(posOrdersAtom);
   const [shiftData] = useAtom(shiftDataAtom);
+  const [activeBillId, setActiveBillId] = useAtom(activeBillIdAtom);
+  const [, setActiveBillContext] = useAtom(activeBillContextAtom);
   const [validationErrors, setValidationErrors] =
     React.useState<CustomerInfoValidationErrors>({});
+
+  const isBillMode = Boolean(activeBillId);
 
   const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(true);
   const { data: tenantInfo } = useTenantInfoQuery(Boolean(shiftData?.shiftId));
   const { data: taxSettings } = useTaxSettingsQuery(Boolean(shiftData?.shiftId));
   const checkoutMutation = useCheckoutMutation();
+  const createBillMutation = useCreateBillMutation();
+  const addOrderToBillMutation = useAddOrderToBillMutation();
 
   const selectedTable = React.useMemo(
     () => tables.find((table: KasirTable) => table.id === orderDraft.tableId) ?? null,
@@ -93,15 +103,6 @@ export default function OrderInfoPage() {
 
   function validateCustomerInfo() {
     const nextErrors: CustomerInfoValidationErrors = {};
-    if (!orderDraft.customerVisitStatus) {
-      nextErrors.visitStatus = "Pilih status pelanggan sebelum melanjutkan.";
-    }
-    if (!orderDraft.customerPhone.trim()) {
-      nextErrors.customerPhone = "Nomor HP wajib diisi.";
-    }
-    if (orderDraft.customerVisitStatus === "new" && !orderDraft.customerName.trim()) {
-      nextErrors.customerName = "Nama pelanggan baru wajib diisi.";
-    }
     if (orderDraft.orderType === "Dine In" && !orderDraft.tableId) {
       nextErrors.table = "Pilih meja aktif untuk order dine-in.";
     }
@@ -126,7 +127,7 @@ export default function OrderInfoPage() {
     if (!validateCustomerInfo()) return;
 
     const resolvedCustomerName =
-      orderDraft.customerVisitStatus === "new" ? orderDraft.customerName : "";
+      orderDraft.customerName;
     const label =
       resolvedCustomerName ||
       orderDraft.customerPhone ||
@@ -173,12 +174,13 @@ export default function OrderInfoPage() {
           ? "Takeaway"
           : "Delivery");
     const resolvedCustomerName =
-      orderDraft.customerVisitStatus === "new" ? orderDraft.customerName : "";
+      orderDraft.customerName;
 
-    if (tenantInfo?.defaultPaymentTiming === "POSTPAY") {
+    if (isBillMode && activeBillId) {
       try {
-        await checkoutMutation.mutateAsync(
-          buildCheckoutOrderBody({
+        await addOrderToBillMutation.mutateAsync({
+          billId: activeBillId,
+          body: buildCheckoutOrderBody({
             cart,
             orderType: mapOrderTypeToServiceMode(orderDraft.orderType),
             tableId: orderDraft.tableId,
@@ -193,10 +195,68 @@ export default function OrderInfoPage() {
               ? checkoutContext.appliedPromo?.promoId
               : undefined,
           }),
+        });
+        setCart([]);
+        setActiveBillId(null);
+        setActiveBillContext(null);
+        resetOrderDraft();
+        Alert.alert("Pesanan Ditambahkan", "Pesanan berhasil ditambahkan ke tagihan.", [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } catch (error) {
+        Alert.alert("Gagal", getApiErrorMessage(error, "Pesanan tidak berhasil ditambahkan ke tagihan."));
+      }
+      return;
+    }
+
+    if (tenantInfo?.defaultPaymentTiming === "POSTPAY" && orderDraft.orderType === "Dine In") {
+      try {
+        const bill = await createBillMutation.mutateAsync({
+          label: tableLabel,
+          tableId: orderDraft.tableId,
+        });
+        await addOrderToBillMutation.mutateAsync({
+          billId: bill.id,
+          body: buildCheckoutOrderBody({
+            cart,
+            orderType: "DINE_IN",
+            tableId: orderDraft.tableId,
+            customerName: resolvedCustomerName,
+            customerPhone: orderDraft.customerPhone,
+            orderNote: orderDraft.orderNote,
+            tableLabel,
+            promoCode: checkoutContext.promoEnabled ? checkoutContext.appliedPromo?.code : undefined,
+            promoId: checkoutContext.promoEnabled ? checkoutContext.appliedPromo?.promoId : undefined,
+          }),
+        });
+        setCart([]);
+        resetOrderDraft();
+        Alert.alert("Pesanan Masuk Dapur", `Tagihan ${tableLabel} dibuka — bayar setelah selesai makan.`, [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } catch (error) {
+        Alert.alert("Gagal", getApiErrorMessage(error, "Transaksi tidak berhasil dikirim ke server."));
+      }
+      return;
+    }
+
+    if (tenantInfo?.defaultPaymentTiming === "POSTPAY") {
+      try {
+        await checkoutMutation.mutateAsync(
+          buildCheckoutOrderBody({
+            cart,
+            orderType: mapOrderTypeToServiceMode(orderDraft.orderType),
+            customerName: resolvedCustomerName,
+            customerPhone: orderDraft.customerPhone,
+            orderNote: orderDraft.orderNote,
+            tableLabel,
+            promoCode: checkoutContext.promoEnabled ? checkoutContext.appliedPromo?.code : undefined,
+            promoId: checkoutContext.promoEnabled ? checkoutContext.appliedPromo?.promoId : undefined,
+          }),
         );
         setCart([]);
         resetOrderDraft();
-        Alert.alert("Pesanan Masuk Dapur", `Meja ${tableLabel} - bayar setelah selesai makan.`, [
+        Alert.alert("Pesanan Masuk Dapur", `${tableLabel} — bayar setelah selesai.`, [
           { text: "OK", onPress: () => router.back() },
         ]);
       } catch (error) {
@@ -339,11 +399,7 @@ export default function OrderInfoPage() {
             <CustomerInfoCard
               customerVisitStatus={orderDraft.customerVisitStatus}
               onCustomerVisitStatusChange={(value: CustomerVisitStatus) => {
-                updateDraft({
-                  customerVisitStatus: value,
-                  customerName: value === "returning" ? "" : orderDraft.customerName,
-                });
-                setValidationErrors((prev) => ({ ...prev, visitStatus: undefined }));
+                updateDraft({ customerVisitStatus: value });
               }}
               customerName={orderDraft.customerName}
               onCustomerNameChange={(value) => {
