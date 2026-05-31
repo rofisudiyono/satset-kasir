@@ -5,6 +5,7 @@ import * as kasirApi from "@/lib/api/kasir.api";
 import { getApiErrorMessage } from "@/lib/api/client";
 import type {
   CloseShiftBody,
+  CollectBillPaymentBody,
   CollectPaymentBody,
   OpenShiftBody,
   QueueOrderBody,
@@ -244,6 +245,62 @@ export function useTaxSettingsQuery(enabled: boolean) {
     enabled,
     staleTime: 10 * 60_000,
     gcTime: 30 * 60_000,
+  });
+}
+
+// ─── Bills ───────────────────────────────────────────────────────────────────
+
+export function useBillDetailQuery(billId: string | null) {
+  return useQuery({
+    queryKey: [...kasirKeys.all, "bills", billId],
+    queryFn: () => kasirApi.getBillDetail(billId!),
+    enabled: !!billId,
+    staleTime: 10_000,
+  });
+}
+
+export function useBillsQuery(enabled = true) {
+  return useQuery({
+    queryKey: [...kasirKeys.all, "bills"],
+    queryFn: kasirApi.getBills,
+    enabled,
+    refetchInterval: enabled ? 15_000 : false,
+  });
+}
+
+export function useCreateBillMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { label: string; tableId?: string }) => kasirApi.createBill(body),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...kasirKeys.all, "bills"] });
+    },
+  });
+}
+
+export function useAddOrderToBillMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ billId, body }: { billId: string; body: Parameters<typeof kasirApi.addOrderToBill>[1] }) =>
+      kasirApi.addOrderToBill(billId, body),
+    onSuccess: (_, { billId }) => {
+      void qc.invalidateQueries({ queryKey: [...kasirKeys.all, "bills"] });
+      void qc.invalidateQueries({ queryKey: [...kasirKeys.all, "bills", billId] });
+      void qc.invalidateQueries({ queryKey: [...kasirKeys.all, "orders", "unpaid"] });
+    },
+  });
+}
+
+export function useCollectBillPaymentMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ billId, body }: { billId: string; body: CollectBillPaymentBody }) =>
+      kasirApi.collectBillPayment(billId, body),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...kasirKeys.all, "bills"] });
+      void qc.invalidateQueries({ queryKey: [...kasirKeys.all, "orders", "unpaid"] });
+      void qc.invalidateQueries({ queryKey: orderHistoryPrefix });
+    },
   });
 }
 

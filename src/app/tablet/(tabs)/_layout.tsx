@@ -1,14 +1,20 @@
 import { Redirect, Tabs } from "expo-router";
+import { useAtomValue } from "jotai";
 import React, { useCallback } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { TopNavHeader } from "@/components/layout/TopNavHeader";
+import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
+import { useTenantInfoQuery } from "@/hooks/api/use-kasir-api";
 import { useAuth } from "@/lib/auth";
 import { ColorNeutral } from "@/themes/Colors";
 import { BrandColors } from "@/themes/brand";
 
 export default function TabletTabsLayout() {
   const { isLoggedIn } = useAuth();
+  const isShiftStarted = useAtomValue(isShiftStartedAtom);
+  const { data: tenantInfo } = useTenantInfoQuery(Boolean(isLoggedIn && isShiftStarted));
+  const isPostPay = tenantInfo?.defaultPaymentTiming === "POSTPAY";
 
   const screenOptions = useCallback(
     () => ({
@@ -33,6 +39,7 @@ export default function TabletTabsLayout() {
           <Tabs.Screen name="input-manual" />
           <Tabs.Screen name="riwayat" />
           <Tabs.Screen name="siap-antar" />
+          <Tabs.Screen name="tagihan-aktif" options={{ href: isPostPay ? undefined : null }} />
         </Tabs>
       </View>
     </View>

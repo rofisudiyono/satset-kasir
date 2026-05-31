@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/config/categoryStyles";
@@ -31,6 +32,7 @@ export function VariantSheet({
   onClose,
   onAddToCart,
 }: Props) {
+  const insets = useSafeAreaInsets();
   const [selectedVariants, setSelectedVariants] = useState<
     Record<string, string>
   >({});
@@ -146,7 +148,7 @@ export function VariantSheet({
           activeOpacity={1}
           onPress={onClose}
         />
-        <View style={styles.sheet}>
+        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 32) }]}>
           <View style={styles.dragHandle} />
 
           <XStack gap="$3" alignItems="center" marginBottom="$2">

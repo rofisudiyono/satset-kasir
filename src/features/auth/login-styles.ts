@@ -113,7 +113,7 @@ export const loginStyles = StyleSheet.create({
   },
   submitButtonText: {
     fontFamily: "PlusJakartaSans_800ExtraBold",
-    fontSize: 14,
+    fontSize: 12,
     color: LoginColors.white,
   },
   formCard: {

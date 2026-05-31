@@ -97,8 +97,13 @@ export function getApiErrorMessage(
   if (axios.isAxiosError<ApiErrorBody>(error)) {
     const msg = error.response?.data?.message;
     if (typeof msg === "string" && msg.length > 0) return msg;
+    if (Array.isArray(msg) && msg.length > 0) return msg[0];
     if (!error.response) {
       return "Tidak bisa terhubung ke server API. Pastikan satset-api berjalan dan URL API benar.";
+    }
+    const errStr = error.response?.data?.error;
+    if (typeof errStr === "string" && errStr.length > 0) {
+      return `${errStr} (${error.response.status})`;
     }
   }
   if (error instanceof Error && error.message) return error.message;

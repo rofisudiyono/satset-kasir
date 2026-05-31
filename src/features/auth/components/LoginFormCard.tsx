@@ -106,7 +106,7 @@ export function LoginFormCard({
         <View style={styles.mobileBrand}>
           <View style={styles.mobileLogoFrame}>
             <Image
-              source={require("../../../../assets/images/satset_1024.png")}
+              source={require("../../../../assets/images/icon.png")}
               style={styles.mobileLogo}
               resizeMode="contain"
             />

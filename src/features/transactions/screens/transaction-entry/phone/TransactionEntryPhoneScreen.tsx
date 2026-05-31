@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useAtomValue } from "jotai";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -13,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
 import { TextBodySm, TextCaption, TextH2 } from "@/components/atoms/Typography";
+import { activeBillIdAtom } from "@/features/cart/store/cart.store";
 import {
   CartBar,
   CartPanel,
@@ -51,6 +53,8 @@ export function TransactionEntryPhoneScreen() {
     closeCart,
   } = useTransactionCatalog();
   const { cartTotalItems, cartTotalPrice } = useCartBarTotals();
+  const activeBillId = useAtomValue(activeBillIdAtom);
+  const isBillMode = Boolean(activeBillId);
 
   function handlePanelLayout(e: LayoutChangeEvent) {
     const w = e.nativeEvent.layout.width;
@@ -65,6 +69,15 @@ export function TransactionEntryPhoneScreen() {
         keyboardVerticalOffset={0}
       >
         <View style={styles.catalogPanel} onLayout={handlePanelLayout}>
+        {isBillMode ? (
+          <View style={styles.billModeBanner}>
+            <Ionicons name="receipt-outline" size={14} color={BrandColors.green} />
+            <TextBodySm fontWeight="700" color={BrandColors.green}>
+              Mode: Tambah ke Tagihan
+            </TextBodySm>
+          </View>
+        ) : null}
+
         <View style={styles.catalogPanelHeader}>
           <YStack gap={6} flex={1} paddingRight="$2">
             <TextH2 fontWeight="800" color={BrandColors.text}>
@@ -120,6 +133,7 @@ export function TransactionEntryPhoneScreen() {
           totalItems={cartTotalItems}
           totalPrice={cartTotalPrice}
           onPress={openCart}
+          isBillMode={isBillMode}
         />
       </KeyboardAvoidingView>
 
@@ -198,6 +212,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BrandColors.canvas,
     overflow: "hidden",
+  },
+  billModeBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    backgroundColor: BrandColors.tint,
+    borderBottomWidth: 1,
+    borderBottomColor: BrandColors.border,
   },
   catalogPanelHeader: {
     flexDirection: "row",

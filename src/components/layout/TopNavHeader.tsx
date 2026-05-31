@@ -36,6 +36,7 @@ import {
   getNamespaceFromPathname,
   getOpenShiftRoute,
   getSiapAntarRoute,
+  getTagihanAktifRoute,
 } from "@/lib/routing/device-routes";
 import {
   isShiftStartedAtom,
@@ -57,7 +58,7 @@ type NavItem = {
   href: string;
 };
 
-type RefreshTarget = "web-orders" | "input-manual" | "history" | "ready-orders";
+type RefreshTarget = "web-orders" | "input-manual" | "history" | "ready-orders" | "tagihan-aktif";
 
 const HEADER_TEXT_SECONDARY = BrandColors.textMuted;
 const HEADER_TEXT_MUTED = "rgba(23,31,27,0.35)";
@@ -168,6 +169,9 @@ export function TopNavHeader() {
     if (isSiapAntarTabActive) {
       return "ready-orders";
     }
+    if (isTagihanAktifTabActive) {
+      return "tagihan-aktif";
+    }
     return null;
   }, [isSiapAntarTabActive, isTabletNamespace, pathname]);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -248,6 +252,13 @@ export function TopNavHeader() {
         return;
       }
 
+      if (refreshTarget === "tagihan-aktif") {
+        await queryClient.invalidateQueries({
+          queryKey: [...kasirKeys.all, "orders", "unpaid"],
+        });
+        return;
+      }
+
       await queryClient.invalidateQueries({ queryKey: kdsKeys.board() });
     } finally {
       setIsRefreshing(false);
@@ -259,6 +270,10 @@ export function TopNavHeader() {
   const tenantName = tenantInfo?.tenantName ?? null;
   const branchName = tenantInfo?.branchName ?? null;
   const logoUri = tenantInfo?.logoPath ? `${API_BASE_URL}${tenantInfo.logoPath}` : null;
+  const isPostPay = tenantInfo?.defaultPaymentTiming === "POSTPAY";
+  const tagihanAktifHref = getTagihanAktifRoute(isTabletNamespace);
+  const isTagihanAktifTabActive =
+    pathname === tagihanAktifHref || pathname.startsWith(`${tagihanAktifHref}/`);
   const cashierLabel = shiftData?.cashierName ?? "Kasir 01";
   const shiftSlot = shiftData?.slot ?? "PAGI";
   const shiftStartTime = shiftData?.startTime;
@@ -446,6 +461,29 @@ export function TopNavHeader() {
             </TextBodySm>
             
           </TouchableOpacity>
+
+          {isPostPay ? (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={[
+                styles.tagihanChip,
+                isTagihanAktifTabActive && styles.tagihanChipActive,
+              ]}
+              onPress={() => router.push(tagihanAktifHref as never)}
+            >
+              <Ionicons
+                name="receipt-outline"
+                size={16}
+                color={isTagihanAktifTabActive ? ColorBase.white : BrandColors.textMuted}
+              />
+              <TextBodySm
+                fontWeight="700"
+                color={isTagihanAktifTabActive ? ColorBase.white : BrandColors.textMuted}
+              >
+                Tagihan Aktif
+              </TextBodySm>
+            </TouchableOpacity>
+          ) : null}
 
           {/* <View style={styles.comingSoonChip}>
             <Ionicons
@@ -750,6 +788,22 @@ const styles = StyleSheet.create({
   readyChipActive: {
     backgroundColor: "rgba(4, 120, 87, 0.12)",
     borderColor: "rgba(4, 120, 87, 0.24)",
+  },
+  tagihanChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    minHeight: 34,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: BrandColors.surface,
+    borderWidth: 1,
+    borderColor: ColorNeutral.neutral200,
+  },
+  tagihanChipActive: {
+    backgroundColor: BrandColors.buttonSolid,
+    borderColor: BrandColors.buttonSolid,
   },
   refreshChip: {
     flexDirection: "row",

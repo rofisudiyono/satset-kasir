@@ -12,9 +12,10 @@ type Props = {
   totalItems: number;
   totalPrice: number;
   onPress: () => void;
+  isBillMode?: boolean;
 };
 
-export function CartBar({ totalItems, totalPrice, onPress }: Props) {
+export function CartBar({ totalItems, totalPrice, onPress, isBillMode = false }: Props) {
   if (totalItems === 0) return null;
 
   return (
@@ -25,7 +26,11 @@ export function CartBar({ totalItems, totalPrice, onPress }: Props) {
         style={styles.cartBarInner}
       >
         <View style={styles.cartBarIcon}>
-          <Ionicons name="bag-outline" size={20} color={ColorBase.white} />
+          <Ionicons
+            name={isBillMode ? "add-circle-outline" : "bag-outline"}
+            size={20}
+            color={ColorBase.white}
+          />
         </View>
         <YStack flex={1} gap={1}>
           <TextBodySm color="rgba(255,255,255,0.75)" fontWeight="600">
@@ -37,7 +42,7 @@ export function CartBar({ totalItems, totalPrice, onPress }: Props) {
         </YStack>
         <View style={styles.cartBarButton}>
           <TextBodyLg fontWeight="700" color={ColorBase.white}>
-            Bayar
+            {isBillMode ? "Tambah ke Tagihan" : "Bayar"}
           </TextBodyLg>
           <Ionicons name="arrow-forward" size={16} color={ColorBase.white} />
         </View>

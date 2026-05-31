@@ -59,7 +59,7 @@ export function HomeHeader() {
         overflow="hidden"
       >
         <Image
-          source={require("../../../../../assets/images/satset_1024.png")}
+          source={require("../../../../../assets/images/icon.png")}
           style={{ width: 40, height: 40 }}
           contentFit="cover"
         />

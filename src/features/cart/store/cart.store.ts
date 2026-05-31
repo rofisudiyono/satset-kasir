@@ -90,3 +90,12 @@ export const cartCheckoutContextAtom = atom<{
   appliedPromo: null,
   promoEnabled: false,
 });
+
+// Saat mode "tambah ke bill", simpan billId dan konteks meja
+export const activeBillIdAtom = atom<string | null>(null);
+
+export interface ActiveBillContext {
+  tableId: string | null;
+  tableLabel: string | null;
+}
+export const activeBillContextAtom = atom<ActiveBillContext | null>(null);

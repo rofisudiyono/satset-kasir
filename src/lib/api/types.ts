@@ -17,7 +17,7 @@ export type AuthSession = {
 
 export type ApiErrorBody = {
   error?: string;
-  message?: string;
+  message?: string | string[];
 };
 
 export type ShiftSlotApi = "PAGI" | "SIANG" | "MALAM";
@@ -33,6 +33,44 @@ export type KasirTenantInfo = {
   branchAddress?: string | null;
   branchPhone?: string | null;
   defaultPaymentTiming: 'PREPAY' | 'POSTPAY';
+};
+
+// ─── Bills (Post-Pay) ────────────────────────────────────────────────────────
+
+export type KasirBill = {
+  id: string;
+  label: string;
+  tableId: string | null;
+  tableLabel: string | null;
+  status: "OPEN" | "CLOSED" | "VOIDED";
+  orderCount: number;
+  grandTotal: number;
+  paidAmount: number;
+  unpaidAmount: number;
+  openedAt: string;
+};
+
+export type KasirBillOrderItem = {
+  id: string;
+  nameSnapshot: string;
+  variantNameSnapshot: string | null;
+  qty: number;
+  unitPriceSnapshot: number;
+  note: string | null;
+  modifiers: { id: string; labelSnapshot: string; extraPriceSnapshot: number }[];
+};
+
+export type KasirBillOrder = {
+  id: string;
+  orderNumber: number;
+  status: string;
+  grandTotal: number;
+  createdAt: string;
+  items: KasirBillOrderItem[];
+};
+
+export type KasirBillDetail = KasirBill & {
+  orders: KasirBillOrder[];
 };
 
 // ─── Unpaid Orders (Post-Pay) ─────────────────────────────────────────────────

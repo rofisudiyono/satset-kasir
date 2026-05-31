@@ -54,3 +54,7 @@ export function getSiapAntarRoute(isTablet: boolean): string {
 export function getSettingsRoute(isTablet: boolean): string {
   return getNamespacedRoute(getDeviceNamespace(isTablet), "/setting");
 }
+
+export function getTagihanAktifRoute(isTablet: boolean): string {
+  return getNamespacedRoute(getDeviceNamespace(isTablet), "/tagihan-aktif");
+}

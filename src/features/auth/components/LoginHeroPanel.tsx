@@ -30,7 +30,7 @@ export function LoginHeroPanel({ padding = 48 }: LoginHeroPanelProps) {
           <XStack alignItems="center" gap={16}>
             <View style={styles.logoFrame}>
               <Image
-                source={require("../../../../assets/images/satset_1024.png")}
+                source={require("../../../../assets/images/icon.png")}
                 style={styles.logo}
                 contentFit="contain"
               />

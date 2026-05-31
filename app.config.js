@@ -66,11 +66,11 @@ module.exports = {
     slug: "satset",
     version: "1.0.0",
     orientation: "default",
-    icon: "./assets/images/satset_1024.png",
+    icon: "./assets/images/icon.png",
     scheme: process.env.EXPO_PUBLIC_APP_SCHEME || profile.scheme,
     userInterfaceStyle: "automatic",
     ios: {
-      icon: "./assets/images/satset_1024.png",
+      icon: "./assets/images/icon.png",
       bundleIdentifier:
         process.env.EXPO_PUBLIC_IOS_BUNDLE_IDENTIFIER ||
         profile.iosBundleIdentifier,
@@ -80,9 +80,7 @@ module.exports = {
       softwareKeyboardLayoutMode: "resize",
       adaptiveIcon: {
         backgroundColor: "#E6F4FE",
-        backgroundImage: "./assets/images/android-icon-background.png",
-        foregroundImage: "./assets/images/satset_1024.png",
-        monochromeImage: "./assets/images/android-icon-monochrome.png",
+        foregroundImage: "./assets/images/adaptive-icon.png",
       },
       package:
         process.env.EXPO_PUBLIC_ANDROID_PACKAGE || profile.androidPackage,
@@ -118,11 +116,11 @@ module.exports = {
         {
           backgroundColor: "#FFFFFF",
           android: {
-            image: "./assets/images/satset_1024.png",
+            image: "./assets/images/icon.png",
             imageWidth: 200,
           },
           ios: {
-            image: "./assets/images/satset_1024.png",
+            image: "./assets/images/icon.png",
             imageWidth: 200,
           },
         },

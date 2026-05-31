@@ -3,6 +3,8 @@ import { api } from "./client";
 import type {
   CheckoutOrderBody,
   GetOrderHistoryParams,
+  KasirBill,
+  KasirBillDetail,
   KasirMenu,
   KasirOrderDetail,
   KasirOrder,
@@ -218,6 +220,40 @@ export async function getTaxSettings(): Promise<KasirTaxSettings | null> {
 export async function getTenantInfo(): Promise<KasirTenantInfo> {
   const { data } = await api.get<{ data: KasirTenantInfo }>("/kasir/tenant-info");
   return data.data;
+}
+
+// ─── Bills ───────────────────────────────────────────────────────────────────
+
+export async function getBills(): Promise<KasirBill[]> {
+  const { data } = await api.get<{ data: KasirBill[] }>("/kasir/bills");
+  return data.data ?? [];
+}
+
+export async function getBillDetail(billId: string): Promise<KasirBillDetail> {
+  const { data } = await api.get<{ data: KasirBillDetail }>(`/kasir/bills/${billId}`);
+  return data.data;
+}
+
+export async function createBill(body: { label: string; tableId?: string }): Promise<KasirBill> {
+  const { data } = await api.post<{ data: KasirBill }>("/kasir/bills", body);
+  return data.data;
+}
+
+export async function addOrderToBill(billId: string, body: Omit<CheckoutOrderBody, "payments">): Promise<void> {
+  await api.post(`/kasir/bills/${billId}/orders`, body);
+}
+
+export type CollectBillPaymentBody = {
+  method: "CASH" | "QRIS" | "TRANSFER" | "DEBIT" | "CREDIT" | "EWALLET" | "VA";
+  amountPaid: number;
+  amountReceived?: number;
+  label?: string;
+};
+
+export async function collectBillPayment(billId: string, body: CollectBillPaymentBody): Promise<void> {
+  await api.post(`/kasir/bills/${billId}/collect-payment`, body, {
+    headers: { "X-Idempotency-Key": `bill-${billId}-${Date.now()}` },
+  });
 }
 
 // ─── Post-Pay ─────────────────────────────────────────────────────────────────
