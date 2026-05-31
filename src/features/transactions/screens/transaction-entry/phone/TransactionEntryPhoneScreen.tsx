@@ -183,7 +183,7 @@ export function TransactionEntryPhoneScreen() {
             </XStack>
 
             <View style={styles.cartPanelShell}>
-              <CartPanel />
+              <CartPanel onRequestClose={closeCart} />
             </View>
           </SafeAreaView>
           </KeyboardAvoidingView>

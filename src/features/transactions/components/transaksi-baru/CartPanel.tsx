@@ -40,9 +40,15 @@ const ORDER_DRAFT_DEBOUNCE_MS = 400;
 
 type CartPanelProps = {
   compact?: boolean;
+  /**
+   * Called right before CartPanel navigates away. On phone the cart lives inside
+   * a Modal that would otherwise float above the pushed screen, so the host
+   * passes its modal-close handler here to match the tablet (inline) behavior.
+   */
+  onRequestClose?: () => void;
 };
 
-export function CartPanel({ compact = false }: CartPanelProps) {
+export function CartPanel({ compact = false, onRequestClose }: CartPanelProps) {
   const router = useRouter();
   const [cart, setCart] = useAtom(cartAtom);
   const [orderDraft, setOrderDraft] = useAtom(cartOrderDraftAtom);
@@ -180,6 +186,7 @@ export function CartPanel({ compact = false }: CartPanelProps) {
   function handleOpenHoldPage() {
     if (cart.length === 0) return;
     persistCheckoutContext();
+    onRequestClose?.();
     router.push({
       pathname: "/order-info",
       params: { mode: "hold" },
@@ -189,6 +196,7 @@ export function CartPanel({ compact = false }: CartPanelProps) {
   function handleOpenPayPage() {
     if (cart.length === 0) return;
     persistCheckoutContext();
+    onRequestClose?.();
     router.push({
       pathname: "/order-info",
       params: { mode: "pay" },
@@ -220,6 +228,7 @@ export function CartPanel({ compact = false }: CartPanelProps) {
         tableId: undefined,
         tableLabel: undefined,
       });
+      onRequestClose?.();
       router.push(`/tagihan/${billId}` as never);
     } catch (error) {
       Alert.alert("Gagal", getApiErrorMessage(error, "Pesanan tidak berhasil ditambahkan ke tagihan."));
