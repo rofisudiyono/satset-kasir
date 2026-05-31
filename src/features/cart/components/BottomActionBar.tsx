@@ -13,6 +13,7 @@ interface BottomActionBarProps {
   compact?: boolean;
   isBillMode?: boolean;
   isLoading?: boolean;
+  isPostPay?: boolean;
 }
 
 export function BottomActionBar({
@@ -22,6 +23,7 @@ export function BottomActionBar({
   compact = false,
   isBillMode = false,
   isLoading = false,
+  isPostPay = false,
 }: BottomActionBarProps) {
   const isCartEmpty = cartLength === 0;
   const disabled = isCartEmpty || isLoading;
@@ -61,7 +63,7 @@ export function BottomActionBar({
           fontSize={compact ? 13 : undefined}
           color={ColorBase.white}
         >
-          Lanjut Bayar
+          {isPostPay ? "Lanjut Pesan" : "Lanjut Bayar"}
         </TextBodyLg>
       </TouchableOpacity>
     </View>

@@ -39,6 +39,7 @@ interface CustomerInfoCardProps {
   isTablesLoading: boolean;
   onSelectTable: (table: KasirTable) => void;
   validationErrors?: CustomerInfoValidationErrors;
+  isPostPay?: boolean;
 }
 
 export function CustomerInfoCard({
@@ -58,6 +59,7 @@ export function CustomerInfoCard({
   isTablesLoading,
   onSelectTable,
   validationErrors = {},
+  isPostPay = false,
 }: CustomerInfoCardProps) {
   const [pickerVisible, setPickerVisible] = useState(false);
   const isDineIn = orderType === "Dine In";
@@ -113,67 +115,71 @@ export function CustomerInfoCard({
         </View>
       </View>
 
-      <TextCaption color="$colorSecondary" marginBottom={8} marginTop={12}>
-        Pernah mengunjungi kami? <TextCaption color={ColorNeutral.neutral400}>(opsional)</TextCaption>
-      </TextCaption>
-      <View style={styles.visitControl}>
-        <TouchableOpacity
-          activeOpacity={0.82}
-          style={[
-            styles.visitOption,
-            customerVisitStatus === "returning" && styles.visitOptionActive,
-          ]}
-          onPress={() => onCustomerVisitStatusChange("returning")}
-        >
-          <Ionicons
-            name="repeat-outline"
-            size={16}
-            color={
-              customerVisitStatus === "returning"
-                ? ColorPrimary.primary700
-                : ColorNeutral.neutral500
-            }
-          />
-          <TextBodySm
-            fontWeight="700"
-            color={
-              customerVisitStatus === "returning"
-                ? ColorPrimary.primary700
-                : "$colorSecondary"
-            }
-          >
-            Pernah
-          </TextBodySm>
-        </TouchableOpacity>
-        <TouchableOpacity
-          activeOpacity={0.82}
-          style={[
-            styles.visitOption,
-            customerVisitStatus === "new" && styles.visitOptionActive,
-          ]}
-          onPress={() => onCustomerVisitStatusChange("new")}
-        >
-          <Ionicons
-            name="person-add-outline"
-            size={16}
-            color={
-              customerVisitStatus === "new"
-                ? ColorPrimary.primary700
-                : ColorNeutral.neutral500
-            }
-          />
-          <TextBodySm
-            fontWeight="700"
-            color={
-              customerVisitStatus === "new"
-                ? ColorPrimary.primary700
-                : "$colorSecondary"
-            }
-          >
-            Belum pernah
-          </TextBodySm>
-        </TouchableOpacity>
-      </View>
+      {!isPostPay ? (
+        <>
+          <TextCaption color="$colorSecondary" marginBottom={8} marginTop={12}>
+            Pernah mengunjungi kami? <TextCaption color={ColorNeutral.neutral400}>(opsional)</TextCaption>
+          </TextCaption>
+          <View style={styles.visitControl}>
+            <TouchableOpacity
+              activeOpacity={0.82}
+              style={[
+                styles.visitOption,
+                customerVisitStatus === "returning" && styles.visitOptionActive,
+              ]}
+              onPress={() => onCustomerVisitStatusChange("returning")}
+            >
+              <Ionicons
+                name="repeat-outline"
+                size={16}
+                color={
+                  customerVisitStatus === "returning"
+                    ? ColorPrimary.primary700
+                    : ColorNeutral.neutral500
+                }
+              />
+              <TextBodySm
+                fontWeight="700"
+                color={
+                  customerVisitStatus === "returning"
+                    ? ColorPrimary.primary700
+                    : "$colorSecondary"
+                }
+              >
+                Pernah
+              </TextBodySm>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.82}
+              style={[
+                styles.visitOption,
+                customerVisitStatus === "new" && styles.visitOptionActive,
+              ]}
+              onPress={() => onCustomerVisitStatusChange("new")}
+            >
+              <Ionicons
+                name="person-add-outline"
+                size={16}
+                color={
+                  customerVisitStatus === "new"
+                    ? ColorPrimary.primary700
+                    : ColorNeutral.neutral500
+                }
+              />
+              <TextBodySm
+                fontWeight="700"
+                color={
+                  customerVisitStatus === "new"
+                    ? ColorPrimary.primary700
+                    : "$colorSecondary"
+                }
+              >
+                Belum pernah
+              </TextBodySm>
+            </TouchableOpacity>
+          </View>
+        </>
+      ) : null}
 
       <TextCaption color="$colorSecondary" marginBottom={8} marginTop={12}>
         Mode Layanan

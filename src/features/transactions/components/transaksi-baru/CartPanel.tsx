@@ -23,6 +23,7 @@ import {
   useAddOrderToBillMutation,
   useTablesQuery,
   useTaxSettingsQuery,
+  useTenantInfoQuery,
   useValidatePromoMutation,
 } from "@/hooks/api/use-kasir-api";
 import { getApiErrorMessage } from "@/lib/api/client";
@@ -67,6 +68,8 @@ export function CartPanel({ compact = false }: CartPanelProps) {
   const [promoLoading, setPromoLoading] = useState(false);
   const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(true);
   const { data: taxSettings } = useTaxSettingsQuery(Boolean(shiftData?.shiftId));
+  const { data: tenantInfo } = useTenantInfoQuery(Boolean(shiftData?.shiftId));
+  const isPostPay = tenantInfo?.defaultPaymentTiming === "POSTPAY";
   const validatePromoMutation = useValidatePromoMutation();
 
   const subtotal = cart.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
@@ -299,6 +302,7 @@ export function CartPanel({ compact = false }: CartPanelProps) {
           compact={compact}
           isBillMode={isBillMode}
           isLoading={addOrderToBillMutation.isPending}
+          isPostPay={isPostPay}
         />
       </KeyboardAvoidingView>
     </View>

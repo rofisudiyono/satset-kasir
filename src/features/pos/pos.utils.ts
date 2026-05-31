@@ -3,10 +3,12 @@ import type { PaymentMethod, Transaction } from "@/types";
 import type {
   CheckoutOrderBody,
   CheckoutPayment,
+  KasirBillDetail,
   KasirOrder,
+  KasirUnpaidOrder,
 } from "@/lib/api/types";
 
-import type { PosFulfillmentStatus, PosOrder, PosOrderPayment } from "./pos.types";
+import type { PosFulfillmentStatus, PosOrder, PosOrderItem, PosOrderPayment } from "./pos.types";
 
 const WEB_ORDER_TIMEOUT_MS = 30 * 60 * 1000;
 
@@ -67,6 +69,104 @@ export function buildPosOrderFromCart(params: {
     grandTotal: params.grandTotal,
     promoCode: params.promoCode,
     promoId: params.promoId,
+  } satisfies PosOrder;
+}
+
+/**
+ * Build a local PosOrder snapshot from a server-side bill so the payment-success
+ * screen (which renders from posOrdersAtom) can display a receipt after a bill is
+ * collected. Bills expose only a grandTotal — tax is derived as grandTotal - subtotal.
+ */
+export function buildPosOrderFromBill(bill: KasirBillDetail, shiftId?: string): PosOrder {
+  const items: PosOrderItem[] = bill.orders.flatMap((order) =>
+    order.items.map((item) => {
+      const modifiersExtra = item.modifiers.reduce(
+        (sum, modifier) => sum + modifier.extraPriceSnapshot,
+        0,
+      );
+      return {
+        id: item.id,
+        productId: item.id,
+        name: item.variantNameSnapshot
+          ? `${item.nameSnapshot} (${item.variantNameSnapshot})`
+          : item.nameSnapshot,
+        qty: item.qty,
+        unitPrice: item.unitPriceSnapshot + modifiersExtra,
+        note: item.note ?? undefined,
+        modifierLabels:
+          item.modifiers.length > 0
+            ? item.modifiers.map((modifier) => modifier.labelSnapshot)
+            : undefined,
+      };
+    }),
+  );
+  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.qty, 0);
+  const taxAmount = Math.max(0, bill.grandTotal - subtotal);
+
+  return {
+    id: bill.id,
+    orderNumber: bill.label,
+    createdAt: new Date(bill.openedAt).getTime() || Date.now(),
+    shiftId,
+    source: "WALK_IN",
+    status: "PAID",
+    fulfillment: "SERVED",
+    tableId: bill.tableId ?? undefined,
+    tableLabel: bill.tableLabel ?? undefined,
+    serviceMode: "DINE_IN",
+    items,
+    payments: [],
+    subtotal,
+    discountAmount: 0,
+    taxAmount,
+    grandTotal: bill.grandTotal,
+  } satisfies PosOrder;
+}
+
+/**
+ * Build a local PosOrder snapshot from a server-side unpaid (post-pay) order so the
+ * payment-success screen can display a receipt after the order is collected.
+ */
+export function buildPosOrderFromUnpaidOrder(order: KasirUnpaidOrder, shiftId?: string): PosOrder {
+  const items: PosOrderItem[] = order.items.map((item) => {
+    const modifiersExtra = item.modifiers.reduce(
+      (sum, modifier) => sum + modifier.extraPriceSnapshot,
+      0,
+    );
+    return {
+      id: item.id,
+      productId: item.menuId ?? item.id,
+      name: item.variantNameSnapshot
+        ? `${item.nameSnapshot} (${item.variantNameSnapshot})`
+        : item.nameSnapshot,
+      qty: item.qty,
+      unitPrice: item.unitPriceSnapshot + modifiersExtra,
+      note: item.note ?? undefined,
+      modifierLabels:
+        item.modifiers.length > 0
+          ? item.modifiers.map((modifier) => modifier.labelSnapshot)
+          : undefined,
+    };
+  });
+
+  return {
+    id: order.id,
+    createdAt: new Date(order.createdAt).getTime() || Date.now(),
+    shiftId,
+    source: "WALK_IN",
+    status: "PAID",
+    fulfillment: "SERVED",
+    tableId: order.tableId ?? undefined,
+    tableLabel: order.tableLabel ?? undefined,
+    customerName: order.customerName ?? undefined,
+    orderNote: order.orderNote ?? undefined,
+    serviceMode: "DINE_IN",
+    items,
+    payments: [],
+    subtotal: order.subtotal,
+    discountAmount: order.discountAmount,
+    taxAmount: order.taxAmount,
+    grandTotal: order.grandTotal,
   } satisfies PosOrder;
 }
 

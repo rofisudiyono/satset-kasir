@@ -80,6 +80,7 @@ export default function OrderInfoPage() {
 
   const { data: tables = [], isLoading: isTablesLoading } = useTablesQuery(true);
   const { data: tenantInfo } = useTenantInfoQuery(Boolean(shiftData?.shiftId));
+  const isPostPay = tenantInfo?.defaultPaymentTiming === "POSTPAY";
   const { data: taxSettings } = useTaxSettingsQuery(Boolean(shiftData?.shiftId));
   const checkoutMutation = useCheckoutMutation();
   const createBillMutation = useCreateBillMutation();
@@ -319,7 +320,7 @@ export default function OrderInfoPage() {
           </TouchableOpacity>
           <View style={styles.headerText}>
             <TextCaption color={ColorPrimary.primary700} fontWeight="800">
-              {isPay ? "LANJUT BAYAR" : "TAHAN ORDER"}
+              {isPay ? (isPostPay ? "LANJUT PESAN" : "LANJUT BAYAR") : "TAHAN ORDER"}
             </TextCaption>
             <TextH2 fontWeight="800" color={ColorNeutral.neutral900}>
               Info Order
@@ -431,6 +432,7 @@ export default function OrderInfoPage() {
                 setValidationErrors((prev) => ({ ...prev, table: undefined }));
               }}
               validationErrors={validationErrors}
+              isPostPay={isPostPay}
             />
           </ScrollView>
         </View>
@@ -448,7 +450,7 @@ export default function OrderInfoPage() {
               color={ColorBase.white}
             />
             <TextBodyLg fontWeight="800" color={ColorBase.white}>
-              {isPay ? "Konfirmasi & Bayar" : "Tahan Order"}
+              {isPay ? (isPostPay ? "Konfirmasi & Pesan" : "Konfirmasi & Bayar") : "Tahan Order"}
             </TextBodyLg>
           </TouchableOpacity>
         </View>

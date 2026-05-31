@@ -22,15 +22,19 @@ import { catalogStockAtom } from "@/features/catalog/store/catalog.store";
 import {
   appendPaymentToOrder,
   buildCheckoutOrderBody,
+  buildPosOrderFromBill,
+  buildPosOrderFromUnpaidOrder,
   calculateOrderRemainingAmount,
 } from "@/features/pos/pos.utils";
 import { posOrdersAtom } from "@/features/pos/store/pos.store";
 import { isShiftStartedAtom } from "@/features/shift/store/shift.store";
 import {
   getApiErrorMessage,
+  useBillDetailQuery,
   useCheckoutMutation,
   useCollectBillPaymentMutation,
   useCollectPaymentMutation,
+  useUnpaidOrdersQuery,
 } from "@/hooks/api/use-kasir-api";
 import { useResponsiveLayout } from "@/hooks/use-responsive";
 import { getTagihanAktifRoute } from "@/lib/routing/device-routes";
@@ -66,6 +70,9 @@ export default function PembayaranTunaiPage() {
     () => orders.find((item) => item.id === params.orderId),
     [orders, params.orderId],
   );
+
+  const { data: billDetail } = useBillDetailQuery(params.collectBillId ?? null);
+  const { data: unpaidOrders } = useUnpaidOrdersQuery(!!params.collectOrderId);
 
   const amountToPay = Number(params.amountToPay ?? 0);
   const [inputValue, setInputValue] = useState("0");
@@ -129,6 +136,19 @@ export default function PembayaranTunaiPage() {
   async function handleConfirm() {
     if (isCollectMode) {
       try {
+        // Snapshot the server-side bill/order BEFORE payment so the success
+        // screen can render a receipt (these queries get invalidated after).
+        const collectedUnpaidOrder = unpaidOrders?.find(
+          (item) => item.id === params.collectOrderId,
+        );
+        const collectedOrder = isCollectBillMode
+          ? billDetail
+            ? buildPosOrderFromBill(billDetail)
+            : null
+          : collectedUnpaidOrder
+            ? buildPosOrderFromUnpaidOrder(collectedUnpaidOrder)
+            : null;
+
         if (isCollectBillMode && params.collectBillId) {
           await collectBillPaymentMutation.mutateAsync({
             billId: params.collectBillId,
@@ -152,7 +172,30 @@ export default function PembayaranTunaiPage() {
             },
           });
         }
-        router.replace(getTagihanAktifRoute(isTablet) as never);
+
+        if (collectedOrder) {
+          const paymentId = `pay-${Date.now()}`;
+          const paidOrder = appendPaymentToOrder(collectedOrder, {
+            id: paymentId,
+            method: "tunai",
+            amountPaid: amountToPay,
+            amountReceived: receivedAmount,
+            label: params.paymentLabel || "Tunai",
+            paidAt: Date.now(),
+          });
+          setOrders((prev) => [
+            paidOrder,
+            ...prev.filter((item) => item.id !== paidOrder.id),
+          ]);
+          router.replace({
+            pathname: "/pembayaran-sukses",
+            params: { orderId: paidOrder.id, paymentId },
+          });
+        } else {
+          // Receipt data unavailable (rare); payment already succeeded, so fall
+          // back to the active-bills list instead of an empty success screen.
+          router.replace(getTagihanAktifRoute(isTablet) as never);
+        }
       } catch (error) {
         Alert.alert("Gagal", getApiErrorMessage(error, "Pembayaran tidak berhasil."));
       }
