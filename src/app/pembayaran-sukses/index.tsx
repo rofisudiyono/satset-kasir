@@ -21,6 +21,7 @@ import { cartAtom } from "@/features/cart/store/cart.store";
 import {
   buildReceiptHtml,
   getReceiptPrintHeightPx,
+  type PrintableReceiptPayment,
 } from "@/features/payment/utils/receipt.utils";
 import {
   calculateOrderPaidAmount,
@@ -110,6 +111,20 @@ export default function PembayaranSuksesPage() {
     ? getPaymentMethodLabel(payment.method)
     : "Pembayaran";
 
+  const receiptPayments: PrintableReceiptPayment[] = order.payments.map((p) => {
+    const amtReceived = p.amountReceived ?? p.amountPaid;
+    return {
+      method: getPaymentMethodLabel(p.method),
+      label: p.label,
+      amountPaid: p.amountPaid,
+      cashReceived: p.method === "tunai" && p.amountReceived != null ? amtReceived : undefined,
+      change:
+        p.method === "tunai" && p.amountReceived != null
+          ? Math.max(0, amtReceived - p.amountPaid)
+          : undefined,
+    };
+  });
+
   const receiptPayload = {
     orderNumber: order.orderNumber ?? order.id,
     dateTime: new Intl.DateTimeFormat("id-ID", {
@@ -126,12 +141,9 @@ export default function PembayaranSuksesPage() {
     discount,
     tax: ppn,
     grandTotal: order.grandTotal,
-    paymentMethod: methodLabel,
-    amountPaid: paymentAmount,
+    payments: receiptPayments,
     totalPaid,
     remaining,
-    cashReceived: payment?.method === "tunai" ? received : undefined,
-    change: payment?.method === "tunai" ? change : undefined,
   };
 
   const dateStr = new Date(

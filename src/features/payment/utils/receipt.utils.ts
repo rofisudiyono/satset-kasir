@@ -1,5 +1,5 @@
 import { storeInfo } from "@/features/payment/api/receipt.data";
-import type { KasirOrderDetail, KasirOrderPayment } from "@/lib/api/types";
+import type { KasirOrderDetail } from "@/lib/api/types";
 import type { ESCPOSReceipt } from "@/utils/esc-pos-formatter";
 import { formatPrice } from "@/utils";
 
@@ -7,6 +7,14 @@ export type PrintableReceiptItem = {
   name: string;
   qty: number;
   price: number;
+};
+
+export type PrintableReceiptPayment = {
+  method: string;
+  label?: string | null;
+  amountPaid: number;
+  cashReceived?: number;
+  change?: number;
 };
 
 export type PrintableReceiptOrder = {
@@ -17,12 +25,9 @@ export type PrintableReceiptOrder = {
   discount: number;
   tax: number;
   grandTotal: number;
-  paymentMethod: string;
-  amountPaid: number;
+  payments: PrintableReceiptPayment[];
   totalPaid: number;
   remaining: number;
-  cashReceived?: number;
-  change?: number;
 };
 
 type ReceiptStoreInfo = {
@@ -94,16 +99,20 @@ export function getReceiptPrintHeightPx(
     (total, item) => total + estimateItemRowHeight(item, printerWidthPx),
     0,
   );
+
+  const paymentRows = receipt.payments.reduce((count, p) => {
+    return count + 1 + (p.cashReceived !== undefined ? 1 : 0) + (p.change !== undefined ? 1 : 0);
+  }, 0);
+
   const conditionalRows = [
     receipt.discount > 0,
+    receipt.payments.length > 1,
     receipt.remaining > 0,
-    receipt.cashReceived !== undefined,
-    receipt.change !== undefined,
   ].filter(Boolean).length;
 
   const headerHeight = 116;
   const orderMetaHeight = 62;
-  const summaryRowsHeight = (5 + conditionalRows) * 28;
+  const summaryRowsHeight = (3 + paymentRows + conditionalRows) * 28;
   const separatorsHeight = 24;
   const footerHeight = 42;
   const safetyPadding = 32;
@@ -168,17 +177,24 @@ function getReceiptItemsFromOrder(order: KasirOrderDetail): PrintableReceiptItem
   });
 }
 
-function getPrimaryPayment(payments: KasirOrderPayment[]) {
-  return payments[0];
-}
-
 export function buildPrintableReceiptOrderFromKasirOrder(
   order: KasirOrderDetail,
 ): PrintableReceiptOrder {
   const totalPaid = order.payments.reduce((sum, payment) => sum + payment.amountPaid, 0);
-  const primaryPayment = getPrimaryPayment(order.payments);
-  const amountPaid = primaryPayment?.amountPaid ?? totalPaid;
-  const amountReceived = primaryPayment?.amountReceived ?? amountPaid;
+
+  const payments: PrintableReceiptPayment[] = order.payments.map((p) => {
+    const amountReceived = p.amountReceived ?? p.amountPaid;
+    return {
+      method: getKasirPaymentMethodLabel(p.method),
+      label: p.label,
+      amountPaid: p.amountPaid,
+      cashReceived: p.method === "CASH" && p.amountReceived != null ? amountReceived : undefined,
+      change:
+        p.method === "CASH" && p.amountReceived != null
+          ? Math.max(0, amountReceived - p.amountPaid)
+          : undefined,
+    };
+  });
 
   return {
     orderNumber: order.orderNumber,
@@ -188,17 +204,9 @@ export function buildPrintableReceiptOrderFromKasirOrder(
     discount: order.discountAmount,
     tax: order.taxAmount,
     grandTotal: order.grandTotal,
-    paymentMethod: primaryPayment
-      ? getKasirPaymentMethodLabel(primaryPayment.method)
-      : "Pembayaran",
-    amountPaid,
+    payments,
     totalPaid,
     remaining: Math.max(0, order.grandTotal - totalPaid),
-    cashReceived: primaryPayment?.method === "CASH" ? amountReceived : undefined,
-    change:
-      primaryPayment?.method === "CASH"
-        ? Math.max(0, amountReceived - amountPaid)
-        : undefined,
   };
 }
 
@@ -246,11 +254,13 @@ export function buildReceiptHtml(
       ${receipt.discount > 0 ? `<tr><td>Diskon</td><td style="text-align:right">-${formatPrice(receipt.discount)}</td></tr>` : ""}
       <tr><td>Pajak</td><td style="text-align:right">${formatPrice(receipt.tax)}</td></tr>
       <tr class="total"><td>TOTAL</td><td style="text-align:right">${formatPrice(receipt.grandTotal)}</td></tr>
-      <tr><td>Metode</td><td style="text-align:right">${escapeHtml(receipt.paymentMethod)}</td></tr>
-      <tr><td>Total Dibayar</td><td style="text-align:right">${formatPrice(receipt.totalPaid)}</td></tr>
+      ${receipt.payments.map((p) => `
+      <tr><td>${escapeHtml(p.method)}${p.label ? ` <span style="font-size:17px">(${escapeHtml(p.label)})</span>` : ""}</td><td style="text-align:right">${formatPrice(p.amountPaid)}</td></tr>
+      ${p.cashReceived !== undefined ? `<tr><td style="padding-left:8px;font-size:17px">Uang Diterima</td><td style="text-align:right;font-size:17px">${formatPrice(p.cashReceived)}</td></tr>` : ""}
+      ${p.change !== undefined ? `<tr><td style="padding-left:8px;font-size:17px">Kembalian</td><td style="text-align:right;font-size:17px">${formatPrice(p.change)}</td></tr>` : ""}
+      `).join("")}
+      ${receipt.payments.length > 1 ? `<tr><td>Total Dibayar</td><td style="text-align:right">${formatPrice(receipt.totalPaid)}</td></tr>` : ""}
       ${receipt.remaining > 0 ? `<tr><td>Sisa</td><td style="text-align:right">${formatPrice(receipt.remaining)}</td></tr>` : ""}
-      ${receipt.cashReceived !== undefined ? `<tr><td>Uang Diterima</td><td style="text-align:right">${formatPrice(receipt.cashReceived)}</td></tr>` : ""}
-      ${receipt.change !== undefined ? `<tr><td>Kembalian</td><td style="text-align:right">${formatPrice(receipt.change)}</td></tr>` : ""}
     </table>
     <hr/>
     <p style="margin-top:8px">Terima kasih!</p>
@@ -275,11 +285,8 @@ export function buildEscPosReceiptData(
     discount: receipt.discount,
     tax: receipt.tax,
     grandTotal: receipt.grandTotal,
-    paymentMethod: receipt.paymentMethod,
-    amountPaid: receipt.amountPaid,
+    payments: receipt.payments,
     totalPaid: receipt.totalPaid,
     remaining: receipt.remaining,
-    cashReceived: receipt.cashReceived,
-    change: receipt.change,
   };
 }

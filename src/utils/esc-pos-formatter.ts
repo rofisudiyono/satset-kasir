@@ -18,12 +18,15 @@ export interface ESCPOSReceipt {
   discount: number;
   tax: number;
   grandTotal: number;
-  paymentMethod: string;
-  amountPaid: number;
+  payments: {
+    method: string;
+    label?: string | null;
+    amountPaid: number;
+    cashReceived?: number;
+    change?: number;
+  }[];
   totalPaid: number;
   remaining: number;
-  cashReceived?: number;
-  change?: number;
 }
 
 // ESC/POS Control Commands
@@ -119,16 +122,21 @@ export function buildESCPOSReceipt(receipt: ESCPOSReceipt): string {
   output += formatSeparator(width);
 
   // Payment info
-  output += formatLine('Metode', receipt.paymentMethod, width);
-  output += formatLine('Pembayaran Ini', formatCurrency(receipt.amountPaid), width);
-  output += formatLine('Total Dibayar', formatCurrency(receipt.totalPaid), width);
-  output += formatLine('Sisa', formatCurrency(receipt.remaining), width);
-
-  // Cash-specific details
-  if (receipt.cashReceived !== undefined && receipt.change !== undefined) {
-    output += LINE_FEED;
-    output += formatLine('Uang Diterima', formatCurrency(receipt.cashReceived), width);
-    output += formatLine('Kembalian', formatCurrency(receipt.change), width);
+  for (const p of receipt.payments) {
+    const methodLabel = p.label ? `${p.method} (${p.label})` : p.method;
+    output += formatLine(methodLabel, formatCurrency(p.amountPaid), width);
+    if (p.cashReceived !== undefined) {
+      output += formatLine('  Uang Diterima', formatCurrency(p.cashReceived), width);
+    }
+    if (p.change !== undefined) {
+      output += formatLine('  Kembalian', formatCurrency(p.change), width);
+    }
+  }
+  if (receipt.payments.length > 1) {
+    output += formatLine('Total Dibayar', formatCurrency(receipt.totalPaid), width);
+  }
+  if (receipt.remaining > 0) {
+    output += formatLine('Sisa', formatCurrency(receipt.remaining), width);
   }
 
   // Footer
